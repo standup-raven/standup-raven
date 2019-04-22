@@ -57,9 +57,9 @@ The generated standup contains names of members who have yet not filled their st
 
 #### TODO
 
-* Permissions
-* Vacation
-* Periodic reports
+- [] Permissions
+- [] Vacation
+- [] Periodic reports
 
 # 🚦 Getting Started
 
