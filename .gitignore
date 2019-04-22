@@ -1,0 +1,9 @@
+dist
+webapp/dist
+webapp/node_modules
+server/vendor/
+.history/
+coverage.txt
+coverage.html
+build_properties.json
+webapp/sentry.properties

@@ -1,0 +1,9 @@
+{
+  "presets": ["next/babel", "stage-0"],
+  "plugins": [
+    "@babel/plugin-proposal-object-rest-spread",
+  ],
+  "env": {
+    "debug": false
+  }
+}

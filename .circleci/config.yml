@@ -1,0 +1,71 @@
+# Use the latest 2.1 version of CircleCI pipeline processing engine, see https://circleci.com/docs/2.0/configuration-reference/
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.12-node
+    working_directory: /go/src/github.com/harshilsharma/standup-raven
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore glide dependencies cache
+          key: dependency-cache-{{ checksum "./server/glide.lock" }}
+      - restore_cache:
+          name: Restore NPM dependencies cache
+          key: dependency-cache-{{ checksum "./webapp/package-lock.json" }}
+      - run: make test
+      - run: make check-style
+      - run: make dist
+      - save_cache:
+          name: Save Golang dependencies cache
+          key: dependency-cache-{{ checksum "./server/glide.lock" }}
+          paths:
+            - ./server/vendor
+      - save_cache:
+          name: Save NPM dependencies cache
+          key: dependency-cache-{{ checksum "./webapp/package-lock.json" }}
+          paths:
+            - ./webapp/node_modules
+      - store_artifacts:
+          path: ./dist
+          destination: build
+      - persist_to_workspace:
+          root: .
+          paths:  
+            - dist
+  release:
+    docker:
+      - image: circleci/golang:1.12-node
+    working_directory: /go/src/github.com/harshilsharma/standup-raven
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: make release
+
+workflows:
+  build:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              ignore: /.*/
+  build-and-release:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: /^release-.*/
+            tags:
+              ignore: /.*/
+      - release:
+          requires:
+            - build
+          filters:
+            branches:
+              only: /^release-.*/
+            tags:
+              ignore: /.*/
