@@ -220,11 +220,7 @@ environment variable for it to work -
 
 * **I think the plugin is awesome and super cool.**
 
-    Hey, that's not a problem! It was designed that way 😎.
-
-# 🔮 Future Scope
-
-* Permissions 
+    Hey, that's not a problem! It was designed that way 😎. 
 
 # 🌟 Attribution
 
