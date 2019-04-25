@@ -1,3 +1,7 @@
+<img src="assets/images/banner.png" width="300px">
+
+#
+
 ## 🏌️‍♀️Deployment
 
 The plugin can be deployed to Mattermost directly via the `deploy` make command. You need to expose the following

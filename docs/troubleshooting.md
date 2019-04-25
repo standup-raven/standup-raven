@@ -1,3 +1,7 @@
+<img src="assets/images/banner.png" width="300px">
+
+#
+
 ## ⁉ Troubleshooting
 
 * ##### I submitted my standup but it's not showing up in the report.
