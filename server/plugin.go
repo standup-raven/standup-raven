@@ -2,18 +2,18 @@ package main
 
 import (
 	"github.com/getsentry/raven-go"
-	"github.com/harshilsharma/standup-raven/server/logger"
-	"github.com/harshilsharma/standup-raven/server/standup/notification"
+	"github.com/standup-raven/standup-raven/server/logger"
+	"github.com/standup-raven/standup-raven/server/standup/notification"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/harshilsharma/standup-raven/server/command"
-	"github.com/harshilsharma/standup-raven/server/config"
-	"github.com/harshilsharma/standup-raven/server/controller"
-	"github.com/harshilsharma/standup-raven/server/util"
+	"github.com/standup-raven/standup-raven/server/command"
+	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/controller"
+	"github.com/standup-raven/standup-raven/server/util"
 	"os"
 	"path/filepath"
 )

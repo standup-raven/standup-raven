@@ -3,7 +3,7 @@ package command
 import (
 	"fmt"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/harshilsharma/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/config"
 	"strings"
 )
 

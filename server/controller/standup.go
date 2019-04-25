@@ -2,10 +2,10 @@ package controller
 
 import (
 	"encoding/json"
-	"github.com/harshilsharma/standup-raven/server/config"
-	"github.com/harshilsharma/standup-raven/server/logger"
-	"github.com/harshilsharma/standup-raven/server/otime"
-	"github.com/harshilsharma/standup-raven/server/standup"
+	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/logger"
+	"github.com/standup-raven/standup-raven/server/otime"
+	"github.com/standup-raven/standup-raven/server/standup"
 	"net/http"
 )
 

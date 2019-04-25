@@ -5,7 +5,7 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.12-node
-    working_directory: /go/src/github.com/harshilsharma/standup-raven
+    working_directory: /go/src/github.com/standup-raven/standup-raven
     steps:
       - checkout
       - restore_cache:
@@ -37,7 +37,7 @@ jobs:
   release:
     docker:
       - image: circleci/golang:1.12-node
-    working_directory: /go/src/github.com/harshilsharma/standup-raven
+    working_directory: /go/src/github.com/standup-raven/standup-raven
     steps:
       - checkout
       - attach_workspace:

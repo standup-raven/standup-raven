@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
-	"github.com/harshilsharma/standup-raven/server/otime"
+	"github.com/standup-raven/standup-raven/server/otime"
 	"log"
 	"net/http"
 	"net/http/httputil"

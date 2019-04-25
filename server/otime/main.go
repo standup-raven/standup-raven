@@ -2,7 +2,7 @@ package otime
 
 import (
 	"fmt"
-	"github.com/harshilsharma/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/config"
 	"strings"
 	"time"
 )

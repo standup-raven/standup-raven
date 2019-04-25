@@ -1,4 +1,4 @@
-package: github.com/harshilsharma/standup-raven/server
+package: github.com/standup-raven/standup-raven/server
 import:
 - package: github.com/mattermost/mattermost-server
   version: ~5.9.0
