@@ -61,12 +61,20 @@ This message tags members who haven't yet filled their standup.
 * Receive auto-generated standup report at the end of configured window close time. 
 The generated standup contains names of members who have yet not filled their standup.
 
-## Index
+## Guides
+
+### User Guide
+
+* 👩‍💼 [User Guide](docs/user_guide.md)
+
+### Developer Guide
 
 * 🚦 [Getting Started](docs/getting_started.md)
 
+### Ops Guide
+
 * ⬇ [Installing](docs/installation.md)
-      
+
 * 🏌️‍♀️ [️Deployment](docs/deployment.md)
 
 * ⚙ [Plugin Configurations](docs/configuration.md)
