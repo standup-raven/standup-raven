@@ -61,12 +61,6 @@ This message tags members who haven't yet filled their standup.
 * Receive auto-generated standup report at the end of configured window close time. 
 The generated standup contains names of members who have yet not filled their standup.
 
-### TODO
-
-* [ ] Permissions
-* [ ] Vacation
-* [ ] Periodic reports
-
 ## Index
 
 * 🚦 [Getting Started](docs/getting_started.md)
@@ -76,6 +70,14 @@ The generated standup contains names of members who have yet not filled their st
 * ⚙ [Plugin Configurations](docs/configuration.md)
 
 * ⁉ [Troubleshooting](docs/troubleshooting.md)
+
+### TODO
+
+* [ ] Permissions
+
+* [ ] Vacation
+
+* [ ] Periodic reports
 
 ## 🌟 Attribution
 
