@@ -1,3 +1,7 @@
+<img src="assets/images/banner.png" width="300px">
+
+#
+
 ## ⚙ Plugin Configurations
 
 * `Bot Username`: User account to be used for sending all automated posts from. It's recommended to use a separate, bot account for the purpose.

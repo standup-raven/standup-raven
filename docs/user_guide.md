@@ -1,3 +1,7 @@
+<img src="assets/images/banner.png" width="300px">
+
+#
+
 ## 👩‍💼 User Guide
 
 Once the plugin is installed in your Mattermost instance, enabling teams to use it is super easy.
