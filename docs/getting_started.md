@@ -1,4 +1,4 @@
-![](assets/images/banner.png =600px)
+![](assets/images/banner.png)
 #
 
 ## 🚦 Getting Started
