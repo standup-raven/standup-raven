@@ -3,10 +3,10 @@ package command
 import (
 	"fmt"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/harshilsharma/standup-raven/server/config"
-	"github.com/harshilsharma/standup-raven/server/otime"
-	"github.com/harshilsharma/standup-raven/server/standup/notification"
-	"github.com/harshilsharma/standup-raven/server/util"
+	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/otime"
+	"github.com/standup-raven/standup-raven/server/standup/notification"
+	"github.com/standup-raven/standup-raven/server/util"
 	"strings"
 	"time"
 )

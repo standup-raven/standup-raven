@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"github.com/harshilsharma/standup-raven/server/config"
-	"github.com/harshilsharma/standup-raven/server/util"
+	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/util"
 	"net/http"
 )
 

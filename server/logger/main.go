@@ -2,7 +2,7 @@ package logger
 
 import (
 	"github.com/getsentry/raven-go"
-	"github.com/harshilsharma/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/config"
 )
 
 func Debug(msg string, err error, keyValuePairs ...interface{}) {

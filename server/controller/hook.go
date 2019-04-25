@@ -2,8 +2,8 @@ package controller
 
 import (
 	"fmt"
-	"github.com/harshilsharma/standup-raven/server/otime"
-	"github.com/harshilsharma/standup-raven/server/standup/notification"
+	"github.com/standup-raven/standup-raven/server/otime"
+	"github.com/standup-raven/standup-raven/server/standup/notification"
 	"net/http"
 )
 

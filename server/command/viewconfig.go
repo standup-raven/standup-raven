@@ -3,10 +3,10 @@ package command
 import (
 	"fmt"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/harshilsharma/standup-raven/server/config"
-	"github.com/harshilsharma/standup-raven/server/logger"
-	"github.com/harshilsharma/standup-raven/server/standup"
-	"github.com/harshilsharma/standup-raven/server/util"
+	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/logger"
+	"github.com/standup-raven/standup-raven/server/standup"
+	"github.com/standup-raven/standup-raven/server/util"
 	"strings"
 )
 

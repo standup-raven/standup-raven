@@ -2,7 +2,7 @@ package util
 
 import (
 	"fmt"
-	"github.com/harshilsharma/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/config"
 )
 
 func UserIcon(userId string) string {

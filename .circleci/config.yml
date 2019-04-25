@@ -1,11 +1,14 @@
 # Use the latest 2.1 version of CircleCI pipeline processing engine, see https://circleci.com/docs/2.0/configuration-reference/
 version: 2.1
 
+orbs:
+  codecov: codecov/codecov@1.0.4
+
 jobs:
   build:
     docker:
       - image: circleci/golang:1.12-node
-    working_directory: /go/src/github.com/harshilsharma/standup-raven
+    working_directory: /go/src/github.com/standup-raven/standup-raven
     steps:
       - checkout
       - restore_cache:
@@ -15,6 +18,8 @@ jobs:
           name: Restore NPM dependencies cache
           key: dependency-cache-{{ checksum "./webapp/package-lock.json" }}
       - run: make test
+      - codecov/upload:
+          file: coverage.txt
       - run: make check-style
       - run: make dist
       - save_cache:
@@ -37,7 +42,7 @@ jobs:
   release:
     docker:
       - image: circleci/golang:1.12-node
-    working_directory: /go/src/github.com/harshilsharma/standup-raven
+    working_directory: /go/src/github.com/standup-raven/standup-raven
     steps:
       - checkout
       - attach_workspace:
@@ -69,3 +74,4 @@ workflows:
               only: /^release-.*/
             tags:
               ignore: /.*/
+
