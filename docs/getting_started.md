@@ -61,10 +61,6 @@ This will produce three artifacts in `/dist` directory -
 
 This will also install, Glide - the Go package manager.
 
-### ⬇ Installing
-
-Upload the plugin binary for your platform in Mattermost `System Console` > `Plugins (BETA)` > `Management`.
-
 ## 💯 Running Tests
 
 Following command will run all server and webapp tests -

@@ -64,6 +64,8 @@ The generated standup contains names of members who have yet not filled their st
 ## Index
 
 * 🚦 [Getting Started](docs/getting_started.md)
+
+* ⬇ [Installing](docs/installation.md)
       
 * 🏌️‍♀️ [️Deployment](docs/deployment.md)
 
