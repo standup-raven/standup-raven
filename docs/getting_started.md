@@ -1,3 +1,7 @@
+<img src="assets/images/banner.png" width="500px">
+
+#
+
 ## 🚦 Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. 
