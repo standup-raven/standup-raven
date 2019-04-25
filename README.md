@@ -2,8 +2,7 @@
 
 <img src="docs/assets/images/banner.png?raw=true" width="70%" max-width="1500px"></img>
 # 
-[![CircleCI](https://circleci.com/gh/harshilsharma/standup-raven/tree/master.svg?style=svg&circle-token=1f130d198f8556a338a5cfc0f25730cc83598f17)](https://circleci.com/gh/harshilsharma/standup-raven/tree/master)
-![Fossa](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fharshilsharma%2Fstandup-raven.svg?type=shield)
+[![CircleCI](https://circleci.com/gh/standup-raven/standup-raven/tree/master.svg?style=svg)](https://circleci.com/gh/standup-raven/standup-raven/tree/master)
 
 A Mattermost plugin for communicating daily standups across team
 
