@@ -30,7 +30,7 @@ environment variable for it to work -
         
 1. Fill your standup by clicking on the Standup Raven icon in the channel header bar. The icon may be hidden in ellipsis icon.
 
-    ![](docs/assets/images/channel_header_button.png)
+    ![](assets/images/channel_header_button.png)
     
 1. Execute help command anytime to access plugin commands help -
 
