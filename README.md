@@ -69,13 +69,13 @@ The generated standup contains names of members who have yet not filled their st
 
 ## Index
 
-* [🚦 Getting Started](docs/getting_started.md)
+* 🚦 [Getting Started](docs/getting_started.md)
       
-* [🏌️‍♀️Deployment](docs/deployment.md)
+* 🏌️‍♀ [️Deployment](docs/deployment.md)
 
-* [⚙ Plugin Configurations](docs/configuration.md)
+* ⚙ [Plugin Configurations](docs/configuration.md)
 
-* [⁉ Troubleshooting](docs/troubleshooting.md)
+* ⁉ [Troubleshooting](docs/troubleshooting.md)
 
 ## 🌟 Attribution
 
