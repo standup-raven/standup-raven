@@ -13,7 +13,7 @@ A Mattermost plugin for communicating daily standups across team
     <img src="docs/assets/images/standup.gif?raw=true"></img>
 </div>
 
-### ✨ Features
+## ✨ Features
 
 * Configurable standup window per channel for standup reminders
 * Automatic window open reminders
@@ -55,7 +55,7 @@ This message tags members who haven't yet filled their standup.
 * Receive auto-generated standup report at the end of configured window close time. 
 The generated standup contains names of members who have yet not filled their standup.
 
-##### TODO
+### TODO
 
 - [ ] Permissions
 - [ ] Vacation
