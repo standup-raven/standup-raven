@@ -16,6 +16,7 @@ A Mattermost plugin for communicating daily standups across team
 ## ✨ Features
 
 * Configurable standup window per channel for standup reminders
+
 * Automatic window open reminders
 
     ![](docs/assets/images/window_open_notification.png)
@@ -34,11 +35,11 @@ A Mattermost plugin for communicating daily standups across team
 
 * Multiple standup report formats -
 
-    * User Aggregated - tasks aggregated by individual users
+  * User Aggregated - tasks aggregated by individual users
 
     ![](docs/assets/images/user_aggregated_report.png)
      
-    * Type Aggregated - tasks aggregated by type
+  * Type Aggregated - tasks aggregated by type
 
     ![](docs/assets/images/type_aggregated_report.png)
 
@@ -57,9 +58,9 @@ The generated standup contains names of members who have yet not filled their st
 
 ### TODO
 
-- [ ] Permissions
-- [ ] Vacation
-- [ ] Periodic reports
+* [ ] Permissions
+* [ ] Vacation
+* [ ] Periodic reports
 
 ## 🚦 Getting Started
 
