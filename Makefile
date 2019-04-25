@@ -42,7 +42,7 @@ fix-style: .npminstall check-style-server
 	@echo Checking for style guide compliance
 	cd webapp && npm run fix
 	
-test-server:
+test-server: vendor
 	@echo Running server tests
 	go test -v -coverprofile=coverage.txt ./...
 
