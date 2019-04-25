@@ -1,4 +1,4 @@
-## User Guide
+## 👩‍💼 User Guide
 
 Once the plugin is installed in your Mattermost instance, enabling teams to use it is super easy.
 Just follow these steps and you'll be ready in no time.
