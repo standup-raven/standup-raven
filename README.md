@@ -4,6 +4,7 @@
 # 
 [![CircleCI](https://circleci.com/gh/harshilsharma/standup-raven/tree/master.svg?style=svg&circle-token=1f130d198f8556a338a5cfc0f25730cc83598f17)](https://circleci.com/gh/harshilsharma/standup-raven/tree/master)
 ![Fossa](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fharshilsharma%2Fstandup-raven.svg?type=shield)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fstandup-raven%2Fstandup-raven.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fstandup-raven%2Fstandup-raven?ref=badge_shield)
 
 A Mattermost plugin for communicating daily standups across team
 
@@ -225,3 +226,7 @@ environment variable for it to work -
 # 🌟 Attribution
 
 <div>Project logo (the Raven) is made by <a href="https://www.freepik.com/" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fstandup-raven%2Fstandup-raven.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fstandup-raven%2Fstandup-raven?ref=badge_large)
