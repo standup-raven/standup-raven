@@ -1,6 +1,9 @@
 # Use the latest 2.1 version of CircleCI pipeline processing engine, see https://circleci.com/docs/2.0/configuration-reference/
 version: 2.1
 
+orbs:
+  codecov: codecov/codecov@1.0.4
+
 jobs:
   build:
     docker:
@@ -15,6 +18,8 @@ jobs:
           name: Restore NPM dependencies cache
           key: dependency-cache-{{ checksum "./webapp/package-lock.json" }}
       - run: make test
+      - codecov/upload:
+          file: {{ coverage.txt }}
       - run: make check-style
       - run: make dist
       - save_cache:
