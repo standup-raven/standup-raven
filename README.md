@@ -71,7 +71,7 @@ The generated standup contains names of members who have yet not filled their st
 
 * 🚦 [Getting Started](docs/getting_started.md)
       
-* 🏌️‍♀ [️Deployment](docs/deployment.md)
+* 🏌️‍♀️ [️Deployment](docs/deployment.md)
 
 * ⚙ [Plugin Configurations](docs/configuration.md)
 
