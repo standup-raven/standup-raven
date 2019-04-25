@@ -3,6 +3,7 @@
 <img src="docs/assets/images/banner.png?raw=true" width="70%" max-width="1500px"></img>
 # 
 [![CircleCI](https://circleci.com/gh/standup-raven/standup-raven/tree/master.svg?style=svg)](https://circleci.com/gh/standup-raven/standup-raven/tree/master)
+[![codecov](https://codecov.io/gh/standup-raven/standup-raven/branch/master/graph/badge.svg)](https://codecov.io/gh/standup-raven/standup-raven)
 
 A Mattermost plugin for communicating daily standups across team
 
