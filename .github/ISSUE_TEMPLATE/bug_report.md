@@ -1,7 +1,6 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: "[BUG] "
 labels: ''
 assignees: ''
 
@@ -27,6 +26,6 @@ What actually happened.
 If applicable, add screenshots to help explain your problem.
 
 **Environment (if applicable):**
-- OS: [e.g. iOS]
-- Browser [e.g. firefox, chrome]
-- Version [e.g. 68]
+-  OS: e.g. iOS
+-  Browser e.g. firefox, chrome
+-  Version e.g. 68
