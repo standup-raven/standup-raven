@@ -1,4 +1,4 @@
-![](assets/images/banner.png)
+<img src="assets/images/banner.png" width="500px">
 #
 
 ## 🚦 Getting Started
