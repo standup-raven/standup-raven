@@ -19,7 +19,7 @@ jobs:
           key: dependency-cache-{{ checksum "./webapp/package-lock.json" }}
       - run: make test
       - codecov/upload:
-          file: {{ coverage.txt }}
+          file: coverage.txt
       - run: make check-style
       - run: make dist
       - save_cache:
