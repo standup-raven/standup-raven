@@ -31,7 +31,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
             message: {
                 show: false,
                 text: '',
-                type: '',
+                type: 'info',
             },
             showSpinner: true,
             standupConfig: {
@@ -330,6 +330,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                         placement={'bottom'}
                         overlay={
                             <Tooltip
+                                id={'standup-submit-btn-tooltip'}
                                 className={this.state.activeTab === lastTab ? 'hidden' : ''}
                             >
                                 <strong>

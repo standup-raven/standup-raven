@@ -57,7 +57,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             message: {
                 show: false,
                 text: '',
-                type: '',
+                type: 'info',
             },
         };
     };
