@@ -207,7 +207,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                             onChange={onChange}
                             name={'line' + (i + 1)}
                             className={className}
-                            value={this.state.standup[className][`line${i + 1}`] || ''}
+                            value={this.state.standup[className] ? (this.state.standup[className][`line${i + 1}`] || '') : ''}
                         />
                         <FormControl.Feedback/>
                     </InputGroup>
