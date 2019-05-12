@@ -16,6 +16,7 @@ import (
 	"github.com/standup-raven/standup-raven/server/util"
 	"os"
 	"path/filepath"
+	"github.com/pkg/profile"
 )
 
 var SentryEnabled string
@@ -190,5 +191,6 @@ func (p *Plugin) initSentry() error {
 }
 
 func main() {
+	defer profile.Start().Stop()
 	plugin.ClientMain(&Plugin{})
 }

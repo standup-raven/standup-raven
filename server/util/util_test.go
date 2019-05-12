@@ -1,6 +1,7 @@
 package util
 
 import (
+	"github.com/mattermost/mattermost-server/model"
 	"testing"
 )
 
@@ -47,4 +48,18 @@ func TestMax(t *testing.T) {
 	assert.Equal(t, 2, Max(2, 1))
 	assert.Equal(t, 0, Max(-1, 0))
 	assert.Equal(t, -1, Max(-1, -2))
+}
+
+func TestSendEphemeralText(t *testing.T) {
+	response, err := SendEphemeralText("my message")
+	
+	assert.Nil(t, err)
+	assert.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, response.Type)
+	assert.Equal(t, "my message", response.Text)
+}
+
+func TestDifference(t *testing.T) {
+	assert.Equal(t, []string{"a", "b"}, Difference([]string{"a", "b", "c", "d"}, []string{"c", "d", "e"}))
+	assert.Equal(t, []string{}, Difference([]string{"a"}, []string{"a"}))
+	assert.Equal(t, []string{}, Difference([]string{"a", "b", "c", "d"}, []string{"a", "b", "c", "d"}))
 }
