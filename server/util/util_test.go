@@ -1,8 +1,13 @@
 package util
 
 import (
+	"github.com/bouk/monkey"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/standup-raven/standup-raven/server/otime"
+	"net/http"
+	"net/url"
 	"testing"
+	"time"
 )
 
 import "github.com/stretchr/testify/assert"
@@ -62,4 +67,40 @@ func TestDifference(t *testing.T) {
 	assert.Equal(t, []string{"a", "b"}, Difference([]string{"a", "b", "c", "d"}, []string{"c", "d", "e"}))
 	assert.Equal(t, []string{}, Difference([]string{"a"}, []string{"a"}))
 	assert.Equal(t, []string{}, Difference([]string{"a", "b", "c", "d"}, []string{"a", "b", "c", "d"}))
+}
+
+func TestGetCurrentDateString(t *testing.T) {
+	monkey.Patch(otime.Now, func() otime.OTime {
+		t, _ := time.Parse("02-Jan-06", "02-Jan-06")
+		return otime.OTime{t}
+	})
+	defer monkey.Unpatch(otime.Now())
+	
+	assert.Equal(t, "20060102", GetCurrentDateString())
+}
+
+func TestGetKeyHash(t *testing.T) {
+	assert.Equal(t, "uEPTMBNRbhuJGbFdJXMDYF1g7v9gs+Mw7y42YBpxwQA=", GetKeyHash("dummy_key"))
+}
+
+func TestDumpRequest(t *testing.T) {
+	url, _ := url.Parse("https://www.example.com")
+	
+	assert.True(t, len(DumpRequest(&http.Request{
+		URL:  url,
+	})) > 0)
+}
+
+func TestContainsDuplicates(t *testing.T) {
+	duplicateItem, hasDuplicate := ContainsDuplicates(&[]string{"a", "a"})
+	assert.Equal(t, "a", duplicateItem)
+	assert.True(t, hasDuplicate)
+
+	duplicateItem, hasDuplicate = ContainsDuplicates(&[]string{"a", "b"})
+	assert.Equal(t, "", duplicateItem)
+	assert.False(t, hasDuplicate)
+
+	duplicateItem, hasDuplicate = ContainsDuplicates(&[]string{})
+	assert.Equal(t, "", duplicateItem)
+	assert.False(t, hasDuplicate)
 }
