@@ -14,8 +14,7 @@ Set up your development environment for building, running, and testing the Stand
 
 #### 👨‍💻 Obtaining Source
 
-    # TODO - test this, and update to use new repo path
-    $ go get -u github.com/standup-raven/mattermost-standup-plugin/..
+    $ go get -u github.com/standup-raven/standup-raven/server
 
 #### Go
 
