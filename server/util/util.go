@@ -77,7 +77,7 @@ func SendEphemeralText(msg string) (*model.CommandResponse, *model.AppError) {
 }
 
 // Set Difference: A - B
-func Difference(a, b []string) ([]string) {
+func Difference(a, b []string) []string {
 	m := make(map[string]bool)
 	diff := []string{}
 

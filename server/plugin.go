@@ -10,13 +10,13 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/pkg/profile"
 	"github.com/standup-raven/standup-raven/server/command"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller"
 	"github.com/standup-raven/standup-raven/server/util"
 	"os"
 	"path/filepath"
-	"github.com/pkg/profile"
 )
 
 var SentryEnabled string
