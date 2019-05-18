@@ -3,15 +3,15 @@ package notification
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/standup-raven/standup-raven/server/config"
-	"github.com/standup-raven/standup-raven/server/otime"
-	"github.com/standup-raven/standup-raven/server/standup"
-	"github.com/standup-raven/standup-raven/server/util"
 	"github.com/bouk/monkey"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/pkg/errors"
+	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/otime"
+	"github.com/standup-raven/standup-raven/server/standup"
+	"github.com/standup-raven/standup-raven/server/util"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"strconv"
@@ -529,7 +529,7 @@ func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now().Add(-55 * time.Minute)}
 		windowCloseTime := otime.OTime{otime.Now().Add(5 * time.Minute)}
-		
+
 		return &standup.StandupConfig{
 			ChannelId:       "channel_1",
 			WindowOpenTime:  windowOpenTime,
@@ -575,7 +575,7 @@ func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 		return nil, nil
 	})
 	defer monkey.Unpatch(standup.GetUserStandup)
-	
+
 	monkey.Patch(config.Mattermost.GetUser, func(string) (*model.User, *model.AppError) {
 		return nil, model.NewAppError("", "", nil, "", http.StatusInternalServerError)
 	})
@@ -702,9 +702,74 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
 }
 
-//func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
-//	
-//}
+func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing.T) {
+	mockAPI := baseMock()
+	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(nil, util.EmptyAppError())
+	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
+
+	location, _ := time.LoadLocation("Asia/Kolkata")
+	mockConfig := &config.Configuration{
+		Location:      location,
+		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+	}
+
+	config.SetConfig(mockConfig)
+
+	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
+		return map[string]string{
+			"channel_1": "channel_1",
+		}, nil
+	})
+	defer monkey.Unpatch(standup.GetStandupChannels)
+
+	monkey.Patch(SendStandupReport, func(channelIDs []string, date otime.OTime, visibility string, userId string, updateStatus bool) error {
+		return nil
+	})
+	defer monkey.Unpatch(SendStandupReport)
+
+	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
+		return &ChannelNotificationStatus{
+			StandupReportSent:           false,
+			WindowOpenNotificationSent:  false,
+			WindowCloseNotificationSent: false,
+		}, nil
+	})
+	defer monkey.Unpatch(GetNotificationStatus)
+
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+
+		return &standup.StandupConfig{
+			ChannelId:       "channel_2",
+			WindowOpenTime:  windowOpenTime,
+			WindowCloseTime: windowCloseTime,
+			Enabled:         true,
+			Members:         []string{"user_id_1", "user_id_2"},
+			ReportFormat:    config.ReportFormatUserAggregated,
+			Sections:        []string{"section 1", "section 2"},
+		}, nil
+	})
+	defer monkey.Unpatch(standup.GetStandupConfig)
+
+	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
+		return nil
+	})
+	defer monkey.Unpatch(SetNotificationStatus)
+
+	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
+		return &standup.UserStandup{}, nil
+	})
+	defer monkey.Unpatch(standup.GetUserStandup)
+
+	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
+		return nil, errors.New("")
+	})
+	defer monkey.Unpatch(GetNotificationStatus)
+
+	assert.NotNil(t, SendNotificationsAndReports())
+}
 
 func TestSendStandupReport(t *testing.T) {
 	mockAPI := baseMock()
@@ -712,14 +777,14 @@ func TestSendStandupReport(t *testing.T) {
 	mockAPI.On("GetUser", "user_id_1").Return(
 		&model.User{
 			FirstName: "Foo",
-			LastName: "Bar",
+			LastName:  "Bar",
 		}, nil,
 	)
 
 	mockAPI.On("GetUser", "user_id_2").Return(
 		&model.User{
 			FirstName: "John",
-			LastName: "Doe",
+			LastName:  "Doe",
 		}, nil,
 	)
 
@@ -730,20 +795,20 @@ func TestSendStandupReport(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId: channelID,
-			WindowOpenTime: windowOpenTime,
+			ChannelId:       channelID,
+			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
-			ReportFormat: config.ReportFormatTypeAggregated,
-			Sections: []string{"section_1", "section_2"},
-			Members: []string{"user_id_1", "user_id_2"},
-			Enabled: true,
+			ReportFormat:    config.ReportFormatTypeAggregated,
+			Sections:        []string{"section_1", "section_2"},
+			Members:         []string{"user_id_1", "user_id_2"},
+			Enabled:         true,
 		}, nil
 	})
 	defer monkey.Unpatch(standup.GetStandupConfig)
 
 	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
 		return &standup.UserStandup{
-			UserID: userID,
+			UserID:    userID,
 			ChannelID: channelID,
 			Standup: map[string]*[]string{
 				"section_1": {"task_1", "task_2"},
@@ -758,7 +823,7 @@ func TestSendStandupReport(t *testing.T) {
 	})
 	defer monkey.Unpatch(GetNotificationStatus)
 
-	monkey.Patch(SetNotificationStatus, func (channelID string, status *ChannelNotificationStatus) error {
+	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
 		return nil
 	})
 	defer monkey.Unpatch(SetNotificationStatus)
@@ -790,15 +855,88 @@ func TestSendStandupReport(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId: channelID,
-			WindowOpenTime: windowOpenTime,
+			ChannelId:       channelID,
+			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
-			ReportFormat: config.ReportFormatTypeAggregated,
-			Sections: []string{"section_1", "section_2"},
-			Members: []string{},
-			Enabled: true,
+			ReportFormat:    config.ReportFormatTypeAggregated,
+			Sections:        []string{"section_1", "section_2"},
+			Members:         []string{},
+			Enabled:         true,
 		}, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
+}
+
+func TestGetNotificationStatus(t *testing.T) {
+	mockAPI := baseMock()
+
+	notificationStatusJson, _ := json.Marshal(ChannelNotificationStatus{
+		WindowOpenNotificationSent:  true,
+		WindowCloseNotificationSent: false,
+		StandupReportSent:           true,
+	})
+	mockAPI.On("KVGet", "MrIQnMD7XQtCPwD4cbhDi+EOGVg0KEwgVEYVFyCDFHE=").Return(notificationStatusJson, nil)
+
+	location, _ := time.LoadLocation("Asia/Kolkata")
+	mockConfig := &config.Configuration{
+		Location:      location,
+		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+	}
+
+	config.SetConfig(mockConfig)
+
+	actualNotificationStatus, err := GetNotificationStatus("channel_1")
+	assert.Nil(t, err, "no error should have been produced")
+
+	expectedNotificationStatus := &ChannelNotificationStatus{
+		WindowOpenNotificationSent:  true,
+		WindowCloseNotificationSent: false,
+		StandupReportSent:           true,
+	}
+	assert.Equal(t, expectedNotificationStatus, actualNotificationStatus)
+}
+
+func TestGetNotificationStatus_KVGet_Error(t *testing.T) {
+	mockAPI := baseMock()
+
+	mockAPI.On("KVGet", "MrIQnMD7XQtCPwD4cbhDi+EOGVg0KEwgVEYVFyCDFHE=").Return(nil, model.NewAppError("", "", nil, "", 0))
+
+	location, _ := time.LoadLocation("Asia/Kolkata")
+	mockConfig := &config.Configuration{
+		Location:      location,
+		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+	}
+
+	config.SetConfig(mockConfig)
+
+	actualNotificationStatus, err := GetNotificationStatus("channel_1")
+	assert.NotNil(t, err, "error should have been produced as KVGet failed")
+	assert.Nil(t, actualNotificationStatus)
+}
+
+func TestGetNotificationStatus_Json_Error(t *testing.T) {
+	mockAPI := baseMock()
+
+	notificationStatusJson, _ := json.Marshal(ChannelNotificationStatus{
+		WindowOpenNotificationSent:  true,
+		WindowCloseNotificationSent: false,
+		StandupReportSent:           true,
+	})
+	mockAPI.On("KVGet", "MrIQnMD7XQtCPwD4cbhDi+EOGVg0KEwgVEYVFyCDFHE=").Return(notificationStatusJson[0:len(notificationStatusJson)-10], nil)
+
+	location, _ := time.LoadLocation("Asia/Kolkata")
+	mockConfig := &config.Configuration{
+		Location:      location,
+		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+	}
+
+	config.SetConfig(mockConfig)
+
+	actualNotificationStatus, err := GetNotificationStatus("channel_1")
+	assert.NotNil(t, err, "error should have been produced as inbalid JSOn was returned by KVGet")
+	assert.Nil(t, actualNotificationStatus)
 }
