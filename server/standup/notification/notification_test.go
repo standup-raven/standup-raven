@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"net/http"
 	"strconv"
 	"testing"
 	"time"
@@ -474,7 +475,7 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 	mockAPI := baseMock()
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
-	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
+	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(nil, &model.AppError{})
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -526,7 +527,18 @@ func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 	defer monkey.Unpatch(GetNotificationStatus)
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		return nil, errors.New("")
+		windowOpenTime := otime.OTime{otime.Now().Add(-55 * time.Minute)}
+		windowCloseTime := otime.OTime{otime.Now().Add(5 * time.Minute)}
+		
+		return &standup.StandupConfig{
+			ChannelId:       "channel_1",
+			WindowOpenTime:  windowOpenTime,
+			WindowCloseTime: windowCloseTime,
+			Enabled:         true,
+			Members:         []string{"user_id_1", "user_id_2"},
+			ReportFormat:    config.ReportFormatUserAggregated,
+			Sections:        []string{"section 1", "section 2"},
+		}, nil
 	})
 	defer monkey.Unpatch(standup.GetStandupConfig)
 
@@ -547,7 +559,7 @@ func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
 		if channelID == "channel_1" {
 			if userID == "user_id_1" || userID == "user_id_2" {
-				return &standup.UserStandup{}, nil
+				return nil, nil
 			}
 		} else if channelID == "channel_2" {
 			if userID == "user_id_1" || userID == "user_id_2" {
@@ -563,6 +575,11 @@ func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 		return nil, nil
 	})
 	defer monkey.Unpatch(standup.GetUserStandup)
+	
+	monkey.Patch(config.Mattermost.GetUser, func(string) (*model.User, *model.AppError) {
+		return nil, model.NewAppError("", "", nil, "", http.StatusInternalServerError)
+	})
+	defer monkey.Unpatch(config.Mattermost.GetUser)
 
 	assert.NotNil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
@@ -684,6 +701,10 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
 }
+
+//func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
+//	
+//}
 
 func TestSendStandupReport(t *testing.T) {
 	mockAPI := baseMock()
