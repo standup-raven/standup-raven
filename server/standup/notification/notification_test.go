@@ -821,6 +821,38 @@ func TestGetNotificationStatus_Json_Error(t *testing.T) {
 	assert.Nil(t, actualNotificationStatus)
 }
 
+func TestGetNotificationStatus_KVSet_Error(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+
+	notificationStatusJson, _ := json.Marshal(ChannelNotificationStatus{
+		WindowOpenNotificationSent:  true,
+		WindowCloseNotificationSent: false,
+		StandupReportSent:           true,
+	})
+	mockAPI.On("KVGet", "MrIQnMD7XQtCPwD4cbhDi+EOGVg0KEwgVEYVFyCDFHE=").Return(notificationStatusJson, nil)
+	mockAPI.On("KVSet")
+
+	location, _ := time.LoadLocation("Asia/Kolkata")
+	mockConfig := &config.Configuration{
+		Location:      location,
+		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+	}
+
+	config.SetConfig(mockConfig)
+
+	actualNotificationStatus, err := GetNotificationStatus("channel_1")
+	assert.Nil(t, err, "no error should have been produced")
+
+	expectedNotificationStatus := &ChannelNotificationStatus{
+		WindowOpenNotificationSent:  true,
+		WindowCloseNotificationSent: false,
+		StandupReportSent:           true,
+	}
+	assert.Equal(t, expectedNotificationStatus, actualNotificationStatus)
+}
+
 func TestSendStandupReport(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
@@ -1587,41 +1619,4 @@ func TestSendStandupReport_UpdateStatus_True_GetNotificationStatus_Error(t *test
 
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", true)
 	assert.NotNil(t, err, "should not produce any error")
-	
-
-	//// no standup channels specified
-	//err = SendStandupReport([]string{}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
-	//assert.Nil(t, err, "should not produce any error")
-	//
-	//// error in GetStandupConfig
-	//monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-	//	return nil, errors.New("")
-	//})
-	//err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", true)
-	//assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
-	//
-	//// no standup config
-	//monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-	//	return nil, nil
-	//})
-	//err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", true)
-	//assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
-	//
-	//// standup with no members
-	//monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-	//	windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-	//	windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
-	//
-	//	return &standup.StandupConfig{
-	//		ChannelId:       channelID,
-	//		WindowOpenTime:  windowOpenTime,
-	//		WindowCloseTime: windowCloseTime,
-	//		ReportFormat:    config.ReportFormatTypeAggregated,
-	//		Sections:        []string{"section_1", "section_2"},
-	//		Members:         []string{},
-	//		Enabled:         true,
-	//	}, nil
-	//})
-	//err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", true)
-	//assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
 }
