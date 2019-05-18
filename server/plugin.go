@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/pkg/profile"
 	"github.com/standup-raven/standup-raven/server/command"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller"
@@ -191,6 +190,5 @@ func (p *Plugin) initSentry() error {
 }
 
 func main() {
-	defer profile.Start().Stop()
 	plugin.ClientMain(&Plugin{})
 }
