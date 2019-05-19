@@ -754,7 +754,7 @@ func TestGetNotificationStatus(t *testing.T) {
 		WindowCloseNotificationSent: false,
 		StandupReportSent:           true,
 	})
-	mockAPI.On("KVGet", "MrIQnMD7XQtCPwD4cbhDi+EOGVg0KEwgVEYVFyCDFHE=").Return(notificationStatusJson, nil)
+	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(notificationStatusJson, nil)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -780,7 +780,7 @@ func TestGetNotificationStatus_KVGet_Error(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
 
-	mockAPI.On("KVGet", "MrIQnMD7XQtCPwD4cbhDi+EOGVg0KEwgVEYVFyCDFHE=").Return(nil, model.NewAppError("", "", nil, "", 0))
+	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(nil, model.NewAppError("", "", nil, "", 0))
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -805,7 +805,7 @@ func TestGetNotificationStatus_Json_Error(t *testing.T) {
 		WindowCloseNotificationSent: false,
 		StandupReportSent:           true,
 	})
-	mockAPI.On("KVGet", "MrIQnMD7XQtCPwD4cbhDi+EOGVg0KEwgVEYVFyCDFHE=").Return(notificationStatusJson[0:len(notificationStatusJson)-10], nil)
+	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(notificationStatusJson[0:len(notificationStatusJson)-10], nil)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -830,7 +830,7 @@ func TestGetNotificationStatus_KVSet_Error(t *testing.T) {
 		WindowCloseNotificationSent: false,
 		StandupReportSent:           true,
 	})
-	mockAPI.On("KVGet", "MrIQnMD7XQtCPwD4cbhDi+EOGVg0KEwgVEYVFyCDFHE=").Return(notificationStatusJson, nil)
+	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(notificationStatusJson, nil)
 	mockAPI.On("KVSet")
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
