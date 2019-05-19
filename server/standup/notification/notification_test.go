@@ -749,12 +749,12 @@ func TestGetNotificationStatus(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
 
-	notificationStatusJson, _ := json.Marshal(ChannelNotificationStatus{
+	notificationStatusJSON, _ := json.Marshal(ChannelNotificationStatus{
 		WindowOpenNotificationSent:  true,
 		WindowCloseNotificationSent: false,
 		StandupReportSent:           true,
 	})
-	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(notificationStatusJson, nil)
+	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(notificationStatusJSON, nil)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -800,12 +800,12 @@ func TestGetNotificationStatus_Json_Error(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
 
-	notificationStatusJson, _ := json.Marshal(ChannelNotificationStatus{
+	notificationStatusJSON, _ := json.Marshal(ChannelNotificationStatus{
 		WindowOpenNotificationSent:  true,
 		WindowCloseNotificationSent: false,
 		StandupReportSent:           true,
 	})
-	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(notificationStatusJson[0:len(notificationStatusJson)-10], nil)
+	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(notificationStatusJSON[0:len(notificationStatusJSON)-10], nil)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -825,12 +825,12 @@ func TestGetNotificationStatus_KVSet_Error(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
 
-	notificationStatusJson, _ := json.Marshal(ChannelNotificationStatus{
+	notificationStatusJSON, _ := json.Marshal(ChannelNotificationStatus{
 		WindowOpenNotificationSent:  true,
 		WindowCloseNotificationSent: false,
 		StandupReportSent:           true,
 	})
-	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(notificationStatusJson, nil)
+	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(notificationStatusJSON, nil)
 	mockAPI.On("KVSet")
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
