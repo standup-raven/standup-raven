@@ -1620,3 +1620,28 @@ func TestSendStandupReport_UpdateStatus_True_GetNotificationStatus_Error(t *test
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", true)
 	assert.NotNil(t, err, "should not produce any error")
 }
+
+func TestSetNotificationStatus(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
+	assert.Nil(t, SetNotificationStatus("channel_id_1", &ChannelNotificationStatus{}))
+}
+
+func TestSetNotificationStatus_JsonMarshal_Error(t *testing.T) {
+	defer TearDown()
+	baseMock()
+	
+	monkey.Patch(json.Marshal, func (v interface{}) ([]byte, error) {
+		return nil, errors.New("")
+	})
+	
+	assert.NotNil(t, SetNotificationStatus("channel_id_1", &ChannelNotificationStatus{}))
+}
+
+func TestSetNotificationStatus_KVSet_Error(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(model.NewAppError("", "", nil, "", 0))
+	assert.NotNil(t, SetNotificationStatus("channel_id_1", &ChannelNotificationStatus{}))
+}
