@@ -85,7 +85,7 @@ func GetNotificationStatus(channelID string) (*ChannelNotificationStatus, error)
 // SendStandupReport sends standup report for all channel IDs specified
 func SendStandupReport(channelIDs []string, date otime.OTime, visibility string, userId string, updateStatus bool) error {
 	for _, channelID := range channelIDs {
-		logger.Info("Sending standup report for channel: " + channelID + " time: " + date.GetDateString(), nil)
+		logger.Info("Sending standup report for channel: "+channelID+" time: "+date.GetDateString(), nil)
 
 		standupConfig, err := standup.GetStandupConfig(channelID)
 		if err != nil {
@@ -125,7 +125,7 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 		}
 
 		if len(members) == 0 {
-			logger.Info("No standup have been submitted for channel: " + channelID, nil)
+			logger.Info("No standup have been submitted for channel: "+channelID, nil)
 			continue
 		}
 
@@ -412,7 +412,7 @@ func generateTypeAggregatedStandupReport(
 	channelID string,
 	date otime.OTime,
 ) (*model.Post, error) {
-	logger.Debug("Generating type aggregated standup report for channel: " + channelID, nil)
+	logger.Debug("Generating type aggregated standup report for channel: "+channelID, nil)
 
 	userTasks := map[string]string{}
 	userNoTasks := map[string][]string{}
@@ -474,7 +474,7 @@ func generateUserAggregatedStandupReport(
 	channelID string,
 	date otime.OTime,
 ) (*model.Post, error) {
-	logger.Debug("Generating user aggregated standup report for channel: " + channelID, nil)
+	logger.Debug("Generating user aggregated standup report for channel: "+channelID, nil)
 
 	userTasks := ""
 
