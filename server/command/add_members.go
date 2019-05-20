@@ -97,7 +97,7 @@ func addStandupMembers(usernames []string, channelID string) error {
 		return errors.New("standup is not configured for this channel")
 	}
 
-	standupConfig.Members = append(standupConfig.Members, usernames...)
+	standupConfig.Members = funk.UniqString(append(standupConfig.Members, usernames...))
 	_, err = standup.SaveStandupConfig(standupConfig)
 	if err != nil {
 		return err
