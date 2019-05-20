@@ -402,6 +402,36 @@ func TestSaveStandupConfig(t *testing.T) {
 
 }
 
+func TestSaveStandupConfig_DuplicateMembers(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
+	
+	now := otime.Now()
+
+	standupConfig := &StandupConfig{
+		ChannelId: "channel_id",
+		Members: []string{"user_id_1", "user_id_1"},
+		WindowOpenTime: now,
+		WindowCloseTime: now,
+		Sections: []string{"section 1"},
+		ReportFormat: config.ReportFormatUserAggregated,
+		Enabled: true,
+	}
+
+	savedStandupConfig, err := SaveStandupConfig(standupConfig)
+	assert.Nil(t, err, "no error should have been produced")
+	assert.Equal(t, &StandupConfig{
+		ChannelId: "channel_id",
+		Members: []string{"user_id_1"},
+		WindowOpenTime: now,
+		WindowCloseTime: now,
+		Sections: []string{"section 1"},
+		ReportFormat: config.ReportFormatUserAggregated,
+		Enabled: true,
+	}, savedStandupConfig, "both standup config should be identical")
+}
+
 func TestGetStandupConfig(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()

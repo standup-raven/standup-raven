@@ -188,6 +188,8 @@ func GetUserStandup(userID, channelID string, date otime.OTime) (*UserStandup, e
 func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 	logger.Debug(fmt.Sprintf("Saving standup config for channel: %s", standupConfig.ChannelId), nil)
 
+	standupConfig.Members = funk.UniqString(standupConfig.Members)
+
 	serializedStandupConfig, err := json.Marshal(standupConfig)
 	if err != nil {
 		logger.Error("Couldn't marshal standup config", err, nil)
