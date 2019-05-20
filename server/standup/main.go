@@ -107,7 +107,7 @@ func (sc *StandupConfig) ToJson() string {
 // AddStandupChannel adds the specified channel to the list of standup channels.
 // This is later user for iterating over all standup channels.
 func AddStandupChannel(channelID string) error {
-	config.Mattermost.LogDebug(fmt.Sprintf("Adding standup channel: %s", channelID))
+	logger.Debug(fmt.Sprintf("Adding standup channel: %s", channelID), nil)
 
 	channels, err := GetStandupChannels()
 	if err != nil {
@@ -121,7 +121,7 @@ func AddStandupChannel(channelID string) error {
 // GetStandupChannels fetches all channels where standup is configured.
 // Returns a map of channel ID to channel ID for maintaining uniqueness.
 func GetStandupChannels() (map[string]string, error) {
-	config.Mattermost.LogDebug("Fetching all standup channels")
+	logger.Debug("Fetching all standup channels", nil)
 
 	data, appErr := config.Mattermost.KVGet(util.GetKeyHash(config.CacheKeyAllStandupChannels))
 	if appErr != nil {
@@ -139,7 +139,7 @@ func GetStandupChannels() (map[string]string, error) {
 		}
 	}
 
-	config.Mattermost.LogDebug(fmt.Sprintf("Found %d standup channels", len(channels)))
+	logger.Debug(fmt.Sprintf("Found %d standup channels", len(channels)), nil)
 	return channels, nil
 }
 
@@ -186,7 +186,7 @@ func GetUserStandup(userID, channelID string, date otime.OTime) (*UserStandup, e
 // TODO this should return the set config
 // SaveStandupConfig saves standup config for the specified channel
 func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
-	config.Mattermost.LogDebug(fmt.Sprintf("Saving standup config for channel: %s", standupConfig.ChannelId))
+	logger.Debug(fmt.Sprintf("Saving standup config for channel: %s", standupConfig.ChannelId), nil)
 
 	serializedStandupConfig, err := json.Marshal(standupConfig)
 	if err != nil {
@@ -205,7 +205,7 @@ func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 
 // GetStandupConfig fetches standup config for the specified channel
 func GetStandupConfig(channelID string) (*StandupConfig, error) {
-	config.Mattermost.LogDebug(fmt.Sprintf("Fetching standup config for channel: %s", channelID))
+	logger.Debug(fmt.Sprintf("Fetching standup config for channel: %s", channelID), nil)
 
 	key := config.CacheKeyPrefixTeamStandupConfig + channelID
 	data, appErr := config.Mattermost.KVGet(util.GetKeyHash(key))
@@ -228,13 +228,13 @@ func GetStandupConfig(channelID string) (*StandupConfig, error) {
 		}
 	}
 
-	config.Mattermost.LogDebug(fmt.Sprintf("Standup config for channel: %s, %v", channelID, standupConfig))
+	logger.Debug(fmt.Sprintf("Standup config for channel: %s, %v", channelID, standupConfig), nil)
 	return standupConfig, nil
 }
 
 // setStandupChannels saves the provided list of standup channels in the KV store
 func setStandupChannels(channels map[string]string) error {
-	config.Mattermost.LogDebug("Saving standup channels")
+	logger.Debug("Saving standup channels", nil)
 
 	data, err := json.Marshal(channels)
 	if err != nil {
