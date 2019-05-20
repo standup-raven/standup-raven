@@ -38,7 +38,7 @@ const (
 func SendNotificationsAndReports() error {
 	// don't send notifications if it's not a work week.
 	if !isWorkDay() {
-		config.Mattermost.LogDebug("Not a working day. Not processing standup.")
+		logger.Debug("Not a working day. Not processing standup.", nil)
 		return nil
 	}
 
@@ -61,7 +61,7 @@ func SendNotificationsAndReports() error {
 
 // GetNotificationStatus gets the notification status for specified channel
 func GetNotificationStatus(channelID string) (*ChannelNotificationStatus, error) {
-	config.Mattermost.LogDebug(fmt.Sprintf("Fetching notification status for channel: %s", channelID))
+	logger.Debug(fmt.Sprintf("Fetching notification status for channel: %s", channelID), nil)
 
 	key := fmt.Sprintf("%s_%s_%s", config.CacheKeyPrefixNotificationStatus, channelID, util.GetCurrentDateString())
 	data, appErr := config.Mattermost.KVGet(util.GetKeyHash(key))
@@ -78,14 +78,14 @@ func GetNotificationStatus(channelID string) (*ChannelNotificationStatus, error)
 		return nil, err
 	}
 
-	config.Mattermost.LogDebug(fmt.Sprintf("notification status for channel: %s, %v", channelID, status))
+	logger.Debug(fmt.Sprintf("notification status for channel: %s, %v", channelID, status), nil)
 	return status, nil
 }
 
 // SendStandupReport sends standup report for all channel IDs specified
 func SendStandupReport(channelIDs []string, date otime.OTime, visibility string, userId string, updateStatus bool) error {
 	for _, channelID := range channelIDs {
-		config.Mattermost.LogInfo("Sending standup report for channel: " + channelID + " time: " + date.GetDateString())
+		logger.Info("Sending standup report for channel: " + channelID + " time: " + date.GetDateString(), nil)
 
 		standupConfig, err := standup.GetStandupConfig(channelID)
 		if err != nil {
@@ -125,7 +125,7 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 		}
 
 		if len(members) == 0 {
-			config.Mattermost.LogInfo("No standup have been submitted for channel: " + channelID)
+			logger.Info("No standup have been submitted for channel: " + channelID, nil)
 			continue
 		}
 
@@ -192,12 +192,12 @@ func SetNotificationStatus(channelID string, status *ChannelNotificationStatus) 
 // 		2. channels requiring window close notification
 //		3. channels requiring standup report
 func filterChannelNotification(channelIDs map[string]string) ([]string, []string, []string, error) {
-	config.Mattermost.LogDebug("Filtering channels for sending notifications")
+	logger.Debug("Filtering channels for sending notifications", nil)
 
 	var windowOpenNotificationChannels, windowCloseNotificationChannels, standupReportChannels []string
 
 	for channelID := range channelIDs {
-		config.Mattermost.LogDebug(fmt.Sprintf("Processing channel: %s", channelID))
+		logger.Debug(fmt.Sprintf("Processing channel: %s", channelID), nil)
 
 		notificationStatus, err := GetNotificationStatus(channelID)
 		if err != nil {
@@ -222,27 +222,27 @@ func filterChannelNotification(channelIDs map[string]string) ([]string, []string
 		// This prevents expired notifications from being sent in case some of
 		// the notifications were missed in the past
 		if status := shouldSendStandupReport(notificationStatus, standupConfig); status == ChannelNotificationStatusSend {
-			config.Mattermost.LogDebug(fmt.Sprintf("Channel [%s] needs standup report", channelID))
+			logger.Debug(fmt.Sprintf("Channel [%s] needs standup report", channelID), nil)
 			standupReportChannels = append(standupReportChannels, channelID)
 		} else if status == ChannelNotificationStatusSent {
 			// pass
 		} else if status := shouldSendWindowCloseNotification(notificationStatus, standupConfig); status == ChannelNotificationStatusSend {
-			config.Mattermost.LogDebug(fmt.Sprintf("Channel [%s] needs window close notification", channelID))
+			logger.Debug(fmt.Sprintf("Channel [%s] needs window close notification", channelID), nil)
 			windowCloseNotificationChannels = append(windowCloseNotificationChannels, channelID)
 		} else if status == ChannelNotificationStatusSent {
 			// pass
 		} else if shouldSendWindowOpenNotification(notificationStatus, standupConfig) == ChannelNotificationStatusSend {
-			config.Mattermost.LogDebug(fmt.Sprintf("Channel [%s] needs window open notification", channelID))
+			logger.Debug(fmt.Sprintf("Channel [%s] needs window open notification", channelID), nil)
 			windowOpenNotificationChannels = append(windowOpenNotificationChannels, channelID)
 		}
 	}
 
-	config.Mattermost.LogDebug(fmt.Sprintf(
+	logger.Debug(fmt.Sprintf(
 		"Notifications filtered: open: %d, close: %d, reports: %d",
 		len(windowOpenNotificationChannels),
 		len(windowCloseNotificationChannels),
 		len(standupReportChannels),
-	))
+	), nil)
 	return windowOpenNotificationChannels, windowCloseNotificationChannels, standupReportChannels, nil
 }
 
@@ -334,7 +334,7 @@ func sendWindowCloseNotification(channelIDs []string) error {
 			continue
 		}
 
-		config.Mattermost.LogDebug("Fetching members with pending standup reports")
+		logger.Debug("Fetching members with pending standup reports", nil)
 
 		var usersPendingStandup []string
 		for _, userId := range standupConfig.Members {
@@ -348,7 +348,7 @@ func sendWindowCloseNotification(channelIDs []string) error {
 			}
 		}
 
-		config.Mattermost.LogDebug("Fetching usernames for users with pending standup")
+		logger.Debug("Fetching usernames for users with pending standup", nil)
 
 		for i := range usersPendingStandup {
 			user, err := config.Mattermost.GetUser(usersPendingStandup[i])
@@ -412,7 +412,7 @@ func generateTypeAggregatedStandupReport(
 	channelID string,
 	date otime.OTime,
 ) (*model.Post, error) {
-	config.Mattermost.LogDebug("Generating type aggregated standup report for channel: " + channelID)
+	logger.Debug("Generating type aggregated standup report for channel: " + channelID, nil)
 
 	userTasks := map[string]string{}
 	userNoTasks := map[string][]string{}
@@ -474,7 +474,7 @@ func generateUserAggregatedStandupReport(
 	channelID string,
 	date otime.OTime,
 ) (*model.Post, error) {
-	config.Mattermost.LogDebug("Generating user aggregated standup report for channel: " + channelID)
+	logger.Debug("Generating user aggregated standup report for channel: " + channelID, nil)
 
 	userTasks := ""
 

@@ -2,13 +2,14 @@ package standup
 
 import (
 	"encoding/json"
-	"github.com/standup-raven/standup-raven/server/config"
-	"github.com/standup-raven/standup-raven/server/otime"
-	"github.com/standup-raven/standup-raven/server/util"
 	"github.com/bouk/monkey"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/pkg/errors"
+	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/logger"
+	"github.com/standup-raven/standup-raven/server/otime"
+	"github.com/standup-raven/standup-raven/server/util"
 	"testing"
 	"time"
 )
@@ -18,9 +19,11 @@ import "github.com/mattermost/mattermost-server/plugin/plugintest"
 func baseMock() *plugintest.API {
 	mockAPI := &plugintest.API{}
 	config.Mattermost = mockAPI
-	mockAPI.On("LogDebug", mock.AnythingOfType("string"))
-	mockAPI.On("LogDebug", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything)
-	mockAPI.On("LogError", mock.AnythingOfType("string"), mock.AnythingOfType("string"))
+
+	monkey.Patch(logger.Debug, func(msg string, err error, keyValuePairs ...interface{}) {})
+	monkey.Patch(logger.Error, func(msg string, err error, extraData map[string]interface{}) {})
+	monkey.Patch(logger.Info, func(msg string, err error, keyValuePairs ...interface{}) {})
+	monkey.Patch(logger.Warn, func(msg string, err error, keyValuePairs ...interface{}) {})
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -32,7 +35,12 @@ func baseMock() *plugintest.API {
 	return mockAPI
 }
 
+func TearDown() {
+	monkey.UnpatchAll()
+}
+
 func TestUserStandup_IsValid(t *testing.T) {
+	defer TearDown()
 	userStandup := UserStandup{
 		UserID:    "user_id",
 		ChannelID: "channel_id",
@@ -41,7 +49,7 @@ func TestUserStandup_IsValid(t *testing.T) {
 		},
 	}
 
-	mockAPI := &plugintest.API{}
+	mockAPI := baseMock()
 	config.Mattermost = mockAPI
 
 	mockAPI.On("GetChannel", "channel_id").Return(&model.Channel{}, nil)
@@ -74,8 +82,9 @@ func TestUserStandup_IsValid(t *testing.T) {
 }
 
 func TestStandupConfig_IsValid(t *testing.T) {
+	defer TearDown()
 	// mocking Mattermost API
-	mockAPI := &plugintest.API{}
+	mockAPI := baseMock()
 	config.Mattermost = mockAPI
 
 	// mocking plugin config
@@ -146,8 +155,9 @@ func TestStandupConfig_IsValid(t *testing.T) {
 }
 
 func TestStandupConfig_ToJson(t *testing.T) {
+	defer TearDown()
 	// mocking Mattermost API
-	mockAPI := &plugintest.API{}
+	mockAPI := baseMock()
 	config.Mattermost = mockAPI
 
 	// mocking plugin config
@@ -177,7 +187,8 @@ func TestStandupConfig_ToJson(t *testing.T) {
 }
 
 func TestAddStandupChannel(t *testing.T) {
-	mockAPI := &plugintest.API{}
+	defer TearDown()
+	mockAPI := baseMock()
 	config.Mattermost = mockAPI
 
 	mockAPI.On("LogDebug", mock.AnythingOfType("string"))
@@ -219,7 +230,8 @@ func TestAddStandupChannel(t *testing.T) {
 }
 
 func TestAddStandupChannel_IntegrationTest(t *testing.T) {
-	mockAPI := &plugintest.API{}
+	defer TearDown()
+	mockAPI := baseMock()
 	config.Mattermost = mockAPI
 
 	mockAPI.On("LogDebug", mock.AnythingOfType("string"))
@@ -254,6 +266,7 @@ func TestAddStandupChannel_IntegrationTest(t *testing.T) {
 }
 
 func TestGetStandupChannels(t *testing.T) {
+	defer TearDown()
 	mockAPI := baseMock()
 	mockAPI.On("KVGet", "uScyewRiWEwQavauYw9iOK76jISl+5Qq0mV+Cn/jFPs=").Return([]byte("{\"channel_1\":\"channel_1\"}"), nil)
 
@@ -293,6 +306,7 @@ func TestGetStandupChannels(t *testing.T) {
 }
 
 func TestSaveUserStandup(t *testing.T) {
+	defer TearDown()
 	mockAPI := baseMock()
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
 
@@ -316,6 +330,7 @@ func TestSaveUserStandup(t *testing.T) {
 }
 
 func TestGetUserStandup(t *testing.T) {
+	defer TearDown()
 	mockAPI := baseMock()
 
 	userStandupBytes, _ := json.Marshal(&UserStandup{
@@ -359,6 +374,7 @@ func TestGetUserStandup(t *testing.T) {
 }
 
 func TestSaveStandupConfig(t *testing.T) {
+	defer TearDown()
 	mockAPI := baseMock()
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
 
@@ -387,6 +403,7 @@ func TestSaveStandupConfig(t *testing.T) {
 }
 
 func TestGetStandupConfig(t *testing.T) {
+	defer TearDown()
 	mockAPI := baseMock()
 
 	standupConfigBytes, _ := json.Marshal(&StandupConfig{

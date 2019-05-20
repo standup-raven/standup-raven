@@ -32,15 +32,15 @@ type Plugin struct {
 func (p *Plugin) OnActivate() error {
 	config.Mattermost = p.API
 
+	if err := p.OnConfigurationChange(); err != nil {
+		return err
+	}
+
 	if err := p.initSentry(); err != nil {
 		config.Mattermost.LogError(err.Error())
 	}
 
 	if err := p.setupStaticFileServer(); err != nil {
-		return err
-	}
-
-	if err := p.OnConfigurationChange(); err != nil {
 		return err
 	}
 
@@ -168,7 +168,7 @@ func (p *Plugin) runner() {
 	go func() {
 		<-time.NewTimer(config.RunnerInterval).C
 		if err := notification.SendNotificationsAndReports(); err != nil {
-			config.Mattermost.LogError(err.Error())
+			logger.Error("", err, nil)
 		}
 		if !p.running {
 			return
