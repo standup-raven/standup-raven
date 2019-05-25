@@ -3,13 +3,21 @@ GOARCH=amd64
 GOFLAGS ?= $(GOFLAGS:)
 MANIFEST_FILE ?= plugin.json
 
-PLUGINNAME=$(shell echo `grep -Po '"'"id"'"\s*:\s*"\K([^"]*)' $(MANIFEST_FILE)`)
-PACKAGENAME=mattermost-plugin-$(PLUGINNAME)-$(PLUGINVERSION)
-PLUGINVERSION=v$(shell echo `grep -Po '"'"version"'"\s*:\s*"\K([^"]*)' $(MANIFEST_FILE)`)
-
 define GetFromPkg
 $(shell node -p "require('./build_properties.json').$(1)")
 endef
+
+define GetPluginId
+$(shell node -p "require('./plugin.json').id")
+endef
+
+define GetPluginVersion
+$(shell node -p "'v' + require('./plugin.json').version")
+endef
+
+PLUGINNAME=$(call GetPluginId)
+PLUGINVERSION=$(call GetPluginVersion)
+PACKAGENAME=mattermost-plugin-$(PLUGINNAME)-$(PLUGINVERSION)
 
 .PHONY: default build test run clean stop check-style check-style-server .distclean dist fix-style release
 
@@ -61,6 +69,11 @@ vendor: server/glide.lock
 	cd server && $(shell go env GOPATH)/bin/glide install
 
 quickdist: .distclean plugin.json
+	@echo $(PLUGINNAME)
+	@echo $(PACKAGENAME)
+	@echo $(PLUGINVERSION)
+	
+
 	@echo Quick building plugin
 
 	# Build and copy files from webapp
