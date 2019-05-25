@@ -18,6 +18,7 @@ import style from './style.css';
 import reactStyles from './style';
 import SentryBoundary from '../../SentryBoundary';
 import * as HttpStatus from 'http-status-codes';
+import Cookies from "js-cookie";
 
 const configModalCloseTimeout = 1000;
 
@@ -196,7 +197,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             .post(Constants.URL_STANDUP_CONFIG)
             .withCredentials()
             .send(this.prepareStandupConfigPayload())
-            .set('X-Requested-With', 'XMLHttpRequest')
+            .set('X-CSRF-Token', Cookies.get(Constants.MATTERMOST_CSRF_COOKIE))
             .set('Content-Type', 'application/json')
             .end((err, res) => {
                 if (err) {
