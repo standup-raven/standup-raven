@@ -26,7 +26,9 @@ What actually happened.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Environment (if applicable):**
+**Environment**
+-  Mattermost version: e.g. 5.11
 -  OS: e.g. iOS
--  Browser e.g. firefox, chrome
--  Version e.g. 68
+-  Platform: browser, desktop app, mobile browser, mobile app
+-  Browser (if applicable): e.g. firefox, chrome
+-  Platform Version: e.g. 68
