@@ -18,7 +18,7 @@ import style from './style.css';
 import reactStyles from './style';
 import SentryBoundary from '../../SentryBoundary';
 import * as HttpStatus from 'http-status-codes';
-import Cookies from "js-cookie";
+import Cookies from 'js-cookie';
 
 const configModalCloseTimeout = 1000;
 
