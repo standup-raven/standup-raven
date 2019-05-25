@@ -35,6 +35,7 @@
     "babel-preset-stage-2": "^6.24.1",
     "copy-webpack-plugin": "^4.6.0",
     "http-status-codes": "^1.3.2",
+    "js-cookie": "^2.2.0",
     "mattermost-redux": "^5.5.1",
     "react": "^16.7.0",
     "react-bootstrap": "^0.32.4",

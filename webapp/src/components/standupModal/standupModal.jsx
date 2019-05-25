@@ -6,6 +6,7 @@ import Constants from '../../constants';
 import reactStyles from './style';
 import SentryBoundary from '../../SentryBoundary';
 import * as HttpStatus from 'http-status-codes';
+import Cookies from 'js-cookie';
 
 const standupModalCloseTimeout = 1000;
 const standupTaskDefaultRowCount = 5;
@@ -78,7 +79,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
             .post(Constants.URL_SUBMIT_USER_STANDUP)
             .withCredentials()
             .send(payload)
-            .set('X-Requested-With', 'XMLHttpRequest')
+            .set('X-CSRF-Token', Cookies.get(Constants.MATTERMOST_CSRF_COOKIE))
             .set('Content-Type', 'application/json')
             .end((err, res) => {
                 if (err) {

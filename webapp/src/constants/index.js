@@ -16,6 +16,8 @@ const URL_PLUGIN_ICON = `${PLUGIN_STATIC_DIR_URL}/logo.png`;
 
 const URL_SPINNER_ICON = `${PLUGIN_STATIC_DIR_URL}/spinner.svg`;
 
+const MATTERMOST_CSRF_COOKIE = 'MMCSRF';
+
 const ACTIONS = {
     OPEN_STANDUP_MODAL: `${PLUGIN_NAME}_open_standup_modal`,
     CLOSE_STANDUP_MODAL: `${PLUGIN_NAME}_close_standup_modal`,
@@ -31,4 +33,5 @@ export default {
     ACTIONS,
     PLUGIN_NAME,
     PLUGIN_DISPLAY_NAME,
+    MATTERMOST_CSRF_COOKIE,
 };
