@@ -115,8 +115,7 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 					return errors.New(appErr.Error())
 				}
 
-				userDisplayName := user.GetDisplayName(model.SHOW_FULLNAME)
-				membersNoStandup = append(membersNoStandup, userDisplayName)
+				membersNoStandup = append(membersNoStandup, user.Username)
 
 				continue
 			}
