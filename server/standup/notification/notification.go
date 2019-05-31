@@ -504,7 +504,7 @@ func generateUserAggregatedStandupReport(
 	text := fmt.Sprintf("#### Standup Report for *%s*\n", date.Format("2 Jan 2006"))
 
 	if len(membersNoStandup) > 0 {
-		text += fmt.Sprintf("\n%s %s not submitted their standup\n\n", strings.Join(membersNoStandup, ", "), util.HasHave(len(membersNoStandup)))
+		text += fmt.Sprintf("\n@%s %s not submitted their standup\n\n", strings.Join(membersNoStandup, ", @"), util.HasHave(len(membersNoStandup)))
 	}
 
 	text += userTasks
