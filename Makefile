@@ -150,6 +150,10 @@ deploy:
 	echo "Plugin uploaded successfully"
 
 release: dist
+	@echo "Installing what-the-changelog"
+	@npm install -g what-the-changelog	
 	@echo "Installing ghr"
 	@go get -u github.com/tcnksm/ghr
-	@ghr -t $(GITHUB_TOKEN) -u $(CIRCLE_PROJECT_USERNAME) -r $(CIRCLE_PROJECT_REPONAME) -replace $(PLUGINVERSION) dist/
+	@echo "Generating changelog"
+	@changelog=$(whatthechangelog standup-raven standup-raven '.' 'added,changed,deprecated,removed,fixed' 'docs/assets/images/resolutions')
+	@ghr -t $(GITHUB_TOKEN) -u $(CIRCLE_PROJECT_USERNAME) -r $(CIRCLE_PROJECT_REPONAME) -replace $(PLUGINVERSION) -b $(changelog) dist/
