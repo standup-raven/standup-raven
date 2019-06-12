@@ -1,4 +1,10 @@
 {
-  "sentryEnabled": false,
-  "sentryDSN": ""
+  "sentry": {
+    "enabled": true,
+    "dsn": "",
+    "server_url": "",
+    "org": "",
+    "project": "",
+    "auth_token": ""
+  }
 }

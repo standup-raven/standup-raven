@@ -83,7 +83,7 @@ quickdist: .distclean plugin.json
 
 	# Build files from server
 	 cd server && go get github.com/mitchellh/gox
-	 $(shell go env GOPATH)/bin/gox -ldflags="-X main.SentryEnabled=$(call GetFromPkg,sentryEnabled) -X main.SentryDSN=$(call GetFromPkg,sentryDSN)" -osarch='darwin/amd64 linux/amd64 windows/amd64' -gcflags='all=-N -l' -output 'dist/intermediate/plugin_{{.OS}}_{{.Arch}}' ./server
+	 $(shell go env GOPATH)/bin/gox -ldflags="-X main.SentryEnabled=$(call GetFromPkg,sentry.enabled) -X main.SentryDSN=$(call GetFromPkg,sentry.dsn)" -osarch='darwin/amd64 linux/amd64 windows/amd64' -gcflags='all=-N -l' -output 'dist/intermediate/plugin_{{.OS}}_{{.Arch}}' ./server
 
 	# Copy plugin files
 	cp plugin.json dist/$(PLUGINNAME)/
