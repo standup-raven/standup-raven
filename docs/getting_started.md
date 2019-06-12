@@ -52,7 +52,7 @@ For other platform refer the [official installation guide](https://github.com/ja
 
 ### 👨‍💻 Building
 
-Once you have cloned the repo in the correct path - `$GOPATH/JoshLabs`, simply run `$ make dist` from the cloned repo.
+Once you have fetched the repo via `go get`, simply run `$ make dist` from the repo.
 
 This will produce three artifacts in `/dist` directory -
 
