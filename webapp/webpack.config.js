@@ -79,11 +79,11 @@ if (buildProperties.sentry.enabled) {
 
 function generateSentryCLIConfig(sentrySettings) {
     const sentryCLIConfig = {
-        "defaults.url": sentrySettings.server_url,
-        "defaults.org": sentrySettings.org,
-        "defaults.project": sentrySettings.project,
-        "auth.token": sentrySettings.auth_token,
+        'defaults.url': sentrySettings.server_url,
+        'defaults.org': sentrySettings.org,
+        'defaults.project': sentrySettings.project,
+        'auth.token': sentrySettings.auth_token,
     };
-    
+
     fs.writeFileSync('./sentry.properties', propertiesParser.stringify(sentryCLIConfig));
 }
