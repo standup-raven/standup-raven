@@ -1,6 +1,6 @@
 {
   "sentry": {
-    "enabled": true,
+    "enabled": false,
     "dsn": "",
     "server_url": "",
     "org": "",
