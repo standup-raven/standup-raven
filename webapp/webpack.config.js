@@ -2,6 +2,8 @@ const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const SentryWebpackPlugin = require('@sentry/webpack-plugin');
 const buildProperties = require('../build_properties.json');
+const fs = require('fs');
+const propertiesParser = require('properties-file');
 
 module.exports = {
     devtool: 'inline-source-map',
@@ -63,7 +65,8 @@ module.exports = {
     },
 };
 
-if (buildProperties.sentryEnabled) {
+if (buildProperties.sentry.enabled) {
+    generateSentryCLIConfig(buildProperties.sentry);
     module.exports.plugins.push(
         new SentryWebpackPlugin({
             include: '.',
@@ -72,4 +75,15 @@ if (buildProperties.sentryEnabled) {
             configFile: 'sentry.properties',
         })
     );
+}
+
+function generateSentryCLIConfig(sentrySettings) {
+    const sentryCLIConfig = {
+        'defaults.url': sentrySettings.server_url,
+        'defaults.org': sentrySettings.org,
+        'defaults.project': sentrySettings.project,
+        'auth.token': sentrySettings.auth_token,
+    };
+
+    fs.writeFileSync('./sentry.properties', propertiesParser.stringify(sentryCLIConfig));
 }
