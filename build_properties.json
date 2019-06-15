@@ -2,6 +2,7 @@
   "sentry": {
     "enabled": false,
     "dsn": "",
+    "publicDsn": "",
     "server_url": "",
     "org": "",
     "project": "",

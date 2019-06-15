@@ -36,7 +36,7 @@ class StandupRavenPlugin {
 
 function initSentry() {
     Sentry.init({
-        dsn: buildProperties.sentryDSN,
+        dsn: buildProperties.sentry.publicDsn,
     });
 
     Sentry.configureScope(((scope) => {
