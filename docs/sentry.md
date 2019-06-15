@@ -2,7 +2,7 @@
 
 #
 
-## <img src="https://sentry-brand.storage.googleapis.com/sentry-glyph-black.png" width="40px"> Sentry Configuration
+## 🐞 Sentry Configuration
 
 Developers may plugin in their own, organization-owned Sentry accounts with Standup Raven for internal error monitoring. This is very helpful for reporting errors back over here. 
 
