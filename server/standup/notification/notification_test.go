@@ -562,10 +562,6 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 		return nil, nil
 	})
 
-	monkey.Patch(config.Mattermost.GetUser, func(string) (*model.User, *model.AppError) {
-		return nil, model.NewAppError("", "", nil, "", http.StatusInternalServerError)
-	})
-
 	assert.NotNil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
 }
@@ -2360,4 +2356,139 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 	assert.Nil(t, err, "should not produce any error")
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 3)
+}
+
+func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
+	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
+
+	location, _ := time.LoadLocation("Asia/Kolkata")
+	mockConfig := &config.Configuration{
+		Location:      location,
+		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+	}
+
+	config.SetConfig(mockConfig)
+
+	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
+		return map[string]string{
+			"channel_1": "channel_1",
+			"channel_2": "channel_2",
+			"channel_3": "channel_3",
+		}, nil
+	})
+
+	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
+		if channelID == "channel_1" {
+			return &ChannelNotificationStatus{
+				StandupReportSent:           false,
+				WindowOpenNotificationSent:  false,
+				WindowCloseNotificationSent: false,
+			}, nil
+		} else if channelID == "channel_2" {
+			return &ChannelNotificationStatus{
+				StandupReportSent:           false,
+				WindowOpenNotificationSent:  true,
+				WindowCloseNotificationSent: false,
+			}, nil
+		} else if channelID == "channel_3" {
+			return &ChannelNotificationStatus{
+				StandupReportSent:           false,
+				WindowOpenNotificationSent:  true,
+				WindowCloseNotificationSent: true,
+			}, nil
+		}
+
+		t.Fatal("unknown argument encountered: " + channelID)
+		return nil, nil
+	})
+
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		if channelID == "channel_1" {
+			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+
+			return &standup.StandupConfig{
+				ChannelId:       "channel_1",
+				WindowOpenTime:  windowOpenTime,
+				WindowCloseTime: windowCloseTime,
+				Enabled:         true,
+				Members:         []string{"user_id_1", "user_id_2"},
+				ReportFormat:    config.ReportFormatTypeAggregated,
+				Sections:        []string{"section 1", "section 2"},
+			}, nil
+		} else if channelID == "channel_2" {
+			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+
+			return &standup.StandupConfig{
+				ChannelId:       "channel_2",
+				WindowOpenTime:  windowOpenTime,
+				WindowCloseTime: windowCloseTime,
+				Enabled:         true,
+				Members:         []string{"user_id_1", "user_id_2"},
+				ReportFormat:    config.ReportFormatUserAggregated,
+				Sections:        []string{"section 1", "section 2"},
+			}, nil
+		} else if channelID == "channel_3" {
+			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+
+			return &standup.StandupConfig{
+				ChannelId:       "channel_3",
+				WindowOpenTime:  windowOpenTime,
+				WindowCloseTime: windowCloseTime,
+				Enabled:         true,
+				Members:         []string{"user_id_1", "user_id_2"},
+				ReportFormat:    config.ReportFormatUserAggregated,
+				Sections:        []string{"section 1", "section 2"},
+			}, nil
+		}
+
+		t.Fatal("unknown argument encountered: " + channelID)
+		return nil, nil
+	})
+
+	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
+		if channelID == "channel_1" {
+			return nil
+		} else if channelID == "channel_2" {
+			return nil
+		} else if channelID == "channel_3" {
+			return nil
+		}
+
+		t.Fatal("unknown argument encountered: " + channelID)
+		return nil
+	})
+
+	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
+		if channelID == "channel_1" {
+			if userID == "user_id_1"  {
+				return nil, nil
+			} else if userID == "user_id_2" {
+				return &standup.UserStandup{}, nil
+			}
+		} else if channelID == "channel_2" {
+			if userID == "user_id_1"  {
+				return nil, nil
+			} else if userID == "user_id_2" {
+				return &standup.UserStandup{}, nil
+			}
+		} else if channelID == "channel_3" {
+			if userID == "user_id_1" || userID == "user_id_2" {
+				return &standup.UserStandup{}, nil
+			}
+		}
+
+		panic(t)
+		return nil, nil
+	})
+	err :=SendStandupReport([]string{"channel_1", "channel_2", "channel_3"}, otime.Now(), ReportVisibilityPublic, "user_1", true)
+	assert.Nil(t, err, "should not produce any error")
+	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
+	
 }

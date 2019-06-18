@@ -433,19 +433,19 @@ func generateTypeAggregatedStandupReport(
 
 	if len(userStandups) > 0 {
 		if len(membersNoStandup) > 0 {
-         	text += fmt.Sprintf("%s %s not submitted their standup.\n", strings.Join(membersNoStandup, ", "), util.HasHave(len(membersNoStandup)))
+			text += fmt.Sprintf("%s %s not submitted their standup.\n", strings.Join(membersNoStandup, ", "), util.HasHave(len(membersNoStandup)))
 		}
 		
 		for _, sectionTitle := range standupConfig.Sections {
-		 	text += "##### **Tasks for " + sectionTitle + "**\n\n" + userTasks[sectionTitle] + "\n"
-		 	if len(userNoTasks[sectionTitle]) > 0 {
+			text += "##### **Tasks for " + sectionTitle + "**\n\n" + userTasks[sectionTitle] + "\n"
+			if len(userNoTasks[sectionTitle]) > 0 {
 				text += fmt.Sprintf(
-			    "%s %s no tasks for %s\n",
-			    strings.Join(userNoTasks[sectionTitle], ", "),
-			    util.HasHave(len(userNoTasks[sectionTitle])),
-			    sectionTitle,
-				)
-		 	}
+					"%s %s no tasks for %s\n",
+					strings.Join(userNoTasks[sectionTitle], ", "),
+					util.HasHave(len(userNoTasks[sectionTitle])), 
+					sectionTitle,
+					)
+			}
 		}
 	} else {
 		text += ":warning: **No user has submitted their standup.**"
@@ -501,9 +501,9 @@ func generateUserAggregatedStandupReport(
 	text := fmt.Sprintf("#### Standup Report for *%s*\n", date.Format("2 Jan 2006"))
 
 	if len(userStandups) > 0 {
-        if len(membersNoStandup) > 0 {
-        	text += fmt.Sprintf("\n@%s %s not submitted their standup\n\n", strings.Join(membersNoStandup, ", @"), util.HasHave(len(membersNoStandup)))
-        }
+		if len(membersNoStandup) > 0 {
+			text += fmt.Sprintf("\n@%s %s not submitted their standup\n\n", strings.Join(membersNoStandup, ", @"), util.HasHave(len(membersNoStandup)))
+		}
         
         text += userTasks
 	} else {
