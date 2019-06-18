@@ -123,11 +123,6 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 			members = append(members, userStandup)
 		}
 
-		if len(members) == 0 {
-			logger.Info("No standup have been submitted for channel: "+channelID, nil)
-			continue
-		}
-
 		var post *model.Post
 
 		if standupConfig.ReportFormat == config.ReportFormatTypeAggregated {
@@ -436,21 +431,24 @@ func generateTypeAggregatedStandupReport(
 
 	text := fmt.Sprintf("#### Standup Report for *%s*\n\n", date.Format("2 Jan 2006"))
 
-	if len(membersNoStandup) > 0 {
-		text += fmt.Sprintf("%s %s not submitted their standup.\n", strings.Join(membersNoStandup, ", "), util.HasHave(len(membersNoStandup)))
-	}
-
-	for _, sectionTitle := range standupConfig.Sections {
-		text += "##### **Tasks for " + sectionTitle + "**\n\n" + userTasks[sectionTitle] + "\n"
-
-		if len(userNoTasks[sectionTitle]) > 0 {
-			text += fmt.Sprintf(
-				"%s %s no tasks for %s\n",
-				strings.Join(userNoTasks[sectionTitle], ", "),
-				util.HasHave(len(userNoTasks[sectionTitle])),
-				sectionTitle,
-			)
+	if len(userStandups) > 0 {
+		if len(membersNoStandup) > 0 {
+			text += fmt.Sprintf("%s %s not submitted their standup.\n", strings.Join(membersNoStandup, ", "), util.HasHave(len(membersNoStandup)))
 		}
+		
+		for _, sectionTitle := range standupConfig.Sections {
+			text += "##### **Tasks for " + sectionTitle + "**\n\n" + userTasks[sectionTitle] + "\n"
+			if len(userNoTasks[sectionTitle]) > 0 {
+				text += fmt.Sprintf(
+					"%s %s no tasks for %s\n",
+					strings.Join(userNoTasks[sectionTitle], ", "),
+					util.HasHave(len(userNoTasks[sectionTitle])), 
+					sectionTitle,
+					)
+			}
+		}
+	} else {
+		text += ":warning: **No user has submitted their standup.**"
 	}
 
 	return &model.Post{
@@ -502,11 +500,15 @@ func generateUserAggregatedStandupReport(
 
 	text := fmt.Sprintf("#### Standup Report for *%s*\n", date.Format("2 Jan 2006"))
 
-	if len(membersNoStandup) > 0 {
-		text += fmt.Sprintf("\n@%s %s not submitted their standup\n\n", strings.Join(membersNoStandup, ", @"), util.HasHave(len(membersNoStandup)))
+	if len(userStandups) > 0 {
+		if len(membersNoStandup) > 0 {
+			text += fmt.Sprintf("\n@%s %s not submitted their standup\n\n", strings.Join(membersNoStandup, ", @"), util.HasHave(len(membersNoStandup)))
+		}
+        
+        text += userTasks
+	} else {
+		text += ":warning: **No user has submitted their standup.**"
 	}
-
-	text += userTasks
 
 	conf := config.GetConfig()
 
