@@ -4,6 +4,7 @@ import (
 	"github.com/getsentry/raven-go"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -24,13 +25,17 @@ var SentryDSN string
 
 type Plugin struct {
 	plugin.MattermostPlugin
-
+	BotUserID string
 	handler http.Handler
 	running bool
 }
 
 func (p *Plugin) OnActivate() error {
 	config.Mattermost = p.API
+	
+	if err := p.setupBot(); err !=nil {
+		return err
+	}
 
 	if err := p.OnConfigurationChange(); err != nil {
 		return err
@@ -49,6 +54,35 @@ func (p *Plugin) OnActivate() error {
 	}
 
 	p.Run()
+
+	return nil
+}
+
+func (p * Plugin) setupBot() error {
+	botId, err := p.Helpers.EnsureBot(&model.Bot{
+		Username:    config.BotUsername,
+		DisplayName: config.BotDisplayName,
+		Description: "Bot for Standup Raven.",
+	})
+	if err != nil {
+		return err
+	}
+	p.BotUserID = botId
+
+	bundlePath, err := p.API.GetBundlePath()
+	if err != nil {
+		return err
+	}
+	
+	profileImage, err := ioutil.ReadFile(filepath.Join(bundlePath, "webapp/static/logo.png"))
+	if err != nil {
+		return err
+	}
+	
+	appErr := p.API.SetProfileImage(botId, profileImage)
+	if appErr != nil {
+		return err
+	}
 
 	return nil
 }
@@ -72,15 +106,11 @@ func (p *Plugin) OnConfigurationChange() error {
 			return err
 		}
 
-		if err := configuration.IsValid(); err != nil {
-			return err
-		}
-
 		if err := configuration.ProcessConfiguration(); err != nil {
 			config.Mattermost.LogError(err.Error())
 			return err
 		}
-
+		configuration.BotUserID =p.BotUserID 
 		config.SetConfig(&configuration)
 	}
 	return nil
@@ -137,13 +167,6 @@ func (p *Plugin) prepareContext(args *model.CommandArgs) command.Context {
 }
 
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	conf := config.GetConfig()
-	if err := conf.IsValid(); err != nil {
-		logger.Error("Plugin is not configured", err, nil)
-		http.Error(w, "This plugin is not configured.", http.StatusNotImplemented)
-		return
-	}
-
 	d := util.DumpRequest(r)
 	endpoint := controller.GetEndpoint(r)
 

@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/pkg/errors"
 	"go.uber.org/atomic"
 	"time"
 )
@@ -37,7 +36,8 @@ const (
 	// the date changed between 23:59 and 00:00:xx2.
 	RunnerInterval = 25 * time.Second
 
-	OverrideUsername = "Raven"
+	BotUsername = "raven"
+	BotDisplayName = "Raven"
 	OverrideIconURL  = URLStaticBase + "/logo.png"
 )
 
@@ -48,7 +48,6 @@ var (
 )
 
 type Configuration struct {
-	BotUsername   string `json:"botUsername"`
 	TimeZone      string `json:"timeZone"`
 	WorkWeekStart string `json:"workWeekStart"`
 	WorkWeekEnd   string `json:"workWeekEnd"`
@@ -67,11 +66,6 @@ func SetConfig(c *Configuration) {
 }
 
 func (c *Configuration) ProcessConfiguration() error {
-	user, appErr := Mattermost.GetUserByUsername(c.BotUsername)
-	if appErr != nil {
-		return errors.New(appErr.Error())
-	}
-	c.BotUserID = user.Id
 
 	location, err := time.LoadLocation(c.TimeZone)
 	if err != nil {
@@ -80,13 +74,5 @@ func (c *Configuration) ProcessConfiguration() error {
 	}
 
 	c.Location = location
-	return nil
-}
-
-func (c *Configuration) IsValid() error {
-	if c.BotUsername == "" {
-		return errors.New("Bot username cannot be empty")
-	}
-
 	return nil
 }
