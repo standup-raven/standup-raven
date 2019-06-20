@@ -25,17 +25,12 @@ var SentryDSN string
 
 type Plugin struct {
 	plugin.MattermostPlugin
-	BotUserID string
 	handler http.Handler
 	running bool
 }
 
 func (p *Plugin) OnActivate() error {
 	config.Mattermost = p.API
-	
-	if err := p.setupBot(); err !=nil {
-		return err
-	}
 
 	if err := p.OnConfigurationChange(); err != nil {
 		return err
@@ -58,33 +53,32 @@ func (p *Plugin) OnActivate() error {
 	return nil
 }
 
-func (p * Plugin) setupBot() error {
-	botId, err := p.Helpers.EnsureBot(&model.Bot{
+func (p * Plugin) setUpBot() (string, error) {
+	botID, err := p.Helpers.EnsureBot(&model.Bot{
 		Username:    config.BotUsername,
 		DisplayName: config.BotDisplayName,
 		Description: "Bot for Standup Raven.",
 	})
 	if err != nil {
-		return err
+		return "",err
 	}
-	p.BotUserID = botId
 
 	bundlePath, err := p.API.GetBundlePath()
 	if err != nil {
-		return err
+		return "",err
 	}
 	
 	profileImage, err := ioutil.ReadFile(filepath.Join(bundlePath, "webapp/static/logo.png"))
 	if err != nil {
-		return err
+		return "",err
 	}
 	
-	appErr := p.API.SetProfileImage(botId, profileImage)
+	appErr := p.API.SetProfileImage(botID, profileImage)
 	if appErr != nil {
-		return err
+		return "",appErr
 	}
 
-	return nil
+	return botID,nil
 }
 
 func (p *Plugin) setupStaticFileServer() error {
@@ -100,7 +94,13 @@ func (p *Plugin) setupStaticFileServer() error {
 func (p *Plugin) OnConfigurationChange() error {
 	if config.Mattermost != nil {
 		var configuration config.Configuration
-
+		
+		botID, err := p.setUpBot()
+		if err !=nil {
+			return err
+		}
+		configuration.BotUserID =botID 
+		
 		if err := config.Mattermost.LoadPluginConfiguration(&configuration); err != nil {
 			logger.Error("Error occurred during loading plugin configuraton from Mattermost", err, nil)
 			return err
@@ -110,7 +110,6 @@ func (p *Plugin) OnConfigurationChange() error {
 			config.Mattermost.LogError(err.Error())
 			return err
 		}
-		configuration.BotUserID =p.BotUserID 
 		config.SetConfig(&configuration)
 	}
 	return nil
