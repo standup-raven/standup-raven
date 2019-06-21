@@ -1,11 +1,13 @@
 import React from 'react';
 
-import logo from '../assets/images/logo.svg';
+import logo from '../../assets/images/logo.svg';
+import './style.css';
 
-export class ChannelHeaderButtonIcon extends React.PureComponent {
+class ChannelHeaderButtonIcon extends React.PureComponent {
     render() {
         return (
             <span
+                className={'icon'}
                 dangerouslySetInnerHTML={{
                     __html: logo,
                 }}
@@ -13,3 +15,5 @@ export class ChannelHeaderButtonIcon extends React.PureComponent {
         );
     }
 }
+
+export default ChannelHeaderButtonIcon;

@@ -1,5 +1,5 @@
 import React from 'react';
-import {ChannelHeaderButtonIcon} from 'components/icons';
+import ChannelHeaderButtonIcon from './components/channelHeaderButton';
 import reducer from './reducer';
 import Actions from './actions';
 import StandupModal from './components/standupModal';
