@@ -4,6 +4,7 @@ import (
 	"github.com/getsentry/raven-go"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -24,7 +25,6 @@ var SentryDSN string
 
 type Plugin struct {
 	plugin.MattermostPlugin
-
 	handler http.Handler
 	running bool
 }
@@ -53,6 +53,34 @@ func (p *Plugin) OnActivate() error {
 	return nil
 }
 
+func (p * Plugin) setUpBot() (string, error) {
+	botID, err := p.Helpers.EnsureBot(&model.Bot{
+		Username:    config.BotUsername,
+		DisplayName: config.BotDisplayName,
+		Description: "Bot for Standup Raven.",
+	})
+	if err != nil {
+		return "",err
+	}
+
+	bundlePath, err := p.API.GetBundlePath()
+	if err != nil {
+		return "",err
+	}
+	
+	profileImage, err := ioutil.ReadFile(filepath.Join(bundlePath, "webapp/static/logo.png"))
+	if err != nil {
+		return "",err
+	}
+	
+	appErr := p.API.SetProfileImage(botID, profileImage)
+	if appErr != nil {
+		return "",appErr
+	}
+
+	return botID,nil
+}
+
 func (p *Plugin) setupStaticFileServer() error {
 	exe, err := os.Executable()
 	if err != nil {
@@ -66,13 +94,15 @@ func (p *Plugin) setupStaticFileServer() error {
 func (p *Plugin) OnConfigurationChange() error {
 	if config.Mattermost != nil {
 		var configuration config.Configuration
-
-		if err := config.Mattermost.LoadPluginConfiguration(&configuration); err != nil {
-			logger.Error("Error occurred during loading plugin configuraton from Mattermost", err, nil)
+		
+		botID, err := p.setUpBot()
+		if err !=nil {
 			return err
 		}
-
-		if err := configuration.IsValid(); err != nil {
+		configuration.BotUserID =botID 
+		
+		if err := config.Mattermost.LoadPluginConfiguration(&configuration); err != nil {
+			logger.Error("Error occurred during loading plugin configuraton from Mattermost", err, nil)
 			return err
 		}
 
@@ -80,7 +110,6 @@ func (p *Plugin) OnConfigurationChange() error {
 			config.Mattermost.LogError(err.Error())
 			return err
 		}
-
 		config.SetConfig(&configuration)
 	}
 	return nil
@@ -137,13 +166,6 @@ func (p *Plugin) prepareContext(args *model.CommandArgs) command.Context {
 }
 
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	conf := config.GetConfig()
-	if err := conf.IsValid(); err != nil {
-		logger.Error("Plugin is not configured", err, nil)
-		http.Error(w, "This plugin is not configured.", http.StatusNotImplemented)
-		return
-	}
-
 	d := util.DumpRequest(r)
 	endpoint := controller.GetEndpoint(r)
 

@@ -1,5 +1,5 @@
-hash: f44ab8f6053983cf9ac4300c18ea501fddb336451067aae02954caa2be8f7210
-updated: 2019-04-14T09:28:08.364168+05:30
+hash: 1f98fe7e9c2b5284681d0dfb33cbfbbada69f570ed38910dce69cc5a02f7a32c
+updated: 2019-06-18T23:07:40.131869528+05:30
 imports:
 - name: github.com/blang/semver
   version: 3c1074078d32d767e08ab2c8564867292da86926
@@ -19,6 +19,8 @@ imports:
   version: c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9
 - name: github.com/getsentry/raven-go
   version: f04e7487e9a6b9d9837d52743fb5f40576c56411
+- name: github.com/go-ldap/ldap
+  version: 9f0d712775a0973b7824a1585a86a4ea1d5263d9
 - name: github.com/golang/protobuf
   version: 89a0c16f4dc2a70c0ed864d8ef64878f24fdaa51
   subpackages:
@@ -33,26 +35,18 @@ imports:
   version: ff2cf002a8dd750586d91dddd4470c341f981fe1
 - name: github.com/hashicorp/go-plugin
   version: a4620f9913d19f03a6bf19b2f304daaaf83ea130
-- name: github.com/hashicorp/hcl
-  version: ef8a98b0bbce4a65b5aa4c368430a80ddc533168
-  subpackages:
-  - hcl/ast
-  - hcl/parser
-  - hcl/printer
-  - hcl/scanner
-  - hcl/strconv
-  - hcl/token
-  - json/parser
-  - json/scanner
-  - json/token
 - name: github.com/hashicorp/yamux
   version: 3520598351bb3500a49ae9563f5539666ae0a27c
-- name: github.com/magiconair/properties
-  version: c2353362d570a7bfa228149c62842019201cfb71
-- name: github.com/mattermost/mattermost-server
-  version: 5ef499caae2bb751438b19151a9fcb4b27830bca
+- name: github.com/mattermost/go-i18n
+  version: 9a9b2eb57c9f39e7142fe48a35f047716c444ed1
   subpackages:
-  - einterfaces
+  - i18n
+  - i18n/bundle
+  - i18n/language
+  - i18n/translation
+- name: github.com/mattermost/mattermost-server
+  version: bfd66aa445a2df8c6ed6ba9f2567021ecf6c9f3b
+  subpackages:
   - mlog
   - model
   - plugin
@@ -63,19 +57,8 @@ imports:
   - utils/fileutils
   - utils/jsonutils
   - utils/markdown
-- name: github.com/mattermost/viper
-  version: b5e8006cbee93ec955a89ab31e0e3ce3204f3736
 - name: github.com/mitchellh/go-testing-interface
   version: a61a99592b77c9ba629d254a693acffaeb4b7e28
-- name: github.com/mitchellh/mapstructure
-  version: f15292f7a699fcc1a38a80977f80a046874ba8ac
-- name: github.com/nicksnyder/go-i18n
-  version: 0dc1626d56435e9d605a29875701721c54bc9bbd
-  subpackages:
-  - i18n
-  - i18n/bundle
-  - i18n/language
-  - i18n/translation
 - name: github.com/oklog/run
   version: 6934b124db28979da51d3470dadfa34d73d72652
 - name: github.com/pborman/uuid
@@ -88,16 +71,6 @@ imports:
   version: 5d4384ee4fb2527b0a1256a821ebfc92f91efefc
   subpackages:
   - difflib
-- name: github.com/spf13/afero
-  version: 787d034dfe70e44075ccc060d346146ef53270ad
-  subpackages:
-  - mem
-- name: github.com/spf13/cast
-  version: 8965335b8c7107321228e3e3702cab9832751bac
-- name: github.com/spf13/jwalterweatherman
-  version: 14d3d4c518341bea657dd8a226f5121c0ff8c9f2
-- name: github.com/spf13/pflag
-  version: 947b89bd1b7dabfed991ac30e1a56f5193f0c88b
 - name: github.com/stretchr/objx
   version: ea4fe68685ee0d3cee7032121851b57e7494e8ea
 - name: github.com/stretchr/testify
@@ -105,6 +78,7 @@ imports:
   subpackages:
   - assert
   - mock
+  - require
 - name: github.com/thoas/go-funk
   version: c43409e2d5def27be9b081e316441108def35c8d
 - name: go.uber.org/atomic
@@ -185,6 +159,8 @@ imports:
   - stats
   - status
   - tap
+- name: gopkg.in/asn1-ber.v1
+  version: f715ec2f112d1e4195b827ad68cf44017a3ef2b1
 - name: gopkg.in/natefinch/lumberjack.v2
   version: a96e63847dc3c67d17befa69c303767e2f84e54f
 - name: gopkg.in/yaml.v2

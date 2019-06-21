@@ -291,11 +291,6 @@ func sendWindowOpenNotification(channelIDs []string) {
 			UserId:    config.GetConfig().BotUserID,
 			Type:      model.POST_DEFAULT,
 			Message:   "Please start filling your standup!",
-			Props: model.StringInterface{
-				"from_webhook":      "true",
-				"override_username": config.OverrideUsername,
-				"override_icon_url": config.OverrideIconURL,
-			},
 		}
 
 		if _, appErr := config.Mattermost.CreatePost(post); appErr != nil {
@@ -372,11 +367,6 @@ func sendWindowCloseNotification(channelIDs []string) error {
 			UserId:    config.GetConfig().BotUserID,
 			Type:      model.POST_DEFAULT,
 			Message:   message,
-			Props: model.StringInterface{
-				"from_webhook":      "true",
-				"override_username": config.OverrideUsername,
-				"override_icon_url": config.OverrideIconURL,
-			},
 		}
 
 		if _, appErr := config.Mattermost.CreatePost(post); appErr != nil {
@@ -455,11 +445,6 @@ func generateTypeAggregatedStandupReport(
 		ChannelId: channelID,
 		UserId:    config.GetConfig().BotUserID,
 		Message:   text,
-		Props: model.StringInterface{
-			"from_webhook":      "true",
-			"override_username": config.OverrideUsername,
-			"override_icon_url": config.OverrideIconURL,
-		},
 	}, nil
 }
 
@@ -516,11 +501,6 @@ func generateUserAggregatedStandupReport(
 		ChannelId: channelID,
 		UserId:    conf.BotUserID,
 		Message:   text,
-		Props: model.StringInterface{
-			"from_webhook":      "true",
-			"override_username": config.OverrideUsername,
-			"override_icon_url": config.OverrideIconURL,
-		},
 	}, nil
 }
 

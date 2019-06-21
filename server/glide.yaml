@@ -1,7 +1,7 @@
 package: github.com/standup-raven/standup-raven/server
 import:
 - package: github.com/mattermost/mattermost-server
-  version: ~5.9.0
+  version: ~5.12.0
   subpackages:
   - plugin
 - package: github.com/thoas/go-funk

@@ -12,11 +12,6 @@
   "settings_schema": {
     "settings": [
       {
-        "key": "botUsername",
-        "display_name": "Bot Username",
-        "type": "username"
-      },
-      {
         "key": "timeZone",
         "display_name": "Time Zone",
         "type": "dropdown",
