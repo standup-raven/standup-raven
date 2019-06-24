@@ -7,7 +7,7 @@ class ChannelHeaderButtonIcon extends React.PureComponent {
     render() {
         return (
             <span
-                className={'icon'}
+                className={'raven-icon'}
                 dangerouslySetInnerHTML={{
                     __html: logo,
                 }}
