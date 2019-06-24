@@ -157,4 +157,4 @@ release: dist
 	@echo "Generating changelog"
 	@changelog=$(./webapp/node_modules/what-the-changelog/lib/index.js standup-raven standup-raven '.' 'security,added,changed,deprecated,removed,fixed,long term' 'docs/assets/images/resolutions')
 	@echo "Pushing artifacts to GitHub"
-	@ghr -t $(GITHUB_TOKEN) -u $(CIRCLE_PROJECT_USERNAME) -r $(CIRCLE_PROJECT_REPONAME) -replace $(PLUGINVERSION) -b $(changelog) dist/
+	@ghr -b $(changelog) -t $(GITHUB_TOKEN) -u $(CIRCLE_PROJECT_USERNAME) -r $(CIRCLE_PROJECT_REPONAME) -replace $(PLUGINVERSION) dist/
