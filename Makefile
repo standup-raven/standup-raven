@@ -151,9 +151,9 @@ deploy:
 
 release: dist
 	@echo "Installing what-the-changelog"
-	@npm install -g what-the-changelog	
+	@cd webapp && npm i -D	
 	@echo "Installing ghr"
 	@go get -u github.com/tcnksm/ghr
 	@echo "Generating changelog"
-	@changelog=$(whatthechangelog standup-raven standup-raven '.' 'added,changed,deprecated,removed,fixed' 'docs/assets/images/resolutions')
+	@changelog=$(./webapp/what-the-changelog/lib/index.js standup-raven standup-raven '.' 'security,added,changed,deprecated,removed,fixed,long term' 'docs/assets/images/resolutions')
 	@ghr -t $(GITHUB_TOKEN) -u $(CIRCLE_PROJECT_USERNAME) -r $(CIRCLE_PROJECT_REPONAME) -replace $(PLUGINVERSION) -b $(changelog) dist/
