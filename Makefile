@@ -149,14 +149,13 @@ deploy:
 	http POST $(MM_SERVICESETTINGS_SITEURL)/api/v4/users/logout Authorization:"Bearer $$TOKEN" > /dev/null && \
 	echo "Plugin uploaded successfully"
 
-release: dist
+changelog: dist
 	@echo "Installing what-the-changelog"
 	@cd webapp && npm i -D	
 	@echo "Installing ghr"
 	@go get -u github.com/tcnksm/ghr
 	@echo "Generating changelog"
-	@CHANGELOG=$(./webapp/node_modules/what-the-changelog/lib/index.js standup-raven standup-raven '.' 'security,added,changed,deprecated,removed,fixed,long term' 'docs/assets/images/resolutions')
-	@echo "Changelog -"
-	@echo $(CHANGELOG)
-	@echo "Pushing artifacts to GitHub"
-	@ghr -b $(CHANGELOG) -t $(GITHUB_TOKEN) -u $(ORG_NAME) -r $(REPO_NAME) -replace $(PLUGINVERSION) dist/
+	./webapp/node_modules/what-the-changelog/lib/index.js standup-raven standup-raven '.' 'security,added,changed,deprecated,removed,fixed,long term' 'docs/assets/images/resolutions' > changelog.txt
+    
+release: changelog
+	ghr -b '$(shell cat changelog.txt)'  -t $(GITHUB_TOKEN) -u $(ORG_NAME) -r $(REPO_NAME) $(PLUGINVERSION) dist/
