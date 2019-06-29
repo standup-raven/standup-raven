@@ -22,7 +22,7 @@ func CommandMaster() *Config {
 
 func getAvailableCommands() []string {
 	availableCommands := []string{}
-	for command, _ := range commands {
+	for command := range commands {
 		availableCommands = append(availableCommands, command)
 	}
 	return availableCommands
@@ -33,24 +33,24 @@ func validateCommandMaster(args []string, context Context) (*model.CommandRespon
 	if len(args) == 0 {
 		return util.SendEphemeralText("Please specify a command")
 	}
-	
+
 	subCommand := args[0]
 	subCommandCommand, ok := commands[subCommand]
-	
+
 	// validate sub-command exists
 	if !ok {
 		return util.SendEphemeralText("Invalid command: " + subCommand)
 	}
-	
+
 	// add sub-command in props so we don't need to extract it again
 	context.Props["subCommand"] = subCommandCommand
 	context.Props["subCommandArgs"] = args[1:]
-	
+
 	// run validation for sub-command
 	if response, appErr := subCommandCommand.Validate(args[1:], context); response != nil || appErr != nil {
 		return response, appErr
 	}
-	
+
 	// all okay
 	return nil, nil
 }

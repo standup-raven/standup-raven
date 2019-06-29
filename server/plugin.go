@@ -53,32 +53,32 @@ func (p *Plugin) OnActivate() error {
 	return nil
 }
 
-func (p * Plugin) setUpBot() (string, error) {
+func (p *Plugin) setUpBot() (string, error) {
 	botID, err := p.Helpers.EnsureBot(&model.Bot{
 		Username:    config.BotUsername,
 		DisplayName: config.BotDisplayName,
 		Description: "Bot for Standup Raven.",
 	})
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
 	bundlePath, err := p.API.GetBundlePath()
 	if err != nil {
-		return "",err
-	}
-	
-	profileImage, err := ioutil.ReadFile(filepath.Join(bundlePath, "webapp/static/logo.png"))
-	if err != nil {
-		return "",err
-	}
-	
-	appErr := p.API.SetProfileImage(botID, profileImage)
-	if appErr != nil {
-		return "",appErr
+		return "", err
 	}
 
-	return botID,nil
+	profileImage, err := ioutil.ReadFile(filepath.Join(bundlePath, "webapp/static/logo.png"))
+	if err != nil {
+		return "", err
+	}
+
+	appErr := p.API.SetProfileImage(botID, profileImage)
+	if appErr != nil {
+		return "", appErr
+	}
+
+	return botID, nil
 }
 
 func (p *Plugin) setupStaticFileServer() error {
@@ -94,13 +94,13 @@ func (p *Plugin) setupStaticFileServer() error {
 func (p *Plugin) OnConfigurationChange() error {
 	if config.Mattermost != nil {
 		var configuration config.Configuration
-		
+
 		botID, err := p.setUpBot()
-		if err !=nil {
+		if err != nil {
 			return err
 		}
-		configuration.BotUserID =botID 
-		
+		configuration.BotUserID = botID
+
 		if err := config.Mattermost.LoadPluginConfiguration(&configuration); err != nil {
 			logger.Error("Error occurred during loading plugin configuraton from Mattermost", err, nil)
 			return err
@@ -120,7 +120,7 @@ func (p *Plugin) RegisterCommands() error {
 		logger.Error("Cound't register command", err, map[string]interface{}{"command": command.CommandMaster().Command.Trigger})
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -142,7 +142,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		params = split[1:]
 	}
 
-	if function != "/" + command.CommandMaster().Command.Trigger {
+	if function != "/"+command.CommandMaster().Command.Trigger {
 		return nil, &model.AppError{Message: "Unknown command: [" + function + "] encountered"}
 	}
 
