@@ -15,7 +15,7 @@ import (
 func commandAddMembers() *Config {
 	return &Config{
 		Command: &model.Command{
-			Trigger:          config.CommandPrefix + "addmembers",
+			Trigger:          "addmembers",
 			AutoComplete:     true,
 			AutoCompleteDesc: "Adds specified members to the standup and invites them to this channel.",
 			AutoCompleteHint: "<usernames...>",

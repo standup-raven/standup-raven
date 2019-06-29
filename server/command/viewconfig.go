@@ -13,7 +13,7 @@ import (
 func commandViewConfig() *Config {
 	return &Config{
 		Command: &model.Command{
-			Trigger:          config.CommandPrefix + "viewconfig",
+			Trigger:          "viewconfig",
 			AutoCompleteDesc: "View standup settings for this channel.",
 			AutoComplete:     true,
 		},

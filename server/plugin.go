@@ -116,13 +116,11 @@ func (p *Plugin) OnConfigurationChange() error {
 }
 
 func (p *Plugin) RegisterCommands() error {
-	for _, c := range command.Commands {
-		if err := config.Mattermost.RegisterCommand(c.Command); err != nil {
-			logger.Error("Cound't register command", err, map[string]interface{}{"command": c.Command.Trigger})
-			return err
-		}
+	if err := config.Mattermost.RegisterCommand(command.CommandMaster().Command); err != nil {
+		logger.Error("Cound't register command", err, map[string]interface{}{"command": command.CommandMaster().Command.Trigger})
+		return err
 	}
-
+	
 	return nil
 }
 
@@ -144,18 +142,17 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		params = split[1:]
 	}
 
-	commandConfig := command.Commands[function]
-	if commandConfig == nil {
+	if function != "/" + command.CommandMaster().Command.Trigger {
 		return nil, &model.AppError{Message: "Unknown command: [" + function + "] encountered"}
 	}
 
 	context := p.prepareContext(args)
-	if response, err := commandConfig.Validate(params, context); response != nil {
+	if response, err := command.CommandMaster().Validate(params, context); response != nil {
 		return response, err
 	}
 
 	// todo add error logs here
-	return commandConfig.Execute(params, context)
+	return command.CommandMaster().Execute(params, context)
 }
 
 func (p *Plugin) prepareContext(args *model.CommandArgs) command.Context {

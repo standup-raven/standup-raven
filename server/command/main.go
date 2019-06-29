@@ -22,15 +22,11 @@ func (c *Config) Syntax() string {
 	return fmt.Sprintf("/%s %s", c.Command.Trigger, c.Command.AutoCompleteHint)
 }
 
-var Commands map[string]*Config
-
-func init() {
-	Commands = map[string]*Config{
-		"/" + commandViewConfig().Command.Trigger:    commandViewConfig(),
-		"/" + commandConfig().Command.Trigger:        commandConfig(),
-		"/" + commandAddMembers().Command.Trigger:    commandAddMembers(),
-		"/" + commandRemoveMembers().Command.Trigger: commandRemoveMembers(),
-		"/" + commandStandup().Command.Trigger:       commandStandup(),
-		"/" + commandHelp().Command.Trigger:          commandHelp(),
-	}
+var commands = map[string]*Config{
+	commandViewConfig().Command.Trigger:    commandViewConfig(),
+	commandConfig().Command.Trigger:        commandConfig(),
+	commandAddMembers().Command.Trigger:    commandAddMembers(),
+	commandRemoveMembers().Command.Trigger: commandRemoveMembers(),
+	commandStandup().Command.Trigger:       commandStandup(),
+	commandHelp().Command.Trigger:          commandHelp(),
 }
