@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Driver command for all other commands
+// Master is the driver command for all other commands
 // All other slash commands are run as /standup <command-name> [command-args]
 func Master() *Config {
 	return &Config{
