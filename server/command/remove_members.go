@@ -13,7 +13,7 @@ import (
 func commandRemoveMembers() *Config {
 	return &Config{
 		Command: &model.Command{
-			Trigger:          config.CommandPrefix + "removemembers",
+			Trigger:          "removemembers",
 			AutoComplete:     true,
 			AutoCompleteDesc: "Removes specified members from this channel's standup.",
 			AutoCompleteHint: "usernames...",

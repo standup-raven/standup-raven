@@ -8,7 +8,7 @@ import (
 func commandConfig() *Config {
 	return &Config{
 		Command: &model.Command{
-			Trigger:          config.CommandPrefix + "config",
+			Trigger:          "config",
 			AutoComplete:     true,
 			AutoCompleteDesc: "Configure the standup for this channel.",
 		},

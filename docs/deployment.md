@@ -18,19 +18,19 @@ environment variable for it to work -
 
 1. Add configurations for your standup -
 
-        /standupconfig
+        /standup config
         
     this opens a modal where you can enter your channel's configurations.
 
 1. Add members to standup -
 
-        /standupaddmembers <usernames...>
+        /standup addmembers <usernames...>
         
     Usernames can be specified as @ mentions.
     
 1. You may verify saved config if you want by executing -
 
-        /standupviewconfig
+        /standup viewconfig
         
 1. Fill your standup by clicking on the Standup Raven icon in the channel header bar. The icon may be hidden in ellipsis icon.
 
@@ -38,4 +38,4 @@ environment variable for it to work -
     
 1. Execute help command anytime to access plugin commands help -
 
-        /standuphelp 
+        /standup help 

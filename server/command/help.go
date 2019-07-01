@@ -3,14 +3,13 @@ package command
 import (
 	"fmt"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/standup-raven/standup-raven/server/config"
 	"strings"
 )
 
 func commandHelp() *Config {
 	return &Config{
 		Command: &model.Command{
-			Trigger:          config.CommandPrefix + "help",
+			Trigger:          "help",
 			AutoComplete:     true,
 			AutoCompleteDesc: "Shows help on various standup commands",
 		},
