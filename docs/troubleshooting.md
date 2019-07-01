@@ -26,7 +26,7 @@
     
 * ##### I'm seeing "Standup is disabled for this channel" message on opening standup modal.
 
-    The channel standup is disabled. Run `/standupconfig` and enable standup from the modal that opens. 
+    The channel standup is disabled. Run `/standup config` and enable standup from the modal that opens. 
 
 * ##### I think the plugin is awesome and super cool.
 
