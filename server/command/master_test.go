@@ -15,7 +15,7 @@ func TearDown() {
 func TestCommandMaster_Validation(t *testing.T) {
 	defer TearDown()
 	
-	command := CommandMaster()
+	command := Master()
 	context := Context{
 		Props: map[string]interface{}{},
 	}
@@ -46,7 +46,7 @@ func TestCommandMaster_Validation(t *testing.T) {
 func TestCommandMaster_Execution(t *testing.T) {
 	defer TearDown()
 	
-	command := CommandMaster()
+	command := Master()
 	dummyCommand := &Config{
 		Execute: func([]string, Context) (*model.CommandResponse, *model.AppError) {
 			return nil, nil
