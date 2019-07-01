@@ -157,5 +157,5 @@ release: dist
 	@echo "Create new tag"
 	$(shell git tag $(PLUGINVERSION))
 	@echo "Generating changelog and uploading artifacts"	
-	@a=$$(./webapp/node_modules/what-the-changelog/lib/index.js standup-raven standup-raven '.' 'security,added,changed,deprecated,removed,fixed,long term' 'docs/assets/images/resolutions' $(PLUGINVERSION)) && \
-	ghr -body="$$a" -t $(GITHUB_TOKEN) -u $(ORG_NAME) -r $(REPO_NAME) $(PLUGINVERSION) dist/
+	@changelog=$$(./webapp/node_modules/what-the-changelog/lib/index.js standup-raven standup-raven '.' 'security,added,changed,deprecated,removed,fixed,long term' 'docs/assets/images/resolutions' $(PLUGINVERSION)) && \
+	ghr -body="$$changelog" -t $(GITHUB_TOKEN) -u $(ORG_NAME) -r $(REPO_NAME) $(PLUGINVERSION) dist/
