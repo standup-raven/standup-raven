@@ -30,7 +30,7 @@
     "svg-inline-loader": "^0.8.0",
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2",
-    "what-the-changelog": "^1.3.0"
+    "what-the-changelog": "^1.5.0"
   },
   "dependencies": {
     "@sentry/browser": "^4.6.4",
