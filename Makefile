@@ -15,6 +15,47 @@ define GetPluginVersion
 $(shell node -p "'v' + require('./plugin.json').version")
 endef
 
+define GetTimeZone
+$(shell node -e \
+"\
+var fs = require('fs');\
+fs.readFile('plugin.json', 'utf8', function readFileCallback(err, data) { \
+    if (err) { \
+        console.log(err); \
+    } else { \
+        obj = JSON.parse(data); \
+	    fs.readFile('timezones.json', 'utf8', function readFileCallback(err, timezones) { \
+	    if (err) { \
+	    	console.log(err);\
+	    } else { \
+		    timezones = JSON.parse(timezones); \
+		    obj.settings_schema.settings[0].options=timezones; \
+		    json = JSON.stringify(obj, null, 2); \
+		    fs.writeFile('plugin.json', json, 'utf8', function done(){}); \
+		} \
+	}); \
+}});"\
+)
+endef
+
+define UpdatePluginFile
+$(shell node -e \
+"\
+var fs = require('fs');\
+fs.readFile('plugin.json', 'utf8', function readFileCallback(err, data) { \
+    if (err) { \
+        console.log(err); \
+    } else { \
+		obj = JSON.parse(data); \
+		obj.settings_schema.settings[0].options=[]; \
+		json = JSON.stringify(obj, null, 2); \
+		fs.writeFile('plugin.json', json, 'utf8', function done(){}); \
+	} \
+});"\
+)
+endef
+
+
 PLUGINNAME=$(call GetPluginId)
 PLUGINVERSION=$(call GetPluginVersion)
 PACKAGENAME=mattermost-plugin-$(PLUGINNAME)-$(PLUGINVERSION)
@@ -73,6 +114,8 @@ quickdist: .distclean plugin.json
 	@echo $(PACKAGENAME)
 	@echo $(PLUGINVERSION)
 	
+	@echo Updating plugin.json with timezones
+	$(call GetTimeZone)
 
 	@echo Quick building plugin
 
@@ -110,6 +153,8 @@ quickdist: .distclean plugin.json
 
 dist: vendor .npminstall quickdist
 	@echo Building plugin
+	@echo Remove timezones from plugin.json
+	$(call UpdatePluginFile)
 
 run: .npminstall
 	@echo Not yet implemented
