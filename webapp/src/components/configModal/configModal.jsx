@@ -21,6 +21,7 @@ import * as HttpStatus from 'http-status-codes';
 import Cookies from 'js-cookie';
 
 const configModalCloseTimeout = 1000;
+const timezones = require('../../../../timezones.json');
 
 class ConfigModal extends (SentryBoundary, React.Component) {
     constructor(props) {
@@ -45,6 +46,14 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         };
     }
 
+    static get TIMEZONE_DISPLAY_NAMES() {
+        const timezoneList = {};
+        for (let i = 0; i < Object.keys(timezones).length; ++i) {
+            timezoneList[timezones[i]['display_name']] = timezones[i]['value'];
+        }
+        return timezoneList;
+    }
+
     getInitialState = () => {
         return {
             showSpinner: true,
@@ -60,6 +69,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 text: '',
                 type: 'info',
             },
+            timezone: 'Africa/Abidjan',
         };
     };
 
@@ -90,6 +100,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         this.setState({
             enabled: status,
         });
+    };
+
+    handleTimezoneChange = (timezone) => {
+        this.setState({timezone});
     };
 
     generateSections = (onChangeCallback) => {
@@ -141,6 +155,23 @@ class ConfigModal extends (SentryBoundary, React.Component) {
 
     getStandupConfig = () => {
         return new Promise((resolve) => {
+            const timezoneURL = Constants.URL_GET_TIMEZONE
+            request
+                .get(timezoneURL)
+                .withCredentials()
+                .end((err, result) => {
+                    if (result.ok) {
+                        const timezone = String(result.body);
+                        this.setState({
+                            timezone,
+                        });
+                        console.log(this.state.timezone);
+                    } else if (err) {
+                        console.log(err);
+                    }
+                });
+            resolve();
+        }).then(() => {
             const url = `${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}`;
             request
                 .get(url)
@@ -156,6 +187,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             sections: {},
                             enabled: standupConfig.enabled,
                             status: standupConfig.enabled,
+                            timezone: standupConfig.timezone,
                         };
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
@@ -166,12 +198,12 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                     } else if (result.status !== HttpStatus.NOT_FOUND) {
                         console.log(err);
                     }
-                    resolve();
                 });
         });
     };
 
     prepareStandupConfigPayload() {
+        console.log('grgg', this.state.timezone);
         return {
             channelId: this.props.channelID,
             windowOpenTime: this.state.windowOpenTime,
@@ -180,6 +212,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             sections: Object.values(this.state.sections).map((x) => x.trim()).filter((x) => x !== ''),
             members: this.state.members,
             enabled: this.state.enabled,
+            timezone: this.state.timezone,
         };
     }
 
@@ -228,7 +261,16 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         const showStandupError = false;
         const standupErrorMessage = '';
         const standupErrorSubMessage = '';
-
+        const data = timezones.map((timezone) =>
+            (
+                <MenuItem
+                    key={timezone.value}
+                    eventKey={timezone.value}
+                >
+                    {timezone.display_name}
+                </MenuItem>
+            )
+        );
         return (
             <Modal
                 show={this.props.visible}
@@ -303,6 +345,17 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 >
                                     <MenuItem eventKey={'user_aggregated'}>{'User Aggregated'}</MenuItem>
                                     <MenuItem eventKey={'type_aggregated'}>{'Type Aggregated'}</MenuItem>
+                                </SplitButton>
+                            </FormGroup>
+                            <FormGroup style={style.formGroup}>
+                                <ControlLabel style={style.controlLabel}>
+                                    {'Timezone:'}
+                                </ControlLabel>
+                                <SplitButton
+                                    title={ConfigModal.TIMEZONE_DISPLAY_NAMES[this.state.timezone]}
+                                    onSelect={this.handleTimezoneChange}
+                                    bsStyle={'link'}
+                                >{data}
                                 </SplitButton>
                             </FormGroup>
 

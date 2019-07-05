@@ -36,18 +36,17 @@ const (
 // notifications and standup reports as needed.
 // This is the entry point of the whole standup cycle.
 func SendNotificationsAndReports() error {
-	// don't send notifications if it's not a work week.
-	if !isWorkDay() {
-		logger.Debug("Not a working day. Not processing standup.", nil)
-		return nil
-	}
-
 	channelIDs, err := standup.GetStandupChannels()
 	if err != nil {
 		return err
 	}
-
-	a, b, c, err := filterChannelNotification(channelIDs)
+	
+	channels, err := ChannelsWorkDay(channelIDs)
+	if err != nil {
+		return err
+	}
+	
+	a, b, c, err := filterChannelNotification(channels)
 	if err != nil {
 		return err
 	}
@@ -56,14 +55,55 @@ func SendNotificationsAndReports() error {
 	if err := sendWindowCloseNotification(b); err != nil {
 		return err
 	}
-	return SendStandupReport(c, otime.Now(), ReportVisibilityPublic, "", true)
+	
+	for _, channelID := range c {
+		standupConfig, err := standup.GetStandupConfig(channelID)
+		if err != nil {
+			return err
+		}
+		if standupConfig == nil {
+			return errors.New("standup not configured for channel: " + channelID)
+		}
+		standupReportError := SendStandupReport([]string{channelID}, otime.Now(standupConfig.Timezone), ReportVisibilityPublic, "", true)
+		if standupReportError != nil {
+			return standupReportError
+		}
+	}
+	return nil
+}
+
+//Return Channels that have working day today
+func ChannelsWorkDay(channels map[string]string) (map[string]string, error) {
+	channelIDs := map[string]string{}
+	
+	for channelID := range channels {
+		standupConfig, err := standup.GetStandupConfig(channelID)
+		if err != nil {
+			return nil, err
+		}
+		if standupConfig == nil {
+			return nil, errors.New("standup not configured for channel: " + channelID)
+		}
+		
+		// don't send notifications if it's not a work week.
+		if isWorkDay(standupConfig.Timezone) {
+			channelIDs[channelID] =channelID
+		}
+	}
+	return channelIDs, nil
 }
 
 // GetNotificationStatus gets the notification status for specified channel
 func GetNotificationStatus(channelID string) (*ChannelNotificationStatus, error) {
 	logger.Debug(fmt.Sprintf("Fetching notification status for channel: %s", channelID), nil)
-
-	key := fmt.Sprintf("%s_%s_%s", config.CacheKeyPrefixNotificationStatus, channelID, util.GetCurrentDateString())
+	standupConfig, err := standup.GetStandupConfig(channelID)
+	if err != nil {
+		return nil, err
+	}
+	if standupConfig == nil {
+		return nil, errors.New("standup not configured for channel: " + channelID)
+	}
+	key := fmt.Sprintf("%s_%s_%s", config.CacheKeyPrefixNotificationStatus, channelID, util.GetCurrentDateString(standupConfig.Timezone))
 	data, appErr := config.Mattermost.KVGet(util.GetKeyHash(key))
 	if appErr != nil {
 		logger.Error("Couldn't get notification status from KV store", appErr, nil)
@@ -85,8 +125,6 @@ func GetNotificationStatus(channelID string) (*ChannelNotificationStatus, error)
 // SendStandupReport sends standup report for all channel IDs specified
 func SendStandupReport(channelIDs []string, date otime.OTime, visibility string, userId string, updateStatus bool) error {
 	for _, channelID := range channelIDs {
-		logger.Info("Sending standup report for channel: "+channelID+" time: "+date.GetDateString(), nil)
-
 		standupConfig, err := standup.GetStandupConfig(channelID)
 		if err != nil {
 			return err
@@ -166,7 +204,14 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 
 // SetNotificationStatus sets provided notification status for the specified channel ID.
 func SetNotificationStatus(channelID string, status *ChannelNotificationStatus) error {
-	key := fmt.Sprintf("%s_%s_%s", config.CacheKeyPrefixNotificationStatus, channelID, util.GetCurrentDateString())
+	standupConfig, err := standup.GetStandupConfig(channelID)
+	if err != nil {
+		return err
+	}
+	if standupConfig == nil {
+		return errors.New("standup not configured for channel: " + channelID)
+	}
+	key := fmt.Sprintf("%s_%s_%s", config.CacheKeyPrefixNotificationStatus, channelID, util.GetCurrentDateString(standupConfig.Timezone))
 	serializedStatus, err := json.Marshal(status)
 	if err != nil {
 		logger.Error("Couldn't marshal standup status data", err, nil)
@@ -245,7 +290,7 @@ func filterChannelNotification(channelIDs map[string]string) ([]string, []string
 func shouldSendWindowOpenNotification(notificationStatus *ChannelNotificationStatus, standupConfig *standup.StandupConfig) string {
 	if notificationStatus.WindowOpenNotificationSent {
 		return ChannelNotificationStatusSent
-	} else if otime.Now().GetTimeWithSeconds().After(standupConfig.WindowOpenTime.GetTimeWithSeconds().Time) {
+	} else if otime.Now(standupConfig.Timezone).GetTimeWithSeconds(standupConfig.Timezone).After(standupConfig.WindowOpenTime.GetTimeWithSeconds(standupConfig.Timezone).Time) {
 		return ChannelNotificationStatusSend
 	} else {
 		return ChannelNotificationStatusNotYet
@@ -259,12 +304,12 @@ func shouldSendWindowCloseNotification(notificationStatus *ChannelNotificationSt
 		return ChannelNotificationStatusSent
 	}
 
-	windowDuration := standupConfig.WindowCloseTime.GetTime().Time.Sub(standupConfig.WindowOpenTime.GetTime().Time)
+	windowDuration := standupConfig.WindowCloseTime.GetTime(standupConfig.Timezone).Time.Sub(standupConfig.WindowOpenTime.GetTime(standupConfig.Timezone).Time)
 	targetDurationSeconds := windowDuration.Seconds() * config.WindowCloseNotificationDurationPercentage
 	targetDuration, _ := time.ParseDuration(fmt.Sprintf("%fs", targetDurationSeconds))
 
 	// now we just need to check if current time is targetDuration seconds after window open time
-	if otime.Now().GetTimeWithSeconds().After(standupConfig.WindowOpenTime.GetTimeWithSeconds().Add(targetDuration)) {
+	if otime.Now(standupConfig.Timezone).GetTimeWithSeconds(standupConfig.Timezone).After(standupConfig.WindowOpenTime.GetTimeWithSeconds(standupConfig.Timezone).Add(targetDuration)) {
 		return ChannelNotificationStatusSend
 	} else {
 		return ChannelNotificationStatusNotYet
@@ -276,7 +321,7 @@ func shouldSendWindowCloseNotification(notificationStatus *ChannelNotificationSt
 func shouldSendStandupReport(notificationStatus *ChannelNotificationStatus, standupConfig *standup.StandupConfig) string {
 	if notificationStatus.StandupReportSent {
 		return ChannelNotificationStatusSent
-	} else if otime.Now().GetTimeWithSeconds().After(standupConfig.WindowCloseTime.GetTimeWithSeconds().Time) {
+	} else if otime.Now(standupConfig.Timezone).GetTimeWithSeconds(standupConfig.Timezone).After(standupConfig.WindowCloseTime.GetTimeWithSeconds(standupConfig.Timezone).Time) {
 		return ChannelNotificationStatusSend
 	} else {
 		return ChannelNotificationStatusNotYet
@@ -327,7 +372,7 @@ func sendWindowCloseNotification(channelIDs []string) error {
 
 		var usersPendingStandup []string
 		for _, userId := range standupConfig.Members {
-			userStandup, err := standup.GetUserStandup(userId, channelID, otime.Now())
+			userStandup, err := standup.GetUserStandup(userId, channelID, otime.Now(standupConfig.Timezone))
 			if err != nil {
 				return err
 			}
@@ -504,9 +549,9 @@ func generateUserAggregatedStandupReport(
 	}, nil
 }
 
-func isWorkDay() bool {
+func isWorkDay(timezone string) bool {
 	conf := config.GetConfig()
-	dayOfWeek := int(otime.Now().Time.Weekday())
+	dayOfWeek := int(otime.Now(timezone).Time.Weekday())
 
 	workWeekStart, _ := strconv.Atoi(conf.WorkWeekStart)
 	workWeekEnd, _ := strconv.Atoi(conf.WorkWeekEnd)

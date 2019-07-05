@@ -70,13 +70,14 @@ func TestDifference(t *testing.T) {
 }
 
 func TestGetCurrentDateString(t *testing.T) {
-	monkey.Patch(otime.Now, func() otime.OTime {
+	monkey.Patch(otime.Now, func(location *time.Location) otime.OTime {
 		t, _ := time.Parse("02-Jan-06", "02-Jan-06")
 		return otime.OTime{t}
 	})
-	defer monkey.Unpatch(otime.Now())
+	location, _ := time.LoadLocation("Asia/Kolkata")
+	defer monkey.Unpatch(otime.Now(location))
 	
-	assert.Equal(t, "20060102", GetCurrentDateString())
+	assert.Equal(t, "20060102", GetCurrentDateString(location))
 }
 
 func TestGetKeyHash(t *testing.T) {

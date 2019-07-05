@@ -31,28 +31,32 @@ func Parse(value string) (OTime, error) {
 	return OTime{argTime}, nil
 }
 
-func Now() OTime {
+func Now(timezone string) OTime {
 	now := time.Now()
-	return OTime{now.In(config.GetConfig().Location)}
+	location,_ := time.LoadLocation(timezone)
+	return OTime{now.In(location)}
 }
 
-func (ct OTime) GetTime() OTime {
+func (ct OTime) GetTime(timezone string) OTime {
 	now, _ := time.Parse(layoutTime, ct.Format(layoutTime))
-	return OTime{now.In(config.GetConfig().Location)}
+	location,_ := time.LoadLocation(timezone)
+	return OTime{now.In(location)}
 }
 
-func (ct OTime) GetTimeWithSeconds() OTime {
+func (ct OTime) GetTimeWithSeconds(timezone string) OTime {
 	now, _ := time.Parse(layoutTimeWithSeconds, ct.Format(layoutTimeWithSeconds))
-	return OTime{now.In(config.GetConfig().Location)}
+	location,_ := time.LoadLocation(timezone)
+	return OTime{now.In(location)}
 }
 
 func (ct OTime) GetTimeString() string {
 	return ct.Time.Format(layoutTime)
 }
 
-func (ct OTime) GetDate() OTime {
+func (ct OTime) GetDate(timezone string) OTime {
 	now, _ := time.Parse(layoutDate, ct.Format(layoutDate))
-	return OTime{now.In(config.GetConfig().Location)}
+	location,_ := time.LoadLocation(timezone)
+	return OTime{now.In(location)}
 }
 
 func (ct OTime) GetDateString() string {

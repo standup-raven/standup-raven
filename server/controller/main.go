@@ -19,6 +19,7 @@ var Endpoints = map[string]*Endpoint{
 	getEndpointKey(saveStandup): saveStandup,
 	getEndpointKey(getConfig):   getConfig,
 	getEndpointKey(setConfig):   setConfig,
+	getEndpointKey(getTimezone): getTimezone,
 }
 
 func getEndpointKey(endpoint *Endpoint) string {

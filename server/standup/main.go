@@ -10,6 +10,7 @@ import (
 	"github.com/standup-raven/standup-raven/server/util"
 	"github.com/thoas/go-funk"
 	"strings"
+	"time"
 )
 
 const (
@@ -55,6 +56,7 @@ type StandupConfig struct {
 	Members         []string    `json:"members"`
 	Sections        []string    `json:"sections"`
 	Enabled         bool        `json:"enabled"`
+	Timezone 		string 		`json:"timezone"`
 }
 
 func (sc *StandupConfig) IsValid() error {
@@ -75,6 +77,10 @@ func (sc *StandupConfig) IsValid() error {
 	if sc.WindowOpenTime.Time.After(sc.WindowCloseTime.Time) {
 		return errors.New("Window open time cannot be after window close time")
 	}
+	
+	if sc.Timezone == "" {
+		return errors.New("Timezone cannot be empty")
+	}
 
 	reportFormat := sc.ReportFormat
 	if !funk.Contains(config.ReportFormats, reportFormat) {
@@ -82,6 +88,10 @@ func (sc *StandupConfig) IsValid() error {
 			"Invalid report format specified. Report format should be one of: \"%s\"",
 			strings.Join(config.ReportFormats, "\", \"")),
 		)
+	}
+	_, err := time.LoadLocation(sc.Timezone)
+	if err != nil {
+		return errors.New("Couldn't load location in time " + err.Error())
 	}
 
 	if len(sc.Sections) < standupSectionsMinLength {
@@ -146,7 +156,14 @@ func GetStandupChannels() (map[string]string, error) {
 // SaveUserStandup saves a user's standup for a channel
 func SaveUserStandup(userStandup *UserStandup) error {
 	// span across time zones.
-	key := otime.Now().GetDateString() + "_" + userStandup.ChannelID + userStandup.UserID
+	standupConfig, err := GetStandupConfig(userStandup.ChannelID)
+	if err != nil {
+		return err
+	}
+	if standupConfig == nil {
+		return errors.New("standup not configured for channel: " + userStandup.ChannelID)
+	}
+	key := otime.Now(standupConfig.Timezone).GetDateString() + "_" + userStandup.ChannelID + userStandup.UserID
 	bytes, err := json.Marshal(userStandup)
 	if err != nil {
 		logger.Error("Error occurred in serializing user standup", err, nil)
@@ -189,7 +206,7 @@ func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 	logger.Debug(fmt.Sprintf("Saving standup config for channel: %s", standupConfig.ChannelId), nil)
 
 	standupConfig.Members = funk.UniqString(standupConfig.Members)
-
+	fmt.Println("config", standupConfig)
 	serializedStandupConfig, err := json.Marshal(standupConfig)
 	if err != nil {
 		logger.Error("Couldn't marshal standup config", err, nil)
@@ -235,7 +252,7 @@ func GetStandupConfig(channelID string) (*StandupConfig, error) {
 }
 
 // setStandupChannels saves the provided list of standup channels in the KV store
-func setStandupChannels(channels map[string]string) error {
+		func setStandupChannels(channels map[string]string) error {
 	logger.Debug("Saving standup channels", nil)
 
 	data, err := json.Marshal(channels)

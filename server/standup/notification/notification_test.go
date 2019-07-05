@@ -52,8 +52,8 @@ func TestSendNotificationsAndReports(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -97,8 +97,8 @@ func TestSendNotificationsAndReports(t *testing.T) {
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(2 * time.Hour)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(2 * time.Hour)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_1",
@@ -108,10 +108,12 @@ func TestSendNotificationsAndReports(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_2",
@@ -121,10 +123,12 @@ func TestSendNotificationsAndReports(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_3",
@@ -134,6 +138,8 @@ func TestSendNotificationsAndReports(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		}
 
@@ -184,8 +190,8 @@ func TestSendNotificationsAndReports_NoStandupChannels(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -203,8 +209,8 @@ func TestSendNotificationsAndReports_GetStandupChannels_Error(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -225,8 +231,8 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -270,8 +276,8 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(2 * time.Hour)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(2 * time.Hour)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_1",
@@ -281,10 +287,13 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
+				
 			}, nil
 		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_2",
@@ -294,10 +303,12 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_3",
@@ -307,6 +318,8 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		}
 
@@ -359,8 +372,8 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -383,8 +396,8 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(2 * time.Hour)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(2 * time.Hour)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_1",
@@ -394,10 +407,12 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_2",
@@ -407,10 +422,12 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_3",
@@ -420,6 +437,8 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		}
 
@@ -472,8 +491,8 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -516,8 +535,8 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 	})
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-55 * time.Minute)}
-		windowCloseTime := otime.OTime{otime.Now().Add(5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-55 * time.Minute)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       "channel_1",
@@ -527,6 +546,8 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 			Members:         []string{"user_id_1", "user_id_2"},
 			ReportFormat:    config.ReportFormatUserAggregated,
 			Sections:        []string{"section 1", "section 2"},
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -575,8 +596,8 @@ func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -671,8 +692,8 @@ func TestSendNotificationsAndReports_GetStandupConfig_Nil(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -767,8 +788,8 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -812,8 +833,8 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(2 * time.Hour)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(2 * time.Hour)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_1",
@@ -823,10 +844,12 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_2",
@@ -836,10 +859,12 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_3",
@@ -849,6 +874,8 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		}
 
@@ -899,9 +926,17 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
 	}
+	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
+		return map[string]string{
+			"channel_1": "channel_1",
+		}, nil
+	})
+	monkey.Patch(ChannelsWorkDay, func(map[string]string) (map[string]string, error) {
+		return map[string]string{}, nil
+	})
 
 	config.SetConfig(mockConfig)
 
@@ -918,10 +953,12 @@ func TestSendNotificationsAndReports_Integration(t *testing.T) {
 	mockAPI.On("KVGet", "uScyewRiWEwQavauYw9iOK76jISl+5Qq0mV+Cn/jFPs=").Return(
 		[]byte("{\"channel_1\": \":channel_1\"}"), nil,
 	)
-	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s_%s", config.CacheKeyPrefixNotificationStatus, "channel_1", util.GetCurrentDateString()))).Return(nil, nil)
-
-	windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-	windowCloseTime := otime.OTime{otime.Now().Add(2 * time.Hour)}
+	location, _ := time.LoadLocation("Asia/Kolkata")
+	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s_%s", config.CacheKeyPrefixNotificationStatus, "channel_1", util.GetCurrentDateString(location)))).Return(nil, nil)
+	
+	
+	windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+	windowCloseTime := otime.OTime{otime.Now(location).Add(2 * time.Hour)}
 	standupConfig, _ := json.Marshal(&standup.StandupConfig{
 		ChannelId:       "channel_1",
 		WindowOpenTime:  windowOpenTime,
@@ -930,14 +967,15 @@ func TestSendNotificationsAndReports_Integration(t *testing.T) {
 		Members:         []string{"user_id_1", "user_id_2"},
 		ReportFormat:    config.ReportFormatUserAggregated,
 		Sections:        []string{"section 1", "section 2"},
+		Timezone:        "Asia/Kolkata",
+		Location: 		 location,
 	})
 	mockAPI.On("KVGet", "UzFgbepiypG8qfVARBfHu154LDNiZOw7Mr6Ue4kNZrk=").Return(standupConfig, nil)
-
-	location, _ := time.LoadLocation("Asia/Kolkata")
+	
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -955,8 +993,8 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -980,8 +1018,8 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 	})
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       "channel_2",
@@ -991,6 +1029,8 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 			Members:         []string{"user_id_1", "user_id_2"},
 			ReportFormat:    config.ReportFormatUserAggregated,
 			Sections:        []string{"section 1", "section 2"},
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1015,8 +1055,8 @@ func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -1040,8 +1080,8 @@ func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing
 	})
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       "channel_2",
@@ -1051,6 +1091,8 @@ func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing
 			Members:         []string{"user_id_1", "user_id_2"},
 			ReportFormat:    config.ReportFormatUserAggregated,
 			Sections:        []string{"section 1", "section 2"},
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1078,8 +1120,8 @@ func TestSendNotificationsAndReports_Standup_Disabled(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -1099,8 +1141,8 @@ func TestSendNotificationsAndReports_Standup_Disabled(t *testing.T) {
 	})
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(2 * time.Hour)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(2 * time.Hour)}
 
 		return &standup.StandupConfig{
 			ChannelId:       "channel_1",
@@ -1110,6 +1152,8 @@ func TestSendNotificationsAndReports_Standup_Disabled(t *testing.T) {
 			Members:         []string{"user_id_1", "user_id_2"},
 			ReportFormat:    config.ReportFormatUserAggregated,
 			Sections:        []string{"section 1", "section 2"},
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1125,8 +1169,8 @@ func TestSendNotificationsAndReports_StandupReport_Sent(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -1150,8 +1194,8 @@ func TestSendNotificationsAndReports_StandupReport_Sent(t *testing.T) {
 	})
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(2 * time.Hour)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(2 * time.Hour)}
 	
 		return &standup.StandupConfig{
 			ChannelId:       "channel_1",
@@ -1161,6 +1205,8 @@ func TestSendNotificationsAndReports_StandupReport_Sent(t *testing.T) {
 			Members:         []string{"user_id_1", "user_id_2"},
 			ReportFormat:    config.ReportFormatUserAggregated,
 			Sections:        []string{"section 1", "section 2"},
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1176,8 +1222,8 @@ func TestSendNotificationsAndReports_SendWindowOpenNotification_CreatePost_Error
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -1201,8 +1247,8 @@ func TestSendNotificationsAndReports_SendWindowOpenNotification_CreatePost_Error
 	})
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(2 * time.Hour)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(2 * time.Hour)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_1",
@@ -1212,6 +1258,8 @@ func TestSendNotificationsAndReports_SendWindowOpenNotification_CreatePost_Error
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 	})
 
@@ -1234,8 +1282,8 @@ func TestSendNotificationsAndReports_ShouldSendWindowOpenNotification_NotYet(t *
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -1255,8 +1303,8 @@ func TestSendNotificationsAndReports_ShouldSendWindowOpenNotification_NotYet(t *
 	})
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(2 * time.Hour)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(2 * time.Hour)}
 
 		return &standup.StandupConfig{
 			ChannelId:       "channel_1",
@@ -1266,6 +1314,8 @@ func TestSendNotificationsAndReports_ShouldSendWindowOpenNotification_NotYet(t *
 			Members:         []string{"user_id_1", "user_id_2"},
 			ReportFormat:    config.ReportFormatUserAggregated,
 			Sections:        []string{"section 1", "section 2"},
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1282,8 +1332,8 @@ func TestSendNotificationsAndReports_WindowCloseNotification(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -1307,8 +1357,8 @@ func TestSendNotificationsAndReports_WindowCloseNotification(t *testing.T) {
 	})
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-55 * time.Minute)}
-		windowCloseTime := otime.OTime{otime.Now().Add(5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-55 * time.Minute)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       "channel_1",
@@ -1318,6 +1368,8 @@ func TestSendNotificationsAndReports_WindowCloseNotification(t *testing.T) {
 			Members:         []string{"user_id_1", "user_id_2"},
 			ReportFormat:    config.ReportFormatUserAggregated,
 			Sections:        []string{"section 1", "section 2"},
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1356,8 +1408,8 @@ func TestGetNotificationStatus(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -1382,8 +1434,8 @@ func TestGetNotificationStatus_KVGet_Error(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -1407,8 +1459,8 @@ func TestGetNotificationStatus_Json_Error(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -1433,8 +1485,8 @@ func TestGetNotificationStatus_KVSet_Error(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -1469,10 +1521,10 @@ func TestSendStandupReport(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-
+	location, _ := time.LoadLocation("Asia/Kolkata")
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1482,6 +1534,8 @@ func TestSendStandupReport(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{"user_id_1", "user_id_2"},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1504,31 +1558,31 @@ func TestSendStandupReport(t *testing.T) {
 		return nil
 	})
 
-	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "should not produce any error")
 
 	// no standup channels specified
-	err = SendStandupReport([]string{}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, errors.New("")
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1538,19 +1592,21 @@ func TestSendStandupReport(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
 }
 
 func TestSendStandupReport_GetUserStandup_Error(t *testing.T) {
 	defer TearDown()
 	baseMock()
-
+	location, _ := time.LoadLocation("Asia/Kolkata")
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1560,6 +1616,8 @@ func TestSendStandupReport_GetUserStandup_Error(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{"user_id_1", "user_id_2"},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1567,7 +1625,7 @@ func TestSendStandupReport_GetUserStandup_Error(t *testing.T) {
 		return nil, errors.New("")
 	})
 
-	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetUserStandup failed")
 }
 
@@ -1592,10 +1650,10 @@ func TestSendStandupReport_GetUserStandup_Nil(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-
+	location, _ := time.LoadLocation("Asia/Kolkata")
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1605,6 +1663,8 @@ func TestSendStandupReport_GetUserStandup_Nil(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{"user_id_1", "user_id_2"},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1620,31 +1680,31 @@ func TestSendStandupReport_GetUserStandup_Nil(t *testing.T) {
 		return nil
 	})
 
-	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "should not produce any error")
 
 	// no standup channels specified
-	err = SendStandupReport([]string{}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, errors.New("")
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1654,9 +1714,11 @@ func TestSendStandupReport_GetUserStandup_Nil(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
 }
 
@@ -1678,10 +1740,10 @@ func TestSendStandupReport_GetUserStandup_Nil_GetUser_Error(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-
+	location, _ := time.LoadLocation("Asia/Kolkata")
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1691,6 +1753,8 @@ func TestSendStandupReport_GetUserStandup_Nil_GetUser_Error(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{"user_id_1", "user_id_2"},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1698,7 +1762,7 @@ func TestSendStandupReport_GetUserStandup_Nil_GetUser_Error(t *testing.T) {
 		return nil, nil
 	})
 
-	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetUser failed")
 }
 
@@ -1721,10 +1785,10 @@ func TestSendStandupReport_ReportFormatUserAggregated(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-
+	location, _ := time.LoadLocation("Asia/Kolkata")
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1734,6 +1798,8 @@ func TestSendStandupReport_ReportFormatUserAggregated(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{"user_id_1", "user_id_2"},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1756,31 +1822,31 @@ func TestSendStandupReport_ReportFormatUserAggregated(t *testing.T) {
 		return nil
 	})
 
-	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "should not produce any error")
 
 	// no standup channels specified
-	err = SendStandupReport([]string{}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, errors.New("")
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1790,9 +1856,11 @@ func TestSendStandupReport_ReportFormatUserAggregated(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
 }
 
@@ -1815,10 +1883,10 @@ func TestSendStandupReport_UnknownReportFormat(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-
+	location, _ := time.LoadLocation("Asia/Kolkata")
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1828,6 +1896,8 @@ func TestSendStandupReport_UnknownReportFormat(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{"user_id_1", "user_id_2"},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1842,7 +1912,7 @@ func TestSendStandupReport_UnknownReportFormat(t *testing.T) {
 		}, nil
 	})
 
-	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce error as report format was unknown")
 }
 
@@ -1865,10 +1935,10 @@ func TestSendStandupReport_ReportVisibility_Public(t *testing.T) {
 	)
 
 	mockAPI.On("CreatePost", mock.AnythingOfType("*model.Post"), mock.Anything).Return(&model.Post{}, nil)
-
+	location, _ := time.LoadLocation("Asia/Kolkata")
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1878,6 +1948,8 @@ func TestSendStandupReport_ReportVisibility_Public(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{"user_id_1", "user_id_2"},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1900,31 +1972,31 @@ func TestSendStandupReport_ReportVisibility_Public(t *testing.T) {
 		return nil
 	})
 
-	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPublic, "user_1", false)
+	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPublic, "user_1", false)
 	assert.Nil(t, err, "should not produce any error")
 
 	// no standup channels specified
-	err = SendStandupReport([]string{}, otime.Now(), ReportVisibilityPublic, "user_1", false)
+	err = SendStandupReport([]string{}, otime.Now(location), ReportVisibilityPublic, "user_1", false)
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, errors.New("")
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPublic, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPublic, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPublic, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPublic, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1934,9 +2006,11 @@ func TestSendStandupReport_ReportVisibility_Public(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPublic, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPublic, "user_1", false)
 	assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
 }
 
@@ -1959,10 +2033,10 @@ func TestSendStandupReport_ReportVisibility_Public_CreatePost_Error(t *testing.T
 	)
 
 	mockAPI.On("CreatePost", mock.AnythingOfType("*model.Post"), mock.Anything).Return(nil, model.NewAppError("", "", nil, "", 0))
-
+	location, _ := time.LoadLocation("Asia/Kolkata")
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -1972,6 +2046,8 @@ func TestSendStandupReport_ReportVisibility_Public_CreatePost_Error(t *testing.T
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{"user_id_1", "user_id_2"},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -1994,31 +2070,31 @@ func TestSendStandupReport_ReportVisibility_Public_CreatePost_Error(t *testing.T
 		return nil
 	})
 
-	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPublic, "user_1", false)
+	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPublic, "user_1", false)
 	assert.NotNil(t, err, "should not produce any error")
 
 	// no standup channels specified
-	err = SendStandupReport([]string{}, otime.Now(), ReportVisibilityPublic, "user_1", false)
+	err = SendStandupReport([]string{}, otime.Now(location), ReportVisibilityPublic, "user_1", false)
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, errors.New("")
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPublic, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPublic, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPublic, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPublic, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -2028,9 +2104,11 @@ func TestSendStandupReport_ReportVisibility_Public_CreatePost_Error(t *testing.T
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPublic, "user_1", false)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPublic, "user_1", false)
 	assert.NotNil(t, err, "shouldn't produce error as standup with no members is a valid case")
 }
 
@@ -2053,10 +2131,10 @@ func TestSendStandupReport_UpdateStatus_True(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-
+	location, _ := time.LoadLocation("Asia/Kolkata")
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -2066,6 +2144,8 @@ func TestSendStandupReport_UpdateStatus_True(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{"user_id_1", "user_id_2"},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
 
@@ -2088,31 +2168,31 @@ func TestSendStandupReport_UpdateStatus_True(t *testing.T) {
 		return nil
 	})
 
-	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", true)
+	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", true)
 	assert.Nil(t, err, "should not produce any error")
 
 	// no standup channels specified
-	err = SendStandupReport([]string{}, otime.Now(), ReportVisibilityPrivate, "user_1", false)
+	err = SendStandupReport([]string{}, otime.Now(location), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, errors.New("")
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", true)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", true)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", true)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", true)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -2122,9 +2202,11 @@ func TestSendStandupReport_UpdateStatus_True(t *testing.T) {
 			Sections:        []string{"section_1", "section_2"},
 			Members:         []string{},
 			Enabled:         true,
+			Timezone:        "Asia/Kolkata",
+			Location: 		 location,
 		}, nil
 	})
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", true)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", true)
 	assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
 }
 
@@ -2147,10 +2229,10 @@ func TestSendStandupReport_UpdateStatus_True_GetNotificationStatus_Error(t *test
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-
+	location, _ := time.LoadLocation("Asia/Kolkata")
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now().Add(-5 * time.Minute)}
+		windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now(location).Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
 			ChannelId:       channelID,
@@ -2182,7 +2264,7 @@ func TestSendStandupReport_UpdateStatus_True_GetNotificationStatus_Error(t *test
 		return nil
 	})
 
-	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", true)
+	err := SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", true)
 	assert.Nil(t, err, "should not produce any error")
 
 	monkey.Unpatch(GetNotificationStatus)
@@ -2214,7 +2296,7 @@ func TestSendStandupReport_UpdateStatus_True_GetNotificationStatus_Error(t *test
 		return errors.New("")
 	})
 
-	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(), ReportVisibilityPrivate, "user_1", true)
+	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now(location), ReportVisibilityPrivate, "user_1", true)
 	assert.NotNil(t, err, "should not produce any error")
 }
 
@@ -2252,8 +2334,8 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -2293,8 +2375,8 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_1",
@@ -2304,10 +2386,12 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_2",
@@ -2317,10 +2401,12 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_3",
@@ -2330,6 +2416,8 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		}
 
@@ -2352,7 +2440,7 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
 		return nil, nil
 	})
-	err :=SendStandupReport([]string{"channel_1", "channel_2", "channel_3"}, otime.Now(), ReportVisibilityPublic, "user_1", true)
+	err :=SendStandupReport([]string{"channel_1", "channel_2", "channel_3"}, otime.Now(location), ReportVisibilityPublic, "user_1", true)
 	assert.Nil(t, err, "should not produce any error")
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 3)
@@ -2367,8 +2455,8 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now().Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now().Time.Weekday()) + 1),
+		WorkWeekStart: strconv.Itoa(int(otime.Now(location).Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now(location).Time.Weekday()) + 1),
 	}
 
 	config.SetConfig(mockConfig)
@@ -2408,8 +2496,8 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_1",
@@ -2419,10 +2507,12 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatTypeAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_2",
@@ -2432,10 +2522,12 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now().Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now().Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{otime.Now(location).Add(-1 * time.Hour)}
+			windowCloseTime := otime.OTime{otime.Now(location).Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
 				ChannelId:       "channel_3",
@@ -2445,6 +2537,8 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 				Members:         []string{"user_id_1", "user_id_2"},
 				ReportFormat:    config.ReportFormatUserAggregated,
 				Sections:        []string{"section 1", "section 2"},
+				Timezone:        "Asia/Kolkata",
+				Location: 		 location,
 			}, nil
 		}
 
@@ -2487,7 +2581,7 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 		panic(t)
 		return nil, nil
 	})
-	err :=SendStandupReport([]string{"channel_1", "channel_2", "channel_3"}, otime.Now(), ReportVisibilityPublic, "user_1", true)
+	err :=SendStandupReport([]string{"channel_1", "channel_2", "channel_3"}, otime.Now(location), ReportVisibilityPublic, "user_1", true)
 	assert.Nil(t, err, "should not produce any error")
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	

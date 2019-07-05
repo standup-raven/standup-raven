@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
@@ -55,9 +56,16 @@ func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
 
 func executeGetStandup(w http.ResponseWriter, r *http.Request) error {
 	userId := r.Header.Get(config.HeaderMattermostUserId)
-	channelId := r.URL.Query().Get("channel_id")
+	channelID := r.URL.Query().Get("channel_id")
+	standupConfig, err := standup.GetStandupConfig(channelID)
+	if err != nil {
+		return err
+	}
+	if standupConfig == nil {
+		return errors.New("standup not configured for channel: " + channelID)
+	}
 
-	userStandup, err := standup.GetUserStandup(userId, channelId, otime.Now())
+	userStandup, err := standup.GetUserStandup(userId, channelID, otime.Now(standupConfig.Timezone))
 	if err != nil {
 		http.Error(w, "Error occurred while fetching user standup", http.StatusInternalServerError)
 		return err

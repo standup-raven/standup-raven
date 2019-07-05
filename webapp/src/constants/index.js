@@ -16,6 +16,8 @@ const URL_PLUGIN_ICON = `${PLUGIN_STATIC_DIR_URL}/logo.png`;
 
 const URL_SPINNER_ICON = `${PLUGIN_STATIC_DIR_URL}/spinner.svg`;
 
+const URL_GET_TIMEZONE = `${PLUGIN_BASE_URL}/timezone`;
+
 const MATTERMOST_CSRF_COOKIE = 'MMCSRF';
 
 const ACTIONS = {
@@ -34,4 +36,5 @@ export default {
     PLUGIN_NAME,
     PLUGIN_DISPLAY_NAME,
     MATTERMOST_CSRF_COOKIE,
+    URL_GET_TIMEZONE,
 };
