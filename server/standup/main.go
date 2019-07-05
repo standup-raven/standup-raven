@@ -206,7 +206,6 @@ func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 	logger.Debug(fmt.Sprintf("Saving standup config for channel: %s", standupConfig.ChannelId), nil)
 
 	standupConfig.Members = funk.UniqString(standupConfig.Members)
-	fmt.Println("config", standupConfig)
 	serializedStandupConfig, err := json.Marshal(standupConfig)
 	if err != nil {
 		logger.Error("Couldn't marshal standup config", err, nil)
@@ -252,7 +251,7 @@ func GetStandupConfig(channelID string) (*StandupConfig, error) {
 }
 
 // setStandupChannels saves the provided list of standup channels in the KV store
-		func setStandupChannels(channels map[string]string) error {
+func setStandupChannels(channels map[string]string) error {
 	logger.Debug("Saving standup channels", nil)
 
 	data, err := json.Marshal(channels)

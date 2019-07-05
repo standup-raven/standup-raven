@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup"
@@ -27,7 +26,7 @@ var setConfig = &Endpoint{
 var getTimezone = &Endpoint{
 	Path:         "/timezone",
 	Method:       http.MethodGet,
-	Execute:      executeGetLocation,
+	Execute:      executeGetTimezone,
 	RequiresAuth: true,
 }
 
@@ -64,7 +63,6 @@ func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 
 func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	decoder := json.NewDecoder(r.Body)
-	fmt.Println("decoder=",decoder)
 	conf := &standup.StandupConfig{}
 	if err := decoder.Decode(&conf); err != nil {
 		logger.Error("Could not decode request body", err, map[string]interface{}{"request": util.DumpRequest(r)})
@@ -97,13 +95,13 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func executeGetLocation(w http.ResponseWriter, r *http.Request) error {
-	location := config.GetConfig().TimeZone
+func executeGetTimezone(w http.ResponseWriter, r *http.Request) error {
+	timezone := config.GetConfig().TimeZone
 	
-	data, err := json.Marshal(location)
+	data, err := json.Marshal(timezone)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logger.Error("Couldn't serialize config data", err, map[string]interface{}{"location": location})
+		logger.Error("Couldn't serialize config data", err, map[string]interface{}{"timezone": timezone})
 		return err
 	}
 

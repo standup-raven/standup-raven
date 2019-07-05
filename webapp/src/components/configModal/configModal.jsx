@@ -203,7 +203,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     };
 
     prepareStandupConfigPayload() {
-        console.log('grgg', this.state.timezone);
         return {
             channelId: this.props.channelID,
             windowOpenTime: this.state.windowOpenTime,

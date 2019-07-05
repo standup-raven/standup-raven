@@ -125,6 +125,8 @@ func GetNotificationStatus(channelID string) (*ChannelNotificationStatus, error)
 // SendStandupReport sends standup report for all channel IDs specified
 func SendStandupReport(channelIDs []string, date otime.OTime, visibility string, userId string, updateStatus bool) error {
 	for _, channelID := range channelIDs {
+		logger.Info("Sending standup report for channel: "+channelID+" time: "+date.GetDateString(), nil)
+		
 		standupConfig, err := standup.GetStandupConfig(channelID)
 		if err != nil {
 			return err

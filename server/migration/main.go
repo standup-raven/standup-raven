@@ -13,7 +13,6 @@ var(
 	databaseSchemaVersion = "database_schema_version"
 	VERSION_1_4_0 = "1.4.0"
 	VERSION_1_5_0 =	"1.5.0"
-	OLD_VERSION = "1.4.0"
 ) 
 
 func DatabaseMigration() error {
@@ -23,7 +22,7 @@ func DatabaseMigration() error {
 		return err
 	}
 	if key == nil {
-		version, err := json.Marshal(OLD_VERSION)
+		version, err := json.Marshal(VERSION_1_4_0)
 		if err != nil {
 			logger.Error("Couldn't marshal database schema version", err, nil)
 			return err
@@ -33,11 +32,11 @@ func DatabaseMigration() error {
 			return errors.New(appErr.Error())
 		}
 	}
-	upgradeDatabaseToversion15()
+	upgradeDatabaseToVersion15()
 	return nil
 }
 
-func upgradeDatabaseToversion15() error{
+func upgradeDatabaseToVersion15() error{
 	key,err := config.Mattermost.KVGet(util.GetKeyHash(databaseSchemaVersion))
 	if err!=nil {
 		logger.Error("Couldn't fetch database schema version from KV store", err, nil)
@@ -70,15 +69,15 @@ func upgradeDatabaseToversion15() error{
 			standupConfig.Timezone = config.GetConfig().TimeZone
 			standup.SaveStandupConfig(standupConfig)
 		}
-	}
-	newVersion, marshalErr := json.Marshal(VERSION_1_5_0)
-	if marshalErr != nil {
-		logger.Error("Couldn't marshal database schema version", marshalErr, nil)
-		return err
-	}
-	if appErr := config.Mattermost.KVSet(util.GetKeyHash(databaseSchemaVersion), newVersion); appErr != nil {
-		logger.Error("Couldn't update database version into KV store", appErr, nil)
-		return errors.New(appErr.Error())
+		newVersion, marshalErr := json.Marshal(VERSION_1_5_0)
+		if marshalErr != nil {
+			logger.Error("Couldn't marshal database schema version", marshalErr, nil)
+			return err
+		}
+		if appErr := config.Mattermost.KVSet(util.GetKeyHash(databaseSchemaVersion), newVersion); appErr != nil {
+			logger.Error("Couldn't update database version into KV store", appErr, nil)
+			return errors.New(appErr.Error())
+		}
 	}
 	return nil
 }
