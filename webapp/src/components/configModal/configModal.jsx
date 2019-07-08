@@ -155,7 +155,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
 
     getStandupConfig = () => {
         return new Promise((resolve) => {
-            const timezoneURL = Constants.URL_GET_TIMEZONE
+            const timezoneURL = Constants.URL_GET_TIMEZONE;
             request
                 .get(timezoneURL)
                 .withCredentials()
@@ -165,7 +165,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                         this.setState({
                             timezone,
                         });
-                        console.log(this.state.timezone);
                     } else if (err) {
                         console.log(err);
                     }
