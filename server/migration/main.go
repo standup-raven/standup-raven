@@ -9,20 +9,32 @@ import (
 	"github.com/standup-raven/standup-raven/server/util"
 )
 
-var(
+var (
 	databaseSchemaVersion = "database_schema_version"
-	VERSION_1_4_0 = "1.4.0"
-	VERSION_1_5_0 =	"1.5.0"
-) 
+	version_1_4_0         = "1.4.0"
+	version_1_5_0         = "1.5.0"
+)
 
+//DatabaseMigration gets the current database schema version and performs
+//all the required data migrations.
 func DatabaseMigration() error {
-	key,err := config.Mattermost.KVGet(util.GetKeyHash(databaseSchemaVersion))
+	err := ensureSchemaVersion(); if err !=nil {
+		return err
+	}
+	upgradeErr := upgrade(); if upgradeErr != nil {
+		return upgradeErr
+	}
+	return nil
+}
+
+func ensureSchemaVersion() error{
+	key, err := config.Mattermost.KVGet(util.GetKeyHash(databaseSchemaVersion))
 	if err!=nil {
 		logger.Error("Couldn't fetch database schema version from KV store", err, nil)
 		return err
 	}
 	if key == nil {
-		version, err := json.Marshal(VERSION_1_4_0)
+		version, err := json.Marshal(version_1_4_0)
 		if err != nil {
 			logger.Error("Couldn't marshal database schema version", err, nil)
 			return err
@@ -32,27 +44,55 @@ func DatabaseMigration() error {
 			return errors.New(appErr.Error())
 		}
 	}
-	upgradeDatabaseToVersion15()
 	return nil
 }
 
-func upgradeDatabaseToVersion15() error{
-	key,err := config.Mattermost.KVGet(util.GetKeyHash(databaseSchemaVersion))
-	if err!=nil {
-		logger.Error("Couldn't fetch database schema version from KV store", err, nil)
+func upgrade() error{
+	err := upgradeDatabaseToVersion_1_5_0(); if err != nil {
 		return err
 	}
+	return nil
+}
+
+func getCurrentSchemaVersion() (string, error) {
+	key, err := config.Mattermost.KVGet(util.GetKeyHash(databaseSchemaVersion))
+	if err != nil {
+		logger.Error("Couldn't fetch database schema version from KV store", err, nil)
+		return "", err
+	}
 	var version string
-	appErr := json.Unmarshal(key,&version)
+	appErr := json.Unmarshal(key, &version)
 	if appErr != nil {
 		logger.Error("Couldn't marshal database schema version", appErr, nil)
-			return appErr
+		return "", appErr
 	}
-	if version == VERSION_1_4_0 {
+	return version, nil
+}
+
+func updateSchemaVersion(version string) error {
+	newVersion, marshalErr := json.Marshal(version)
+	if marshalErr != nil {
+		logger.Error("Couldn't marshal database schema version", marshalErr, nil)
+		return marshalErr
+	}
+	if appErr := config.Mattermost.KVSet(util.GetKeyHash(databaseSchemaVersion), newVersion); appErr != nil {
+		logger.Error("Couldn't update database version into KV store", appErr, nil)
+		return errors.New(appErr.Error())
+	}
+	return nil
+}
+
+func upgradeDatabaseToVersion_1_5_0() error {
+	version, versionErr := getCurrentSchemaVersion()
+	if versionErr != nil {
+		return versionErr
+	}
+	if version == version_1_4_0 {
 		channelIDs, err := standup.GetStandupChannels()
 		if err != nil {
 			return err
 		}
+		defaultTimezone := config.GetConfig().TimeZone
 		for channelID := range channelIDs {
 			standupConfig, err := standup.GetStandupConfig(channelID)
 			if err != nil {
@@ -62,21 +102,14 @@ func upgradeDatabaseToVersion15() error{
 				logger.Error("Unable to find standup config for channel", nil, map[string]interface{}{"channelID": channelID})
 				continue
 			}
-	
-			if !standupConfig.Enabled {
-				continue
+		
+			standupConfig.Timezone = defaultTimezone
+			_,configErr := standup.SaveStandupConfig(standupConfig); if configErr != nil {
+				return configErr
 			}
-			standupConfig.Timezone = config.GetConfig().TimeZone
-			standup.SaveStandupConfig(standupConfig)
 		}
-		newVersion, marshalErr := json.Marshal(VERSION_1_5_0)
-		if marshalErr != nil {
-			logger.Error("Couldn't marshal database schema version", marshalErr, nil)
-			return err
-		}
-		if appErr := config.Mattermost.KVSet(util.GetKeyHash(databaseSchemaVersion), newVersion); appErr != nil {
-			logger.Error("Couldn't update database version into KV store", appErr, nil)
-			return errors.New(appErr.Error())
+		UpdateErr := updateSchemaVersion(version_1_5_0); if UpdateErr != nil {
+			return UpdateErr
 		}
 	}
 	return nil

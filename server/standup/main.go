@@ -56,7 +56,7 @@ type StandupConfig struct {
 	Members         []string    `json:"members"`
 	Sections        []string    `json:"sections"`
 	Enabled         bool        `json:"enabled"`
-	Timezone 		string 		`json:"timezone"`
+	Timezone        string      `json:"timezone"`
 }
 
 func (sc *StandupConfig) IsValid() error {
@@ -77,7 +77,7 @@ func (sc *StandupConfig) IsValid() error {
 	if sc.WindowOpenTime.Time.After(sc.WindowCloseTime.Time) {
 		return errors.New("Window open time cannot be after window close time")
 	}
-	
+
 	if sc.Timezone == "" {
 		return errors.New("Timezone cannot be empty")
 	}
@@ -89,8 +89,7 @@ func (sc *StandupConfig) IsValid() error {
 			strings.Join(config.ReportFormats, "\", \"")),
 		)
 	}
-	_, err := time.LoadLocation(sc.Timezone)
-	if err != nil {
+	_, err := time.LoadLocation(sc.Timezone); if err != nil {
 		return errors.New("Couldn't load location in time " + err.Error())
 	}
 

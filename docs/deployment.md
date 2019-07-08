@@ -39,3 +39,7 @@ environment variable for it to work -
 1. Execute help command anytime to access plugin commands help -
 
         /standup help 
+
+## 🖊 Update Instructions
+
+1. Make sure to take backup of pluginkeyvaluestore table.

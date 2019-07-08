@@ -23,13 +23,12 @@ var setConfig = &Endpoint{
 	RequiresAuth: true,
 }
 
-var getTimezone = &Endpoint{
+var getDefaultTimezone = &Endpoint{
 	Path:         "/timezone",
 	Method:       http.MethodGet,
-	Execute:      executeGetTimezone,
+	Execute:      executeGetDefaultTimezone,
 	RequiresAuth: true,
 }
-
 
 func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 	channelId := r.URL.Query().Get("channel_id")
@@ -95,9 +94,9 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func executeGetTimezone(w http.ResponseWriter, r *http.Request) error {
+func executeGetDefaultTimezone(w http.ResponseWriter, r *http.Request) error {
 	timezone := config.GetConfig().TimeZone
-	
+
 	data, err := json.Marshal(timezone)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

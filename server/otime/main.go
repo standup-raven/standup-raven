@@ -33,19 +33,19 @@ func Parse(value string) (OTime, error) {
 
 func Now(timezone string) OTime {
 	now := time.Now()
-	location,_ := time.LoadLocation(timezone)
+	location, _ := time.LoadLocation(timezone)
 	return OTime{now.In(location)}
 }
 
 func (ct OTime) GetTime(timezone string) OTime {
 	now, _ := time.Parse(layoutTime, ct.Format(layoutTime))
-	location,_ := time.LoadLocation(timezone)
+	location, _ := time.LoadLocation(timezone)
 	return OTime{now.In(location)}
 }
 
 func (ct OTime) GetTimeWithSeconds(timezone string) OTime {
 	now, _ := time.Parse(layoutTimeWithSeconds, ct.Format(layoutTimeWithSeconds))
-	location,_ := time.LoadLocation(timezone)
+	location, _ := time.LoadLocation(timezone)
 	return OTime{now.In(location)}
 }
 
@@ -55,7 +55,7 @@ func (ct OTime) GetTimeString() string {
 
 func (ct OTime) GetDate(timezone string) OTime {
 	now, _ := time.Parse(layoutDate, ct.Format(layoutDate))
-	location,_ := time.LoadLocation(timezone)
+	location, _ := time.LoadLocation(timezone)
 	return OTime{now.In(location)}
 }
 

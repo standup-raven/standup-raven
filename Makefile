@@ -15,43 +15,37 @@ define GetPluginVersion
 $(shell node -p "'v' + require('./plugin.json').version")
 endef
 
-define GetTimeZone
+define AddTimeZoneOptions
 $(shell node -e \
 "\
-var fs = require('fs');\
-fs.readFile('plugin.json', 'utf8', function readFileCallback(err, data) { \
-    if (err) { \
-        console.log(err); \
-    } else { \
-        obj = JSON.parse(data); \
-	    fs.readFile('timezones.json', 'utf8', function readFileCallback(err, timezones) { \
-	    if (err) { \
-	    	console.log(err);\
-	    } else { \
-		    timezones = JSON.parse(timezones); \
-		    obj.settings_schema.settings[0].options=timezones; \
-		    json = JSON.stringify(obj, null, 2); \
-		    fs.writeFile('plugin.json', json, 'utf8', function done(){}); \
-		} \
-	}); \
-}});"\
+let fs = require('fs');\
+try {\
+	let data = fs.readFileSync('plugin.json', 'utf8'); \
+	data = JSON.parse(data);\
+	let timezones = fs.readFileSync('timezones.json', 'utf8'); \
+	timezones = JSON.parse(timezones); \
+	data.settings_schema.settings[0].options=timezones; \
+	let json = JSON.stringify(data, null, 2);
+	fs.writeFileSync('plugin.json', json, 'utf8'); \
+} catch (err) {\
+	console.log(err);\
+};"\
 )
 endef
 
-define UpdatePluginFile
+define RemoveTimeZoneOptions
 $(shell node -e \
 "\
-var fs = require('fs');\
-fs.readFile('plugin.json', 'utf8', function readFileCallback(err, data) { \
-    if (err) { \
-        console.log(err); \
-    } else { \
-		obj = JSON.parse(data); \
-		obj.settings_schema.settings[0].options=[]; \
-		json = JSON.stringify(obj, null, 2); \
-		fs.writeFile('plugin.json', json, 'utf8', function done(){}); \
-	} \
-});"\
+let fs = require('fs');\
+try {\
+	let data = fs.readFileSync('plugin.json', 'utf8'); \
+	data = JSON.parse(data);\
+	data.settings_schema.settings[0].options=[]; \
+	let json = JSON.stringify(data, null, 2);
+	fs.writeFileSync('plugin.json', json, 'utf8'); \
+} catch (err) {\
+	console.log(err);\
+};"\
 )
 endef
 
@@ -109,13 +103,13 @@ vendor: server/glide.lock
 	cd server && go get github.com/Masterminds/glide
 	cd server && $(shell go env GOPATH)/bin/glide install
 
-quickdist: .distclean plugin.json
+prequickdist: .distclean plugin.json
 	@echo $(PLUGINNAME)
 	@echo $(PACKAGENAME)
 	@echo $(PLUGINVERSION)
 	
 	@echo Updating plugin.json with timezones
-	$(call GetTimeZone)
+	$(call AddTimeZoneOptions)
 
 	@echo Quick building plugin
 
@@ -150,11 +144,13 @@ quickdist: .distclean plugin.json
 	@echo Linux plugin built at: dist/$(PACKAGENAME)-linux-amd64.tar.gz
 	@echo MacOS X plugin built at: dist/$(PACKAGENAME)-darwin-amd64.tar.gz
 	@echo Windows plugin built at: dist/$(PACKAGENAME)-windows-amd64.tar.gz
+	
+quickdist: prequickdist
+	@echo Remove data from plugin.json
+	$(call RemoveTimeZoneOptions)
 
 dist: vendor .npminstall quickdist
 	@echo Building plugin
-	@echo Remove timezones from plugin.json
-	$(call UpdatePluginFile)
 
 run: .npminstall
 	@echo Not yet implemented

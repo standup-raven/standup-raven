@@ -41,7 +41,7 @@ func SendNotificationsAndReports() error {
 		return err
 	}
 	
-	channels, err := ChannelsWorkDay(channelIDs)
+	channels, err := channelsWorkDay(channelIDs)
 	if err != nil {
 		return err
 	}
@@ -55,8 +55,15 @@ func SendNotificationsAndReports() error {
 	if err := sendWindowCloseNotification(b); err != nil {
 		return err
 	}
+	if err := sendAllStandupReport(c); err != nil {
+		return err
+	}
 	
-	for _, channelID := range c {
+	return nil
+}
+
+func sendAllStandupReport(channelIDs []string) error {
+	for _, channelID := range channelIDs {
 		standupConfig, err := standup.GetStandupConfig(channelID)
 		if err != nil {
 			return err
@@ -72,8 +79,8 @@ func SendNotificationsAndReports() error {
 	return nil
 }
 
-//Return Channels that have working day today
-func ChannelsWorkDay(channels map[string]string) (map[string]string, error) {
+//channelsWorkDay return channels that have working day today
+func channelsWorkDay(channels map[string]string) (map[string]string, error) {
 	channelIDs := map[string]string{}
 	for channelID := range channels {
 		standupConfig, err := standup.GetStandupConfig(channelID)
@@ -86,7 +93,7 @@ func ChannelsWorkDay(channels map[string]string) (map[string]string, error) {
 		
 		// don't send notifications if it's not a work week.
 		if isWorkDay(standupConfig.Timezone) {
-			channelIDs[channelID] =channelID
+			channelIDs[channelID] = channelID
 		}
 	}
 	return channelIDs, nil
@@ -125,7 +132,7 @@ func GetNotificationStatus(channelID string) (*ChannelNotificationStatus, error)
 func SendStandupReport(channelIDs []string, date otime.OTime, visibility string, userId string, updateStatus bool) error {
 	for _, channelID := range channelIDs {
 		logger.Info("Sending standup report for channel: "+channelID+" time: "+date.GetDateString(), nil)
-		
+
 		standupConfig, err := standup.GetStandupConfig(channelID)
 		if err != nil {
 			return err
