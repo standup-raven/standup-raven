@@ -11,8 +11,8 @@ import (
 
 var (
 	databaseSchemaVersion = "database_schema_version"
-	version_1_4_0         = "1.4.0"
-	version_1_5_0         = "1.5.0"
+	version1_4_0         = "1.4.0"
+	version1_5_0         = "1.5.0"
 )
 
 //DatabaseMigration gets the current database schema version and performs
@@ -34,7 +34,7 @@ func ensureSchemaVersion() error{
 		return err
 	}
 	if key == nil {
-		version, err := json.Marshal(version_1_4_0)
+		version, err := json.Marshal(version1_4_0)
 		if err != nil {
 			logger.Error("Couldn't marshal database schema version", err, nil)
 			return err
@@ -48,7 +48,7 @@ func ensureSchemaVersion() error{
 }
 
 func upgrade() error{
-	err := upgradeDatabaseToVersion_1_5_0(); if err != nil {
+	err := upgradeDatabaseToVersion1_5_0(); if err != nil {
 		return err
 	}
 	return nil
@@ -82,12 +82,12 @@ func updateSchemaVersion(version string) error {
 	return nil
 }
 
-func upgradeDatabaseToVersion_1_5_0() error {
+func upgradeDatabaseToVersion1_5_0() error {
 	version, versionErr := getCurrentSchemaVersion()
 	if versionErr != nil {
 		return versionErr
 	}
-	if version == version_1_4_0 {
+	if version == version1_4_0 {
 		channelIDs, err := standup.GetStandupChannels()
 		if err != nil {
 			return err
@@ -108,7 +108,7 @@ func upgradeDatabaseToVersion_1_5_0() error {
 				return configErr
 			}
 		}
-		UpdateErr := updateSchemaVersion(version_1_5_0); if UpdateErr != nil {
+		UpdateErr := updateSchemaVersion(version1_5_0); if UpdateErr != nil {
 			return UpdateErr
 		}
 	}

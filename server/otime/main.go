@@ -37,12 +37,14 @@ func Now(timezone string) OTime {
 	return OTime{now.In(location)}
 }
 
+//GetTime returns time with format like "15:04" 
 func (ct OTime) GetTime(timezone string) OTime {
 	now, _ := time.Parse(layoutTime, ct.Format(layoutTime))
 	location, _ := time.LoadLocation(timezone)
 	return OTime{now.In(location)}
 }
 
+//GetTimeWithSeconds returns time with format like "15:04:05"
 func (ct OTime) GetTimeWithSeconds(timezone string) OTime {
 	now, _ := time.Parse(layoutTimeWithSeconds, ct.Format(layoutTimeWithSeconds))
 	location, _ := time.LoadLocation(timezone)
@@ -53,6 +55,7 @@ func (ct OTime) GetTimeString() string {
 	return ct.Time.Format(layoutTime)
 }
 
+//GetDate returns date with format like "20060102"
 func (ct OTime) GetDate(timezone string) OTime {
 	now, _ := time.Parse(layoutDate, ct.Format(layoutDate))
 	location, _ := time.LoadLocation(timezone)
