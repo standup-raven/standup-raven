@@ -48,6 +48,15 @@ jobs:
       - attach_workspace:
           at: .
       - run: make release
+  release-candidate:
+    docker:
+      - image: circleci/golang:1.12-node
+    working_directory: /go/src/github.com/standup-raven/standup-raven
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: make release-candidate
 
 workflows:
   build:
@@ -72,6 +81,22 @@ workflows:
           filters:
             branches:
               only: /^release-.*/
+            tags:
+              ignore: /.*/
+  release-candidate:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: /^rc-.*/
+            tags:
+              ignore: /.*/
+      - release-candidate:
+          requires:
+            - build
+          filters:
+            branches:
+              only: /rc-.*/
             tags:
               ignore: /.*/
 
