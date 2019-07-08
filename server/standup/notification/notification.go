@@ -75,14 +75,13 @@ func SendNotificationsAndReports() error {
 //Return Channels that have working day today
 func ChannelsWorkDay(channels map[string]string) (map[string]string, error) {
 	channelIDs := map[string]string{}
-	
 	for channelID := range channels {
 		standupConfig, err := standup.GetStandupConfig(channelID)
 		if err != nil {
 			return nil, err
 		}
 		if standupConfig == nil {
-			return nil, errors.New("standup not configured for channel: " + channelID)
+			continue
 		}
 		
 		// don't send notifications if it's not a work week.
