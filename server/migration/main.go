@@ -11,8 +11,8 @@ import (
 
 var (
 	databaseSchemaVersion = "database_schema_version"
-	version1_4_0         = "1.4.0"
-	version1_5_0         = "1.5.0"
+	version1_4_0          = "1.4.0"
+	version1_5_0          = "1.5.0"
 )
 
 //DatabaseMigration gets the current database schema version and performs
@@ -27,9 +27,9 @@ func DatabaseMigration() error {
 	return nil
 }
 
-func ensureSchemaVersion() error{
+func ensureSchemaVersion() error {
 	key, err := config.Mattermost.KVGet(util.GetKeyHash(databaseSchemaVersion))
-	if err!=nil {
+	if err != nil {
 		logger.Error("Couldn't fetch database schema version from KV store", err, nil)
 		return err
 	}
@@ -47,7 +47,7 @@ func ensureSchemaVersion() error{
 	return nil
 }
 
-func upgrade() error{
+func upgrade() error {
 	err := upgradeDatabaseToVersion1_5_0(); if err != nil {
 		return err
 	}
@@ -102,9 +102,9 @@ func upgradeDatabaseToVersion1_5_0() error {
 				logger.Error("Unable to find standup config for channel", nil, map[string]interface{}{"channelID": channelID})
 				continue
 			}
-		
+
 			standupConfig.Timezone = defaultTimezone
-			_,configErr := standup.SaveStandupConfig(standupConfig); if configErr != nil {
+			_, configErr := standup.SaveStandupConfig(standupConfig); if configErr != nil {
 				return configErr
 			}
 		}

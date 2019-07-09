@@ -36,7 +36,7 @@ func (p *Plugin) OnActivate() error {
 	if err := p.OnConfigurationChange(); err != nil {
 		return err
 	}
-
+	
 	if err := migration.DatabaseMigration(); err != nil {
 		return err
 	}

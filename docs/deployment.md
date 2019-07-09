@@ -40,6 +40,3 @@ environment variable for it to work -
 
         /standup help 
 
-## 🖊 Update Instructions
-
-1. Make sure to take backup of pluginkeyvaluestore table.

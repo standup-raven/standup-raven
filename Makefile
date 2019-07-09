@@ -16,36 +16,36 @@ $(shell node -p "'v' + require('./plugin.json').version")
 endef
 
 define AddTimeZoneOptions
-$(shell node -e \
-"\
-let fs = require('fs');\
-try {\
-	let data = fs.readFileSync('plugin.json', 'utf8'); \
-	data = JSON.parse(data);\
-	let timezones = fs.readFileSync('timezones.json', 'utf8'); \
-	timezones = JSON.parse(timezones); \
-	data.settings_schema.settings[0].options=timezones; \
-	let json = JSON.stringify(data, null, 2);
-	fs.writeFileSync('plugin.json', json, 'utf8'); \
-} catch (err) {\
-	console.log(err);\
-};"\
+$(shell node -e 
+"
+let fs = require('fs');
+try {
+	let manifest = fs.readFileSync('plugin.json', 'utf8'); 
+	manifest = JSON.parse(manifest);
+	let timezones = fs.readFileSync('timezones.json', 'utf8'); 
+	timezones = JSON.parse(timezones); 
+	manifest.settings_schema.settings[0].options=timezones; 
+	let json = JSON.stringify(manifest, null, 2);
+	fs.writeFileSync('plugin.json', json, 'utf8'); 
+} catch (err) {
+	console.log(err);
+};"
 )
 endef
 
 define RemoveTimeZoneOptions
-$(shell node -e \
-"\
-let fs = require('fs');\
-try {\
-	let data = fs.readFileSync('plugin.json', 'utf8'); \
-	data = JSON.parse(data);\
-	data.settings_schema.settings[0].options=[]; \
-	let json = JSON.stringify(data, null, 2);
-	fs.writeFileSync('plugin.json', json, 'utf8'); \
-} catch (err) {\
-	console.log(err);\
-};"\
+$(shell node -e 
+"
+let fs = require('fs');
+try {
+	let manifest = fs.readFileSync('plugin.json', 'utf8'); 
+	manifest = JSON.parse(manifest);
+	manifest.settings_schema.settings[0].options=[]; 
+	let json = JSON.stringify(manifest, null, 2);
+	fs.writeFileSync('plugin.json', json, 'utf8'); 
+} catch (err) {
+	console.log(err);
+};"
 )
 endef
 
@@ -102,14 +102,15 @@ cover: test-server
 vendor: server/glide.lock
 	cd server && go get github.com/Masterminds/glide
 	cd server && $(shell go env GOPATH)/bin/glide install
-
+	
 prequickdist: .distclean plugin.json
+	@echo Updating plugin.json with timezones
+	$(call AddTimeZoneOptions)
+    
+doquickdist: 
 	@echo $(PLUGINNAME)
 	@echo $(PACKAGENAME)
 	@echo $(PLUGINVERSION)
-	
-	@echo Updating plugin.json with timezones
-	$(call AddTimeZoneOptions)
 
 	@echo Quick building plugin
 
@@ -144,10 +145,12 @@ prequickdist: .distclean plugin.json
 	@echo Linux plugin built at: dist/$(PACKAGENAME)-linux-amd64.tar.gz
 	@echo MacOS X plugin built at: dist/$(PACKAGENAME)-darwin-amd64.tar.gz
 	@echo Windows plugin built at: dist/$(PACKAGENAME)-windows-amd64.tar.gz
-	
-quickdist: prequickdist
+
+postquickdist:
 	@echo Remove data from plugin.json
 	$(call RemoveTimeZoneOptions)
+	
+quickdist: prequickdist doquickdist postquickdist
 
 dist: vendor .npminstall quickdist
 	@echo Building plugin
