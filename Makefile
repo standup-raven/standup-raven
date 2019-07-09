@@ -102,7 +102,7 @@ cover: test-server
 vendor: server/glide.lock
 	cd server && go get github.com/Masterminds/glide
 	cd server && $(shell go env GOPATH)/bin/glide install
-	
+
 prequickdist: .distclean plugin.json
 	@echo Updating plugin.json with timezones
 	$(call AddTimeZoneOptions)
