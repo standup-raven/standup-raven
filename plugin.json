@@ -1,8 +1,9 @@
 {
   "id": "standup-raven",
-  "version": "1.3.0",
+  "version": "1.5.0",
   "name": "Standup Raven",
   "description": "",
+  "min_server_version": "5.12.0",
   "webapp": {
     "bundle_path": "webapp/main.js"
   },

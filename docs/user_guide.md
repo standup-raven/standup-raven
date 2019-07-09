@@ -13,7 +13,7 @@ Just follow these steps and you'll be ready in no time.
     
     Running the following slash command allows specifying team specific settings -
     
-        /standupconfig
+        /standup config
         
     In the dialog box presented, following settings are required -
     
@@ -36,7 +36,7 @@ Just follow these steps and you'll be ready in no time.
 
 1. **Adding standup members** - the following slash command allows you to add members to the channel standup -
 
-        /standupaddmembers
+        /standup addmembers
         
     You can specify multiple members together, separated by space. Members who are not present in the channel will
     be automatically added to the channel as well.

@@ -3,7 +3,6 @@ package command
 import (
 	"fmt"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
 	"github.com/standup-raven/standup-raven/server/util"
@@ -18,7 +17,7 @@ const (
 func commandStandup() *Config {
 	return &Config{
 		Command: &model.Command{
-			Trigger:          config.CommandPrefix + "report",
+			Trigger:          "report",
 			AutoComplete:     true,
 			AutoCompleteDesc: "Generates standup reports for provided dates",
 			AutoCompleteHint: "<dates...> <visibility>",

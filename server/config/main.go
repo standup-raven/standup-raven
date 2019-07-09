@@ -36,9 +36,9 @@ const (
 	// the date changed between 23:59 and 00:00:xx2.
 	RunnerInterval = 25 * time.Second
 
-	BotUsername = "raven"
-	BotDisplayName = "Raven"
-	OverrideIconURL  = URLStaticBase + "/logo.png"
+	BotUsername     = "raven"
+	BotDisplayName  = "Raven"
+	OverrideIconURL = URLStaticBase + "/logo.png"
 )
 
 var (
