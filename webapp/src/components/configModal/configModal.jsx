@@ -69,7 +69,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 text: '',
                 type: 'info',
             },
-            timezone: 'Africa/Abidjan',
+            timezone: '',
         };
     };
 
@@ -154,23 +154,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     }
 
     getStandupConfig = () => {
+        const timezoneURL = Constants.URL_GET_TIMEZONE;
         return new Promise((resolve) => {
-            const timezoneURL = Constants.URL_GET_TIMEZONE;
-            request
-                .get(timezoneURL)
-                .withCredentials()
-                .end((err, result) => {
-                    if (result.ok) {
-                        const timezone = String(result.body);
-                        this.setState({
-                            timezone,
-                        });
-                    } else if (err) {
-                        console.log(err);
-                    }
-                });
-            resolve();
-        }).then(() => {
             const url = `${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}`;
             request
                 .get(url)
@@ -196,7 +181,22 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                         this.setState(state);
                     } else if (result.status !== HttpStatus.NOT_FOUND) {
                         console.log(err);
+                    } else if (result.status === HttpStatus.NOT_FOUND) {
+                        request
+                            .get(timezoneURL)
+                            .withCredentials()
+                            .end((error, response) => {
+                                if (response.ok) {
+                                    const timezone = String(response.body);
+                                    this.setState({
+                                        timezone,
+                                    });
+                                } else if (error) {
+                                    console.log(error);
+                                }
+                            });
                     }
+                    resolve();
                 });
         });
     };
