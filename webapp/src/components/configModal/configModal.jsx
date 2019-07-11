@@ -51,6 +51,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         for (let i = 0; i < Object.keys(timezones).length; ++i) {
             timezoneList[timezones[i]['display_name']] = timezones[i]['value'];
         }
+        timezoneList[''] = '-';
         return timezoneList;
     }
 

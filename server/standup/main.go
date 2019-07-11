@@ -90,7 +90,9 @@ func (sc *StandupConfig) IsValid() error {
 		)
 	}
 	_, err := time.LoadLocation(sc.Timezone); if err != nil {
-		return errors.New("Couldn't load location in time " + err.Error())
+		return errors.New(fmt.Sprintf(
+			"Invalid timezone specified : \"%s\"", sc.Timezone),
+		)
 	}
 
 	if len(sc.Sections) < standupSectionsMinLength {
