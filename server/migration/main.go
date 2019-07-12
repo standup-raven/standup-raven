@@ -104,6 +104,8 @@ func upgradeDatabaseToVersion1_5_0() error {
 			}
 
 			standupConfig.Timezone = defaultTimezone
+			standupConfig.WindowOpenReminder = true
+			standupConfig.WindowCloseReminder = true
 			_, configErr := standup.SaveStandupConfig(standupConfig); if configErr != nil {
 				return configErr
 			}

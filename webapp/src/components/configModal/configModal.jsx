@@ -39,6 +39,13 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         };
     }
 
+    static get REMINDER_DISPLAY_NAME() {
+        return {
+            true: 'Enabled',
+            false: 'Disabled',
+        };
+    }
+
     static get STATUS_DISPLAY_NAMES() {
         return {
             true: 'Enabled',
@@ -70,6 +77,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 type: 'info',
             },
             timezone: 'Africa/Abidjan',
+            windowOpenReminder: true,
+            windowCloseReminder: true,
         };
     };
 
@@ -104,6 +113,18 @@ class ConfigModal extends (SentryBoundary, React.Component) {
 
     handleTimezoneChange = (timezone) => {
         this.setState({timezone});
+    };
+
+    handleWindowCloseReminderChange = (status) => {
+        this.setState({
+            windowCloseReminder: status,
+        });
+    };
+
+    handleWindowOpenReminderChange = (status) => {
+        this.setState({
+            windowOpenReminder: status,
+        });
     };
 
     generateSections = (onChangeCallback) => {
@@ -187,6 +208,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             enabled: standupConfig.enabled,
                             status: standupConfig.enabled,
                             timezone: standupConfig.timezone,
+                            windowCloseReminder: standupConfig.windowCloseReminder,
+                            windowOpenReminder: standupConfig.windowOpenReminder,
                         };
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
@@ -211,6 +234,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             members: this.state.members,
             enabled: this.state.enabled,
             timezone: this.state.timezone,
+            windowCloseReminder: this.state.windowCloseReminder,
+            windowOpenReminder: this.state.windowOpenReminder,
         };
     }
 
@@ -356,7 +381,32 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 >{data}
                                 </SplitButton>
                             </FormGroup>
-
+                            <FormGroup style={style.formGroup}>
+                                <ControlLabel style={style.controlLabel}>
+                                    {'Window Open Reminder:'}
+                                </ControlLabel>
+                                <SplitButton
+                                    title={ConfigModal.REMINDER_DISPLAY_NAME[this.state.windowOpenReminder]}
+                                    onSelect={this.handleWindowOpenReminderChange}
+                                    bsStyle={'link'}
+                                >
+                                    <MenuItem eventKey={true}>{ConfigModal.REMINDER_DISPLAY_NAME[true]}</MenuItem>
+                                    <MenuItem eventKey={false}>{ConfigModal.REMINDER_DISPLAY_NAME[false]}</MenuItem>
+                                </SplitButton>
+                            </FormGroup>
+                            <FormGroup style={style.formGroup}>
+                                <ControlLabel style={style.controlLabel}>
+                                    {'Window Close Reminder:'}
+                                </ControlLabel>
+                                <SplitButton
+                                    title={ConfigModal.REMINDER_DISPLAY_NAME[this.state.windowCloseReminder]}
+                                    onSelect={this.handleWindowCloseReminderChange}
+                                    bsStyle={'link'}
+                                >
+                                    <MenuItem eventKey={true}>{ConfigModal.REMINDER_DISPLAY_NAME[true]}</MenuItem>
+                                    <MenuItem eventKey={false}>{ConfigModal.REMINDER_DISPLAY_NAME[false]}</MenuItem>
+                                </SplitButton>
+                            </FormGroup>
                             <FormGroup style={{...style.formGroup, ...style.formGroupNoMarginBottom}}>
                                 <ControlLabel style={style.controlLabel}>{'Sections:'}</ControlLabel>
                             </FormGroup>

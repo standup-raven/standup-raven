@@ -273,14 +273,18 @@ func filterChannelNotification(channelIDs map[string]string) ([]string, []string
 			standupReportChannels = append(standupReportChannels, channelID)
 		} else if status == ChannelNotificationStatusSent {
 			// pass
-		} else if status := shouldSendWindowCloseNotification(notificationStatus, standupConfig); status == ChannelNotificationStatusSend {
-			logger.Debug(fmt.Sprintf("Channel [%s] needs window close notification", channelID), nil)
-			windowCloseNotificationChannels = append(windowCloseNotificationChannels, channelID)
+		} else if shouldSendWindowCloseNotification(notificationStatus, standupConfig) == ChannelNotificationStatusSend {
+			if standupConfig.WindowCloseReminder {
+				logger.Debug(fmt.Sprintf("Channel [%s] needs window close notification", channelID), nil)
+				windowCloseNotificationChannels = append(windowCloseNotificationChannels, channelID)
+			}
 		} else if status == ChannelNotificationStatusSent {
 			// pass
 		} else if shouldSendWindowOpenNotification(notificationStatus, standupConfig) == ChannelNotificationStatusSend {
-			logger.Debug(fmt.Sprintf("Channel [%s] needs window open notification", channelID), nil)
-			windowOpenNotificationChannels = append(windowOpenNotificationChannels, channelID)
+			if standupConfig.WindowOpenReminder {
+				logger.Debug(fmt.Sprintf("Channel [%s] needs window open notification", channelID), nil)
+				windowOpenNotificationChannels = append(windowOpenNotificationChannels, channelID)
+			}
 		}
 	}
 

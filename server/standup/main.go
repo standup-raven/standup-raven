@@ -49,14 +49,16 @@ func (us *UserStandup) IsValid() error {
 }
 
 type StandupConfig struct {
-	ChannelId       string      `json:"channelId"`
-	WindowOpenTime  otime.OTime `json:"windowOpenTime"`
-	WindowCloseTime otime.OTime `json:"windowCloseTime"`
-	ReportFormat    string      `json:"reportFormat"`
-	Members         []string    `json:"members"`
-	Sections        []string    `json:"sections"`
-	Enabled         bool        `json:"enabled"`
-	Timezone        string      `json:"timezone"`
+	ChannelId           string      `json:"channelId"`
+	WindowOpenTime      otime.OTime `json:"windowOpenTime"`
+	WindowCloseTime     otime.OTime `json:"windowCloseTime"`
+	ReportFormat        string      `json:"reportFormat"`
+	Members             []string    `json:"members"`
+	Sections            []string    `json:"sections"`
+	Enabled             bool        `json:"enabled"`
+	Timezone            string      `json:"timezone"`
+	WindowOpenReminder  bool        `json:"windowOpenReminder"`
+	WindowCloseReminder bool        `json:"windowCloseReminder"`
 }
 
 func (sc *StandupConfig) IsValid() error {
