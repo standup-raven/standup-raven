@@ -194,6 +194,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             enabled: standupConfig.enabled,
                             status: standupConfig.enabled,
                             timezone: standupConfig.timezone,
+                            windowOpenReminder: standupConfig.windowOpenReminder,
+                            windowCloseReminder: standupConfig.windowCloseReminder,
                         };
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
@@ -218,8 +220,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 }
                             });
                     }
-                    resolve();
                 });
+            resolve();
         });
     };
 
