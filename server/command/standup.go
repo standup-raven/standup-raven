@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/standup-raven/standup-raven/server/otime"
+	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
 	"github.com/standup-raven/standup-raven/server/util"
 	"strings"
@@ -32,15 +33,23 @@ func commandStandup() *Config {
 }
 
 func validateCommandStandup(args []string, context Context) (*model.CommandResponse, *model.AppError) {
+	standupConfig, err := standup.GetStandupConfig(context.CommandArgs.ChannelId)
+	if err != nil {
+		return util.SendEphemeralText("Error getting standup config of the channel")
+	}
+
+	if standupConfig == nil {
+		return util.SendEphemeralText("Standup not configured for the channel")
+	}
 	if len(args) == 0 {
-		args = []string{time.Now().Format(dateLayout), notification.ReportVisibilityPrivate}
+		args = []string{otime.Now(standupConfig.Timezone).Format(dateLayout), notification.ReportVisibilityPrivate}
 	} else if len(args) == 1 {
 		lastArg := strings.ToLower(args[len(args)-1])
 
 		if lastArg != notification.ReportVisibilityPublic && lastArg != notification.ReportVisibilityPrivate {
 			args = append(args, notification.ReportVisibilityPrivate)
 		} else {
-			args = []string{time.Now().Format(dateLayout), lastArg}
+			args = []string{otime.Now(standupConfig.Timezone).Format(dateLayout), lastArg}
 		}
 	}
 

@@ -29,6 +29,8 @@ func baseMock() *plugintest.API {
 	monkey.Patch(logger.Error, func(msg string, err error, extraData map[string]interface{}) {})
 	monkey.Patch(logger.Info, func(msg string, err error, keyValuePairs ...interface{}) {})
 	monkey.Patch(logger.Warn, func(msg string, err error, keyValuePairs ...interface{}) {})
+	fakeTime := time.Date(2019, time.May, 19, 10, 2, 3, 4, time.UTC)
+	monkey.Patch(time.Now, func() time.Time { return fakeTime })
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -937,6 +939,28 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
 		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
 	}
+	
+	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
+		return map[string]string{
+			"channel_1": "channel_1",
+		}, nil
+	})
+	
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+
+		return &standup.StandupConfig{
+			ChannelId:       "channel_1",
+			WindowOpenTime:  windowOpenTime,
+			WindowCloseTime: windowCloseTime,
+			Enabled:         true,
+			Members:         []string{"user_id_1", "user_id_2"},
+			ReportFormat:    config.ReportFormatUserAggregated,
+			Sections:        []string{"section 1", "section 2"},
+			Timezone:		 "Asia/Kolkata",
+		}, nil
+	})
 
 	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
 		return map[string]string{

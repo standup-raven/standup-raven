@@ -58,6 +58,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         for (let i = 0; i < Object.keys(timezones).length; ++i) {
             timezoneList[timezones[i]['display_name']] = timezones[i]['value'];
         }
+        timezoneList[''] = '-';
         return timezoneList;
     }
 
@@ -76,9 +77,9 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 text: '',
                 type: 'info',
             },
-            timezone: 'Africa/Abidjan',
             windowOpenReminder: true,
             windowCloseReminder: true,
+            timezone: '',
         };
     };
 
@@ -175,23 +176,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     }
 
     getStandupConfig = () => {
+        const timezoneURL = Constants.URL_GET_TIMEZONE;
         return new Promise((resolve) => {
-            const timezoneURL = Constants.URL_GET_TIMEZONE;
-            request
-                .get(timezoneURL)
-                .withCredentials()
-                .end((err, result) => {
-                    if (result.ok) {
-                        const timezone = String(result.body);
-                        this.setState({
-                            timezone,
-                        });
-                    } else if (err) {
-                        console.log(err);
-                    }
-                });
-            resolve();
-        }).then(() => {
             const url = `${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}`;
             request
                 .get(url)
@@ -208,8 +194,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             enabled: standupConfig.enabled,
                             status: standupConfig.enabled,
                             timezone: standupConfig.timezone,
-                            windowCloseReminder: standupConfig.windowCloseReminder,
-                            windowOpenReminder: standupConfig.windowOpenReminder,
                         };
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
@@ -219,7 +203,22 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                         this.setState(state);
                     } else if (result.status !== HttpStatus.NOT_FOUND) {
                         console.log(err);
+                    } else if (result.status === HttpStatus.NOT_FOUND) {
+                        request
+                            .get(timezoneURL)
+                            .withCredentials()
+                            .end((error, response) => {
+                                if (response.ok) {
+                                    const timezone = String(response.body);
+                                    this.setState({
+                                        timezone,
+                                    });
+                                } else if (error) {
+                                    console.log(error);
+                                }
+                            });
                     }
+                    resolve();
                 });
         });
     };
