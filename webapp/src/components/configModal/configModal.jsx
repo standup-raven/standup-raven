@@ -18,6 +18,7 @@ import style from './style.css';
 import reactStyles from './style';
 import SentryBoundary from '../../SentryBoundary';
 import * as HttpStatus from 'http-status-codes';
+import Switch from 'react-switch';
 import Cookies from 'js-cookie';
 
 const configModalCloseTimeout = 1000;
@@ -36,13 +37,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         return {
             user_aggregated: 'User Aggregated',
             type_aggregated: 'Type Aggregated',
-        };
-    }
-
-    static get REMINDER_DISPLAY_NAME() {
-        return {
-            true: 'Enabled',
-            false: 'Disabled',
         };
     }
 
@@ -106,9 +100,9 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         });
     };
 
-    handleStatusChange = (status) => {
+    handleStatusChange = () => {
         this.setState({
-            enabled: status,
+            enabled: !this.state.enabled,
         });
     };
 
@@ -116,15 +110,15 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         this.setState({timezone});
     };
 
-    handleWindowCloseReminderChange = (status) => {
+    handleWindowCloseReminderChange = () => {
         this.setState({
-            windowCloseReminder: status,
+            windowCloseReminder: !this.state.windowCloseReminder,
         });
     };
 
-    handleWindowOpenReminderChange = (status) => {
+    handleWindowOpenReminderChange = () => {
         this.setState({
-            windowOpenReminder: status,
+            windowOpenReminder: !this.state.windowOpenReminder,
         });
     };
 
@@ -330,15 +324,19 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 <ControlLabel style={style.controlLabel}>
                                     {'Status:'}
                                 </ControlLabel>
-
-                                <SplitButton
-                                    title={ConfigModal.STATUS_DISPLAY_NAMES[this.state.enabled]}
-                                    onSelect={this.handleStatusChange}
-                                    bsStyle={'link'}
-                                >
-                                    <MenuItem eventKey={true}>{ConfigModal.STATUS_DISPLAY_NAMES[true]}</MenuItem>
-                                    <MenuItem eventKey={false}>{ConfigModal.STATUS_DISPLAY_NAMES[false]}</MenuItem>
-                                </SplitButton>
+                                <Switch
+                                    onChange={this.handleStatusChange}
+                                    checked={this.state.enabled ? true : this.state.enabled}
+                                    onColor={this.props.theme.linkColor}
+                                    offColor={this.props.theme.centerChannelColor}
+                                    offHandleColor={this.props.theme.linkColor}
+                                    onHandleColor={this.props.theme.centerChannelColor}
+                                    handleDiameter={30}
+                                    uncheckedIcon={false}
+                                    checkedIcon={false}
+                                    height={20}
+                                    width={48}
+                                />
                             </FormGroup>
 
                             <FormGroup style={style.formGroup}>
@@ -386,27 +384,37 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 <ControlLabel style={style.controlLabel}>
                                     {'Window Open Reminder:'}
                                 </ControlLabel>
-                                <SplitButton
-                                    title={ConfigModal.REMINDER_DISPLAY_NAME[this.state.windowOpenReminder]}
-                                    onSelect={this.handleWindowOpenReminderChange}
-                                    bsStyle={'link'}
-                                >
-                                    <MenuItem eventKey={true}>{ConfigModal.REMINDER_DISPLAY_NAME[true]}</MenuItem>
-                                    <MenuItem eventKey={false}>{ConfigModal.REMINDER_DISPLAY_NAME[false]}</MenuItem>
-                                </SplitButton>
+                                <Switch
+                                    onChange={this.handleWindowOpenReminderChange}
+                                    checked={this.state.windowOpenReminder ? true : this.state.windowOpenReminder}
+                                    onColor={this.props.theme.linkColor}
+                                    offColor={this.props.theme.centerChannelColor}
+                                    offHandleColor={this.props.theme.linkColor}
+                                    onHandleColor={this.props.theme.centerChannelColor}
+                                    handleDiameter={30}
+                                    uncheckedIcon={false}
+                                    checkedIcon={false}
+                                    height={20}
+                                    width={48}
+                                />
                             </FormGroup>
                             <FormGroup style={style.formGroup}>
                                 <ControlLabel style={style.controlLabel}>
                                     {'Window Close Reminder:'}
                                 </ControlLabel>
-                                <SplitButton
-                                    title={ConfigModal.REMINDER_DISPLAY_NAME[this.state.windowCloseReminder]}
-                                    onSelect={this.handleWindowCloseReminderChange}
-                                    bsStyle={'link'}
-                                >
-                                    <MenuItem eventKey={true}>{ConfigModal.REMINDER_DISPLAY_NAME[true]}</MenuItem>
-                                    <MenuItem eventKey={false}>{ConfigModal.REMINDER_DISPLAY_NAME[false]}</MenuItem>
-                                </SplitButton>
+                                <Switch
+                                    onChange={this.handleWindowCloseReminderChange}
+                                    checked={this.state.windowCloseReminder ? true : this.state.windowCloseReminder}
+                                    onColor={this.props.theme.linkColor}
+                                    offColor={this.props.theme.centerChannelColor}
+                                    offHandleColor={this.props.theme.linkColor}
+                                    onHandleColor={this.props.theme.centerChannelColor}
+                                    handleDiameter={30}
+                                    uncheckedIcon={false}
+                                    checkedIcon={false}
+                                    height={20}
+                                    width={48}
+                                />
                             </FormGroup>
                             <FormGroup style={{...style.formGroup, ...style.formGroupNoMarginBottom}}>
                                 <ControlLabel style={style.controlLabel}>{'Sections:'}</ControlLabel>
