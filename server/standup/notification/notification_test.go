@@ -28,6 +28,8 @@ func baseMock() *plugintest.API {
 	monkey.Patch(logger.Error, func(msg string, err error, extraData map[string]interface{}) {})
 	monkey.Patch(logger.Info, func(msg string, err error, keyValuePairs ...interface{}) {})
 	monkey.Patch(logger.Warn, func(msg string, err error, keyValuePairs ...interface{}) {})
+	fakeTime := time.Date(2019, time.May, 19, 10, 2, 3, 4, time.UTC)
+	monkey.Patch(time.Now, func() time.Time { return fakeTime })
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
