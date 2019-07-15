@@ -297,7 +297,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                         </span>
 
                         <span className={showStandupForm ? '' : 'hidden'}>
-                            <h5 style={style.header}>{`Tasks for ${this.state.activeTab}`}</h5>
+                            <h5 style={style.header}>{this.state.activeTab}</h5>
                             <form style={style.form}>
                                 <div className={'formContainer'}>
                                     {sections}
