@@ -427,10 +427,10 @@ func generateTypeAggregatedStandupReport(
 		}
 
 		for _, sectionTitle := range standupConfig.Sections {
-			text += "##### **Tasks for " + sectionTitle + "**\n\n" + userTasks[sectionTitle] + "\n"
+			text += "##### ** " + sectionTitle + "**\n\n" + userTasks[sectionTitle] + "\n"
 			if len(userNoTasks[sectionTitle]) > 0 {
 				text += fmt.Sprintf(
-					"%s %s no tasks for %s\n",
+					"%s %s no open items for %s\n",
 					strings.Join(userNoTasks[sectionTitle], ", "),
 					util.HasHave(len(userNoTasks[sectionTitle])),
 					sectionTitle,
@@ -476,7 +476,7 @@ func generateUserAggregatedStandupReport(
 				continue
 			}
 
-			userTask += fmt.Sprintf("##### Tasks for %s\n", sectionTitle)
+			userTask += fmt.Sprintf("##### %s\n", sectionTitle)
 			userTask += "1. " + strings.Join(*userStandup.Standup[sectionTitle], "\n1. ") + "\n\n"
 		}
 
