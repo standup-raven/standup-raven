@@ -3,14 +3,15 @@ package standup
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/util"
 	"github.com/thoas/go-funk"
-	"strings"
-	"time"
 )
 
 const (
@@ -49,16 +50,16 @@ func (us *UserStandup) IsValid() error {
 }
 
 type StandupConfig struct {
-	ChannelId           string      `json:"channelId"`
-	WindowOpenTime      otime.OTime `json:"windowOpenTime"`
-	WindowCloseTime     otime.OTime `json:"windowCloseTime"`
-	ReportFormat        string      `json:"reportFormat"`
-	Members             []string    `json:"members"`
-	Sections            []string    `json:"sections"`
-	Enabled             bool        `json:"enabled"`
-	Timezone            string      `json:"timezone"`
-	WindowOpenReminder  bool        `json:"windowOpenReminder"`
-	WindowCloseReminder bool        `json:"windowCloseReminder"`
+	ChannelId                  string      `json:"channelId"`
+	WindowOpenTime             otime.OTime `json:"windowOpenTime"`
+	WindowCloseTime            otime.OTime `json:"windowCloseTime"`
+	ReportFormat               string      `json:"reportFormat"`
+	Members                    []string    `json:"members"`
+	Sections                   []string    `json:"sections"`
+	Enabled                    bool        `json:"enabled"`
+	Timezone                   string      `json:"timezone"`
+	WindowOpenReminderEnabled  bool        `json:"windowOpenReminderEnabled"`
+	WindowCloseReminderEnabled bool        `json:"windowCloseReminderEnabled"`
 }
 
 func (sc *StandupConfig) IsValid() error {

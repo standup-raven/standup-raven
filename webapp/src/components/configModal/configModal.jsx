@@ -18,7 +18,7 @@ import style from './style.css';
 import reactStyles from './style';
 import SentryBoundary from '../../SentryBoundary';
 import * as HttpStatus from 'http-status-codes';
-import Switch from 'react-switch';
+import ToggleSwitch from '../toggleSwitch';
 import Cookies from 'js-cookie';
 
 const configModalCloseTimeout = 1000;
@@ -71,8 +71,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 text: '',
                 type: 'info',
             },
-            windowOpenReminder: true,
-            windowCloseReminder: true,
+            windowOpenReminderEnabled: true,
+            windowCloseReminderEnabled: true,
             timezone: '',
         };
     };
@@ -112,13 +112,13 @@ class ConfigModal extends (SentryBoundary, React.Component) {
 
     handleWindowCloseReminderChange = () => {
         this.setState({
-            windowCloseReminder: !this.state.windowCloseReminder,
+            windowCloseReminderEnabled: !this.state.windowCloseReminderEnabled,
         });
     };
 
     handleWindowOpenReminderChange = () => {
         this.setState({
-            windowOpenReminder: !this.state.windowOpenReminder,
+            windowOpenReminderEnabled: !this.state.windowOpenReminderEnabled,
         });
     };
 
@@ -188,8 +188,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             enabled: standupConfig.enabled,
                             status: standupConfig.enabled,
                             timezone: standupConfig.timezone,
-                            windowOpenReminder: standupConfig.windowOpenReminder,
-                            windowCloseReminder: standupConfig.windowCloseReminder,
+                            windowOpenReminderEnabled: standupConfig.windowOpenReminderEnabled,
+                            windowCloseReminderEnabled: standupConfig.windowCloseReminderEnabled,
                         };
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
@@ -229,8 +229,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             members: this.state.members,
             enabled: this.state.enabled,
             timezone: this.state.timezone,
-            windowCloseReminder: this.state.windowCloseReminder,
-            windowOpenReminder: this.state.windowOpenReminder,
+            windowCloseReminderEnabled: this.state.windowCloseReminderEnabled,
+            windowOpenReminderEnabled: this.state.windowOpenReminderEnabled,
         };
     }
 
@@ -275,7 +275,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     render() {
         // eslint-disable-next-line no-shadow
         const style = reactStyles.getStyle();
-
+        console.log(this.props.theme);
         const showStandupError = false;
         const standupErrorMessage = '';
         const standupErrorSubMessage = '';
@@ -324,18 +324,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 <ControlLabel style={style.controlLabel}>
                                     {'Status:'}
                                 </ControlLabel>
-                                <Switch
+                                <ToggleSwitch
                                     onChange={this.handleStatusChange}
-                                    checked={this.state.enabled ? true : this.state.enabled}
-                                    onColor={this.props.theme.linkColor}
-                                    offColor={this.props.theme.centerChannelColor}
-                                    offHandleColor={this.props.theme.linkColor}
-                                    onHandleColor={this.props.theme.centerChannelColor}
-                                    handleDiameter={30}
-                                    uncheckedIcon={false}
-                                    checkedIcon={false}
-                                    height={20}
-                                    width={48}
+                                    checked={this.state.enabled}
+                                    theme={this.props.theme}
                                 />
                             </FormGroup>
 
@@ -384,36 +376,20 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 <ControlLabel style={style.controlLabel}>
                                     {'Window Open Reminder:'}
                                 </ControlLabel>
-                                <Switch
+                                <ToggleSwitch
                                     onChange={this.handleWindowOpenReminderChange}
-                                    checked={this.state.windowOpenReminder ? true : this.state.windowOpenReminder}
-                                    onColor={this.props.theme.linkColor}
-                                    offColor={this.props.theme.centerChannelColor}
-                                    offHandleColor={this.props.theme.linkColor}
-                                    onHandleColor={this.props.theme.centerChannelColor}
-                                    handleDiameter={30}
-                                    uncheckedIcon={false}
-                                    checkedIcon={false}
-                                    height={20}
-                                    width={48}
+                                    checked={this.state.windowOpenReminderEnabled}
+                                    theme={this.props.theme}
                                 />
                             </FormGroup>
                             <FormGroup style={style.formGroup}>
                                 <ControlLabel style={style.controlLabel}>
                                     {'Window Close Reminder:'}
                                 </ControlLabel>
-                                <Switch
+                                <ToggleSwitch
                                     onChange={this.handleWindowCloseReminderChange}
-                                    checked={this.state.windowCloseReminder ? true : this.state.windowCloseReminder}
-                                    onColor={this.props.theme.linkColor}
-                                    offColor={this.props.theme.centerChannelColor}
-                                    offHandleColor={this.props.theme.linkColor}
-                                    onHandleColor={this.props.theme.centerChannelColor}
-                                    handleDiameter={30}
-                                    uncheckedIcon={false}
-                                    checkedIcon={false}
-                                    height={20}
-                                    width={48}
+                                    checked={this.state.windowCloseReminderEnabled}
+                                    theme={this.props.theme}
                                 />
                             </FormGroup>
                             <FormGroup style={{...style.formGroup, ...style.formGroupNoMarginBottom}}>
