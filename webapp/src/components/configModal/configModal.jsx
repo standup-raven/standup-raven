@@ -275,7 +275,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     render() {
         // eslint-disable-next-line no-shadow
         const style = reactStyles.getStyle();
-        console.log(this.props.theme);
         const showStandupError = false;
         const standupErrorMessage = '';
         const standupErrorSubMessage = '';
