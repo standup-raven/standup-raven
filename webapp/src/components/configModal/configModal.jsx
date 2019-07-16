@@ -18,6 +18,7 @@ import style from './style.css';
 import reactStyles from './style';
 import SentryBoundary from '../../SentryBoundary';
 import * as HttpStatus from 'http-status-codes';
+import ToggleSwitch from '../toggleSwitch';
 import Cookies from 'js-cookie';
 
 const configModalCloseTimeout = 1000;
@@ -70,6 +71,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 text: '',
                 type: 'info',
             },
+            windowOpenReminderEnabled: true,
+            windowCloseReminderEnabled: true,
             timezone: '',
         };
     };
@@ -97,14 +100,26 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         });
     };
 
-    handleStatusChange = (status) => {
+    handleStatusChange = () => {
         this.setState({
-            enabled: status,
+            enabled: !this.state.enabled,
         });
     };
 
     handleTimezoneChange = (timezone) => {
         this.setState({timezone});
+    };
+
+    handleWindowCloseReminderChange = () => {
+        this.setState({
+            windowCloseReminderEnabled: !this.state.windowCloseReminderEnabled,
+        });
+    };
+
+    handleWindowOpenReminderChange = () => {
+        this.setState({
+            windowOpenReminderEnabled: !this.state.windowOpenReminderEnabled,
+        });
     };
 
     generateSections = (onChangeCallback) => {
@@ -173,6 +188,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             enabled: standupConfig.enabled,
                             status: standupConfig.enabled,
                             timezone: standupConfig.timezone,
+                            windowOpenReminderEnabled: standupConfig.windowOpenReminderEnabled,
+                            windowCloseReminderEnabled: standupConfig.windowCloseReminderEnabled,
                         };
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
@@ -197,8 +214,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 }
                             });
                     }
-                    resolve();
                 });
+            resolve();
         });
     };
 
@@ -212,6 +229,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             members: this.state.members,
             enabled: this.state.enabled,
             timezone: this.state.timezone,
+            windowCloseReminderEnabled: this.state.windowCloseReminderEnabled,
+            windowOpenReminderEnabled: this.state.windowOpenReminderEnabled,
         };
     }
 
@@ -256,7 +275,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     render() {
         // eslint-disable-next-line no-shadow
         const style = reactStyles.getStyle();
-
         const showStandupError = false;
         const standupErrorMessage = '';
         const standupErrorSubMessage = '';
@@ -305,15 +323,11 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 <ControlLabel style={style.controlLabel}>
                                     {'Status:'}
                                 </ControlLabel>
-
-                                <SplitButton
-                                    title={ConfigModal.STATUS_DISPLAY_NAMES[this.state.enabled]}
-                                    onSelect={this.handleStatusChange}
-                                    bsStyle={'link'}
-                                >
-                                    <MenuItem eventKey={true}>{ConfigModal.STATUS_DISPLAY_NAMES[true]}</MenuItem>
-                                    <MenuItem eventKey={false}>{ConfigModal.STATUS_DISPLAY_NAMES[false]}</MenuItem>
-                                </SplitButton>
+                                <ToggleSwitch
+                                    onChange={this.handleStatusChange}
+                                    checked={this.state.enabled}
+                                    theme={this.props.theme}
+                                />
                             </FormGroup>
 
                             <FormGroup style={style.formGroup}>
@@ -357,7 +371,26 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 >{data}
                                 </SplitButton>
                             </FormGroup>
-
+                            <FormGroup style={style.formGroup}>
+                                <ControlLabel style={style.controlLabel}>
+                                    {'Window Open Reminder:'}
+                                </ControlLabel>
+                                <ToggleSwitch
+                                    onChange={this.handleWindowOpenReminderChange}
+                                    checked={this.state.windowOpenReminderEnabled}
+                                    theme={this.props.theme}
+                                />
+                            </FormGroup>
+                            <FormGroup style={style.formGroup}>
+                                <ControlLabel style={style.controlLabel}>
+                                    {'Window Close Reminder:'}
+                                </ControlLabel>
+                                <ToggleSwitch
+                                    onChange={this.handleWindowCloseReminderChange}
+                                    checked={this.state.windowCloseReminderEnabled}
+                                    theme={this.props.theme}
+                                />
+                            </FormGroup>
                             <FormGroup style={{...style.formGroup, ...style.formGroupNoMarginBottom}}>
                                 <ControlLabel style={style.controlLabel}>{'Sections:'}</ControlLabel>
                             </FormGroup>

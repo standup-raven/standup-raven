@@ -3,6 +3,11 @@ package notification
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
+	"testing"
+	"time"
+
 	"github.com/bouk/monkey"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
@@ -14,10 +19,6 @@ import (
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"strconv"
-	"testing"
-	"time"
 )
 
 func baseMock() *plugintest.API {
@@ -28,6 +29,8 @@ func baseMock() *plugintest.API {
 	monkey.Patch(logger.Error, func(msg string, err error, extraData map[string]interface{}) {})
 	monkey.Patch(logger.Info, func(msg string, err error, keyValuePairs ...interface{}) {})
 	monkey.Patch(logger.Warn, func(msg string, err error, keyValuePairs ...interface{}) {})
+	fakeTime := time.Date(2019, time.May, 19, 10, 2, 3, 4, time.UTC)
+	monkey.Patch(time.Now, func() time.Time { return fakeTime })
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -101,42 +104,48 @@ func TestSendNotificationsAndReports(t *testing.T) {
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_1",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_1",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_2",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_2",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_3",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_3",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		}
 
@@ -277,42 +286,48 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_1",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_1",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_2",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_2",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_3",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_3",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		}
 
@@ -393,42 +408,48 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_1",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_1",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_2",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_2",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_3",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_3",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		}
 
@@ -529,14 +550,16 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       "channel_1",
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			Enabled:         true,
-			Members:         []string{"user_id_1", "user_id_2"},
-			ReportFormat:    config.ReportFormatUserAggregated,
-			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  "channel_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -821,42 +844,48 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_1",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_1",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_2",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_2",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_3",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_3",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		}
 
@@ -910,13 +939,13 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
 		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
 	}
-	
+
 	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
 		return map[string]string{
 			"channel_1": "channel_1",
 		}, nil
 	})
-	
+
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
@@ -929,7 +958,31 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 			Members:         []string{"user_id_1", "user_id_2"},
 			ReportFormat:    config.ReportFormatUserAggregated,
 			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			Timezone:        "Asia/Kolkata",
+		}, nil
+	})
+
+	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
+		return map[string]string{
+			"channel_1": "channel_1",
+		}, nil
+	})
+
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+
+		return &standup.StandupConfig{
+			ChannelId:                  "channel_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -953,14 +1006,16 @@ func TestSendNotificationsAndReports_Integration(t *testing.T) {
 	windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 	windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
 	standupConfig, _ := json.Marshal(&standup.StandupConfig{
-		ChannelId:       "channel_1",
-		WindowOpenTime:  windowOpenTime,
-		WindowCloseTime: windowCloseTime,
-		Enabled:         true,
-		Members:         []string{"user_id_1", "user_id_2"},
-		ReportFormat:    config.ReportFormatUserAggregated,
-		Sections:        []string{"section 1", "section 2"},
-		Timezone:		 "Asia/Kolkata",
+		ChannelId:                  "channel_1",
+		WindowOpenTime:             windowOpenTime,
+		WindowCloseTime:            windowCloseTime,
+		Enabled:                    true,
+		Members:                    []string{"user_id_1", "user_id_2"},
+		ReportFormat:               config.ReportFormatUserAggregated,
+		Sections:                   []string{"section 1", "section 2"},
+		Timezone:                   "Asia/Kolkata",
+		WindowOpenReminderEnabled:  true,
+		WindowCloseReminderEnabled: true,
 	})
 	mockAPI.On("KVGet", "UzFgbepiypG8qfVARBfHu154LDNiZOw7Mr6Ue4kNZrk=").Return(standupConfig, nil)
 
@@ -1015,14 +1070,16 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       "channel_2",
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			Enabled:         true,
-			Members:         []string{"user_id_1", "user_id_2"},
-			ReportFormat:    config.ReportFormatUserAggregated,
-			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  "channel_2",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1076,14 +1133,16 @@ func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       "channel_2",
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			Enabled:         true,
-			Members:         []string{"user_id_1", "user_id_2"},
-			ReportFormat:    config.ReportFormatUserAggregated,
-			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  "channel_2",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1136,14 +1195,16 @@ func TestSendNotificationsAndReports_Standup_Disabled(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
 
 		return &standup.StandupConfig{
-			ChannelId:       "channel_1",
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			Enabled:         false,
-			Members:         []string{"user_id_1", "user_id_2"},
-			ReportFormat:    config.ReportFormatUserAggregated,
-			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  "channel_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    false,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1186,16 +1247,18 @@ func TestSendNotificationsAndReports_StandupReport_Sent(t *testing.T) {
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
-	
+
 		return &standup.StandupConfig{
-			ChannelId:       "channel_1",
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			Enabled:         true,
-			Members:         []string{"user_id_1", "user_id_2"},
-			ReportFormat:    config.ReportFormatUserAggregated,
-			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  "channel_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1229,26 +1292,28 @@ func TestSendNotificationsAndReports_SendWindowOpenNotification_CreatePost_Error
 
 	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
 		return &ChannelNotificationStatus{
-				StandupReportSent:           false,
-				WindowOpenNotificationSent:  false,
-				WindowCloseNotificationSent: false,
-			}, nil
+			StandupReportSent:           false,
+			WindowOpenNotificationSent:  false,
+			WindowCloseNotificationSent: false,
+		}, nil
 	})
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
 
-			return &standup.StandupConfig{
-				ChannelId:       "channel_1",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
-			}, nil
+		return &standup.StandupConfig{
+			ChannelId:                  "channel_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
+		}, nil
 	})
 
 	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
@@ -1284,10 +1349,10 @@ func TestSendNotificationsAndReports_ShouldSendWindowOpenNotification_NotYet(t *
 
 	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
 		return &ChannelNotificationStatus{
-				StandupReportSent:           false,
-				WindowOpenNotificationSent:  false,
-				WindowCloseNotificationSent: false,
-			}, nil
+			StandupReportSent:           false,
+			WindowOpenNotificationSent:  false,
+			WindowCloseNotificationSent: false,
+		}, nil
 	})
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
@@ -1295,14 +1360,16 @@ func TestSendNotificationsAndReports_ShouldSendWindowOpenNotification_NotYet(t *
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
 
 		return &standup.StandupConfig{
-			ChannelId:       "channel_1",
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			Enabled:         true,
-			Members:         []string{"user_id_1", "user_id_2"},
-			ReportFormat:    config.ReportFormatUserAggregated,
-			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  "channel_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1348,14 +1415,16 @@ func TestSendNotificationsAndReports_WindowCloseNotification(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       "channel_1",
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			Enabled:         true,
-			Members:         []string{"user_id_1", "user_id_2"},
-			ReportFormat:    config.ReportFormatUserAggregated,
-			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  "channel_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1513,13 +1582,15 @@ func TestSendStandupReport(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{"user_id_1", "user_id_2"},
-			Enabled:         true,
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1569,14 +1640,16 @@ func TestSendStandupReport(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
@@ -1592,14 +1665,16 @@ func TestSendStandupReport_GetUserStandup_Error(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{"user_id_1", "user_id_2"},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1638,14 +1713,16 @@ func TestSendStandupReport_GetUserStandup_Nil(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{"user_id_1", "user_id_2"},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1688,14 +1765,16 @@ func TestSendStandupReport_GetUserStandup_Nil(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
@@ -1726,14 +1805,16 @@ func TestSendStandupReport_GetUserStandup_Nil_GetUser_Error(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{"user_id_1", "user_id_2"},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1770,14 +1851,16 @@ func TestSendStandupReport_ReportFormatUserAggregated(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatUserAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{"user_id_1", "user_id_2"},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1827,14 +1910,16 @@ func TestSendStandupReport_ReportFormatUserAggregated(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
@@ -1866,14 +1951,16 @@ func TestSendStandupReport_UnknownReportFormat(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    "some_unknown_report_format",
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{"user_id_1", "user_id_2"},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               "some_unknown_report_format",
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1917,14 +2004,16 @@ func TestSendStandupReport_ReportVisibility_Public(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{"user_id_1", "user_id_2"},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -1974,14 +2063,16 @@ func TestSendStandupReport_ReportVisibility_Public(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", false)
@@ -2013,14 +2104,16 @@ func TestSendStandupReport_ReportVisibility_Public_CreatePost_Error(t *testing.T
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{"user_id_1", "user_id_2"},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -2070,14 +2163,16 @@ func TestSendStandupReport_ReportVisibility_Public_CreatePost_Error(t *testing.T
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", false)
@@ -2109,14 +2204,16 @@ func TestSendStandupReport_UpdateStatus_True(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{"user_id_1", "user_id_2"},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -2166,14 +2263,16 @@ func TestSendStandupReport_UpdateStatus_True(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", true)
@@ -2205,14 +2304,16 @@ func TestSendStandupReport_UpdateStatus_True_GetNotificationStatus_Error(t *test
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       channelID,
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			ReportFormat:    config.ReportFormatTypeAggregated,
-			Sections:        []string{"section_1", "section_2"},
-			Members:         []string{"user_id_1", "user_id_2"},
-			Enabled:         true,
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -2280,14 +2381,16 @@ func TestSetNotificationStatus(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       "channel_id_1",
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			Enabled:         true,
-			Members:         []string{"user_id_1", "user_id_2"},
-			ReportFormat:    config.ReportFormatUserAggregated,
-			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  "channel_id_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 	assert.Nil(t, SetNotificationStatus("channel_id_1", &ChannelNotificationStatus{}))
@@ -2305,14 +2408,16 @@ func TestSetNotificationStatus_JsonMarshal_Error(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       "channel_id_1",
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			Enabled:         true,
-			Members:         []string{"user_id_1", "user_id_2"},
-			ReportFormat:    config.ReportFormatUserAggregated,
-			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  "channel_id_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 
@@ -2328,14 +2433,16 @@ func TestSetNotificationStatus_KVSet_Error(t *testing.T) {
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 		return &standup.StandupConfig{
-			ChannelId:       "channel_id_1",
-			WindowOpenTime:  windowOpenTime,
-			WindowCloseTime: windowCloseTime,
-			Enabled:         true,
-			Members:         []string{"user_id_1", "user_id_2"},
-			ReportFormat:    config.ReportFormatUserAggregated,
-			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			ChannelId:                  "channel_id_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
 		}, nil
 	})
 	assert.NotNil(t, SetNotificationStatus("channel_id_1", &ChannelNotificationStatus{}))
@@ -2395,42 +2502,48 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_1",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_1",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_2",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_2",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_3",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_3",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		}
 
@@ -2453,7 +2566,7 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
 		return nil, nil
 	})
-	err :=SendStandupReport([]string{"channel_1", "channel_2", "channel_3"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", true)
+	err := SendStandupReport([]string{"channel_1", "channel_2", "channel_3"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", true)
 	assert.Nil(t, err, "should not produce any error")
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 3)
@@ -2513,42 +2626,48 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_1",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatTypeAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_1",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatTypeAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_2",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_2",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
 
 			return &standup.StandupConfig{
-				ChannelId:       "channel_3",
-				WindowOpenTime:  windowOpenTime,
-				WindowCloseTime: windowCloseTime,
-				Enabled:         true,
-				Members:         []string{"user_id_1", "user_id_2"},
-				ReportFormat:    config.ReportFormatUserAggregated,
-				Sections:        []string{"section 1", "section 2"},
-				Timezone:		 "Asia/Kolkata",
+				ChannelId:                  "channel_3",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
 			}, nil
 		}
 
@@ -2571,13 +2690,13 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 
 	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
 		if channelID == "channel_1" {
-			if userID == "user_id_1"  {
+			if userID == "user_id_1" {
 				return nil, nil
 			} else if userID == "user_id_2" {
 				return &standup.UserStandup{}, nil
 			}
 		} else if channelID == "channel_2" {
-			if userID == "user_id_1"  {
+			if userID == "user_id_1" {
 				return nil, nil
 			} else if userID == "user_id_2" {
 				return &standup.UserStandup{}, nil
@@ -2591,10 +2710,10 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 		panic(t)
 		return nil, nil
 	})
-	err :=SendStandupReport([]string{"channel_1", "channel_2", "channel_3"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", true)
+	err := SendStandupReport([]string{"channel_1", "channel_2", "channel_3"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", true)
 	assert.Nil(t, err, "should not produce any error")
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
-	
+
 }
 
 func TestSendNotificationsAndReports_StandupConfig_Error(t *testing.T) {
@@ -2618,7 +2737,7 @@ func TestSendNotificationsAndReports_StandupConfig_Error(t *testing.T) {
 			"channel_3": "channel_3",
 		}, nil
 	})
-	
+
 	monkey.Patch(channelsWorkDay, func(channels map[string]string) (map[string]string, error) {
 		return map[string]string{
 			"channel_1": "channel_1",
@@ -2626,9 +2745,9 @@ func TestSendNotificationsAndReports_StandupConfig_Error(t *testing.T) {
 			"channel_3": "channel_3",
 		}, nil
 	})
-	
+
 	monkey.Patch(filterChannelNotification, func(channels map[string]string) ([]string, []string, []string, error) {
-		return []string{},[]string{},[]string{"channel_1", "channel_2", "channel_3"}, nil
+		return []string{}, []string{}, []string{"channel_1", "channel_2", "channel_3"}, nil
 	})
 
 	monkey.Patch(SendStandupReport, func(channelIDs []string, date otime.OTime, visibility string, userId string, updateStatus bool) error {
@@ -2722,7 +2841,7 @@ func TestSendNotificationsAndReports_StandupConfig_Nil(t *testing.T) {
 			"channel_3": "channel_3",
 		}, nil
 	})
-	
+
 	monkey.Patch(channelsWorkDay, func(channels map[string]string) (map[string]string, error) {
 		return map[string]string{
 			"channel_1": "channel_1",
@@ -2760,7 +2879,7 @@ func TestSendNotificationsAndReports_StandupConfig_Nil(t *testing.T) {
 		return nil, nil
 	})
 	monkey.Patch(filterChannelNotification, func(channels map[string]string) ([]string, []string, []string, error) {
-		return []string{},[]string{},[]string{"channel_1", "channel_2", "channel_3"}, nil
+		return []string{}, []string{}, []string{"channel_1", "channel_2", "channel_3"}, nil
 	})
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
@@ -2802,4 +2921,148 @@ func TestSendNotificationsAndReports_StandupConfig_Nil(t *testing.T) {
 	assert.NotNil(t, SendNotificationsAndReports())
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
 
+}
+
+func TestSendNotificationsAndReports_WindowCloseReminderEnabled_Disabled(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
+	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
+
+	location, _ := time.LoadLocation("Asia/Kolkata")
+	mockConfig := &config.Configuration{
+		Location:      location,
+		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+	}
+
+	config.SetConfig(mockConfig)
+
+	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
+		return map[string]string{
+			"channel_1": "channel_1",
+		}, nil
+	})
+
+	monkey.Patch(SendStandupReport, func(channelIDs []string, date otime.OTime, visibility string, userId string, updateStatus bool) error {
+		return nil
+	})
+
+	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
+		return &ChannelNotificationStatus{
+			StandupReportSent:           false,
+			WindowOpenNotificationSent:  true,
+			WindowCloseNotificationSent: false,
+		}, nil
+	})
+
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-55 * time.Minute)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
+
+		return &standup.StandupConfig{
+			ChannelId:                  "channel_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: false,
+		}, nil
+	})
+
+	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
+		if channelID == "channel_1" {
+			return nil
+		} else if channelID == "channel_2" {
+			return nil
+		} else if channelID == "channel_3" {
+			return nil
+		}
+
+		t.Fatal("unknown argument encountered: " + channelID)
+		return nil
+	})
+
+	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
+		return nil, nil
+	})
+
+	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
+	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
+}
+
+func TestSendNotificationsAndReports_WindowOpenReminderEnabled_Disabled(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
+	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
+
+	location, _ := time.LoadLocation("Asia/Kolkata")
+	mockConfig := &config.Configuration{
+		Location:      location,
+		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
+		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+	}
+
+	config.SetConfig(mockConfig)
+
+	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
+		return map[string]string{
+			"channel_1": "channel_1",
+		}, nil
+	})
+
+	monkey.Patch(SendStandupReport, func(channelIDs []string, date otime.OTime, visibility string, userId string, updateStatus bool) error {
+		return nil
+	})
+
+	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
+		return &ChannelNotificationStatus{
+			StandupReportSent:           false,
+			WindowOpenNotificationSent:  false,
+			WindowCloseNotificationSent: false,
+		}, nil
+	})
+
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Minute)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
+
+		return &standup.StandupConfig{
+			ChannelId:                  "channel_1",
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			Enabled:                    true,
+			Members:                    []string{"user_id_1", "user_id_2"},
+			ReportFormat:               config.ReportFormatUserAggregated,
+			Sections:                   []string{"section 1", "section 2"},
+			Timezone:                   "Asia/Kolkata",
+			WindowOpenReminderEnabled:  false,
+			WindowCloseReminderEnabled: true,
+		}, nil
+	})
+
+	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
+		if channelID == "channel_1" {
+			return nil
+		} else if channelID == "channel_2" {
+			return nil
+		} else if channelID == "channel_3" {
+			return nil
+		}
+
+		t.Fatal("unknown argument encountered: " + channelID)
+		return nil
+	})
+
+	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
+		return nil, nil
+	})
+
+	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
+	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
 }

@@ -3,6 +3,10 @@ package notification
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
 	"github.com/standup-raven/standup-raven/server/config"
@@ -10,9 +14,6 @@ import (
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type ChannelNotificationStatus struct {
@@ -40,12 +41,12 @@ func SendNotificationsAndReports() error {
 	if err != nil {
 		return err
 	}
-	
+
 	channels, err := channelsWorkDay(channelIDs)
 	if err != nil {
 		return err
 	}
-	
+
 	a, b, c, err := filterChannelNotification(channels)
 	if err != nil {
 		return err
@@ -58,7 +59,7 @@ func SendNotificationsAndReports() error {
 	if err := sendAllStandupReport(c); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -90,7 +91,7 @@ func channelsWorkDay(channels map[string]string) (map[string]string, error) {
 		if standupConfig == nil {
 			continue
 		}
-		
+
 		// don't send notifications if it's not a work week.
 		if isWorkDay(standupConfig.Timezone) {
 			channelIDs[channelID] = channelID
@@ -273,14 +274,18 @@ func filterChannelNotification(channelIDs map[string]string) ([]string, []string
 			standupReportChannels = append(standupReportChannels, channelID)
 		} else if status == ChannelNotificationStatusSent {
 			// pass
-		} else if status := shouldSendWindowCloseNotification(notificationStatus, standupConfig); status == ChannelNotificationStatusSend {
-			logger.Debug(fmt.Sprintf("Channel [%s] needs window close notification", channelID), nil)
-			windowCloseNotificationChannels = append(windowCloseNotificationChannels, channelID)
+		} else if shouldSendWindowCloseNotification(notificationStatus, standupConfig) == ChannelNotificationStatusSend {
+			if standupConfig.WindowCloseReminderEnabled {
+				logger.Debug(fmt.Sprintf("Channel [%s] needs window close notification", channelID), nil)
+				windowCloseNotificationChannels = append(windowCloseNotificationChannels, channelID)
+			}
 		} else if status == ChannelNotificationStatusSent {
 			// pass
 		} else if shouldSendWindowOpenNotification(notificationStatus, standupConfig) == ChannelNotificationStatusSend {
-			logger.Debug(fmt.Sprintf("Channel [%s] needs window open notification", channelID), nil)
-			windowOpenNotificationChannels = append(windowOpenNotificationChannels, channelID)
+			if standupConfig.WindowOpenReminderEnabled {
+				logger.Debug(fmt.Sprintf("Channel [%s] needs window open notification", channelID), nil)
+				windowOpenNotificationChannels = append(windowOpenNotificationChannels, channelID)
+			}
 		}
 	}
 

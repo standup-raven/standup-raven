@@ -14,11 +14,11 @@ type Endpoint struct {
 }
 
 var Endpoints = map[string]*Endpoint{
-	getEndpointKey(hook):        hook,
-	getEndpointKey(getStandup):  getStandup,
-	getEndpointKey(saveStandup): saveStandup,
-	getEndpointKey(getConfig):   getConfig,
-	getEndpointKey(setConfig):   setConfig,
+	getEndpointKey(hook):               hook,
+	getEndpointKey(getStandup):         getStandup,
+	getEndpointKey(saveStandup):        saveStandup,
+	getEndpointKey(getConfig):          getConfig,
+	getEndpointKey(setConfig):          setConfig,
 	getEndpointKey(getDefaultTimezone): getDefaultTimezone,
 }
 
