@@ -102,7 +102,7 @@ func (p *Plugin) OnConfigurationChange() error {
 		configuration.BotUserID = botID
 
 		if err := config.Mattermost.LoadPluginConfiguration(&configuration); err != nil {
-			logger.Error("Error occurred during loading plugin configuraton from Mattermost", err, nil)
+			logger.Error("Error occurred during loading plugin configuration from Mattermost", err, nil)
 			return err
 		}
 
