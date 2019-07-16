@@ -63,15 +63,14 @@ workflows:
       - build:
           filters:
             branches:
-              only: /^release-.*/
-            tags:
               ignore: /.*/
+            tags:
+              only: /^v.*/
       - release:
           requires:
             - build
           filters:
             branches:
-              only: /^release-.*/
-            tags:
               ignore: /.*/
-
+            tags:
+              only: /^v.*/
