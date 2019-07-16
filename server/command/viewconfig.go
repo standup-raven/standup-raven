@@ -62,7 +62,7 @@ func executeViewConfig(args []string, context Context) (*model.CommandResponse, 
 			windowCloseReminder = "enabled"
 		}
 		message = fmt.Sprintf(
-			"Window open time: %s, Window close time: %s \nTimezone: %s, Window open reminder: %s \nWindow close reminder: %s, Report format: %s \n\nMembers: %s",
+			"Window open time: %s \nWindow close time: %s \nTimezone: %s \nWindow open reminder: %s \nWindow close reminder: %s \nReport format: %s \nMembers: %s",
 			standupConfig.WindowOpenTime.GetTimeString(),
 			standupConfig.WindowCloseTime.GetTimeString(),
 			standupConfig.Timezone,
