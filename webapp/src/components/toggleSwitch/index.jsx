@@ -4,6 +4,8 @@ import SentryBoundary from '../../SentryBoundary';
 import color from 'color';
 import './style.css';
 
+const darkenRatio = 0.3;
+
 class ToggleSwitch extends (SentryBoundary, React.Component) {
     render() {
         return (
@@ -11,9 +13,8 @@ class ToggleSwitch extends (SentryBoundary, React.Component) {
                 <Switch
                     onChange={this.props.onChange}
                     checked={this.props.checked}
-                    onColor={color(this.props.theme.linkColor).darken(0.3).hex()}
-                    offColor={color(this.props.theme.centerChannelColor).lighten(0.9).hex()}
-                    offHandleColor={color(this.props.theme.centerChannelColor).lighten(0.7).hex()}
+                    onColor={color(this.props.theme.linkColor).darken(darkenRatio).hex()}
+                    boxShadow='0px 1px 5px rgba(0, 0, 0, 0.6)'
                     onHandleColor={this.props.theme.linkColor}
                     handleDiameter={23}
                     uncheckedIcon={false}
