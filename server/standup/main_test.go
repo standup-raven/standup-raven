@@ -108,6 +108,7 @@ func TestStandupConfig_IsValid(t *testing.T) {
 		Members:         []string{"user_id_1", "user_id_2"},
 		ReportFormat:    config.ReportFormatUserAggregated,
 		Sections:        []string{"section 1", "section 2"},
+		Timezone:         "Asia/Kolkata",
 	}
 
 	assert.Nil(t, standupConfig.IsValid(), "should be valid")
@@ -309,6 +310,22 @@ func TestSaveUserStandup(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
+	
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-55 * time.Minute)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
+
+		return &StandupConfig{
+			ChannelId:       "channel_1",
+			WindowOpenTime:  windowOpenTime,
+			WindowCloseTime: windowCloseTime,
+			Enabled:         true,
+			Members:         []string{"user_id_1", "user_id_2"},
+			ReportFormat:    config.ReportFormatUserAggregated,
+			Sections:        []string{"section 1", "section 2"},
+			Timezone:		 "Asia/Kolkata",
+		}, nil
+	})
 
 	userStandup := &UserStandup{
 		UserID: "user_id",
@@ -345,7 +362,7 @@ func TestGetUserStandup(t *testing.T) {
 	})
 	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(userStandupBytes, nil)
 
-	userStandup, err := GetUserStandup("user_id", "channel_id", otime.Now())
+	userStandup, err := GetUserStandup("user_id", "channel_id", otime.Now("Asia/Kolkata"))
 	assert.Nil(t, err, "no error should have been produced")
 	assert.Equal(t, &UserStandup{
 		UserID: "user_id",
@@ -361,13 +378,13 @@ func TestGetUserStandup(t *testing.T) {
 	mockAPI = baseMock()
 	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(nil, util.EmptyAppError())
 
-	userStandup, err = GetUserStandup("user_id", "channel_id", otime.Now())
+	userStandup, err = GetUserStandup("user_id", "channel_id", otime.Now("Asia/Kolkata"))
 	assert.NotNil(t, err, "error should have been produced as KVGet failed")
 	assert.Nil(t, userStandup)
 
 	mockAPI = baseMock()
 	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return([]byte{}, nil)
-	userStandup, err = GetUserStandup("user_id", "channel_id", otime.Now())
+	userStandup, err = GetUserStandup("user_id", "channel_id", otime.Now("Asia/Kolkata"))
 	assert.Nil(t, err, "no error should have been produced")
 	assert.Nil(t, userStandup, "no user standup should have been found")
 
@@ -381,8 +398,8 @@ func TestSaveStandupConfig(t *testing.T) {
 	standupConfig := &StandupConfig{
 		ChannelId: "channel_id",
 		 Members: []string{"user_id_1"},
-		 WindowOpenTime: otime.Now(),
-		 WindowCloseTime: otime.Now(),
+		 WindowOpenTime: otime.Now("Asia/Kolkata"),
+		 WindowCloseTime: otime.Now("Asia/Kolkata"),
 		 Sections: []string{"section 1"},
 		 ReportFormat: config.ReportFormatUserAggregated,
 		 Enabled: true,
@@ -407,7 +424,7 @@ func TestSaveStandupConfig_DuplicateMembers(t *testing.T) {
 	mockAPI := baseMock()
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
 	
-	now := otime.Now()
+	now := otime.Now("Asia/Kolkata")
 
 	standupConfig := &StandupConfig{
 		ChannelId: "channel_id",
@@ -439,8 +456,8 @@ func TestGetStandupConfig(t *testing.T) {
 	standupConfigBytes, _ := json.Marshal(&StandupConfig{
 		ChannelId: "channel_id",
 		Members: []string{"user_id_1"},
-		WindowOpenTime: otime.Now(),
-		WindowCloseTime: otime.Now(),
+		WindowOpenTime: otime.Now("Asia/Kolkata"),
+		WindowCloseTime: otime.Now("Asia/Kolkata"),
 		Sections: []string{"section 1"},
 		ReportFormat: config.ReportFormatUserAggregated,
 		Enabled: true,

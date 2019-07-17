@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
@@ -19,6 +20,13 @@ var setConfig = &Endpoint{
 	Path:         "/config",
 	Method:       http.MethodPost,
 	Execute:      executeSetConfig,
+	RequiresAuth: true,
+}
+
+var getDefaultTimezone = &Endpoint{
+	Path:         "/timezone",
+	Method:       http.MethodGet,
+	Execute:      executeGetDefaultTimezone,
 	RequiresAuth: true,
 }
 
@@ -80,6 +88,25 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	w.WriteHeader(http.StatusCreated)
 	if _, err := w.Write([]byte(conf.ToJson())); err != nil {
 		logger.Error("Error occurred in writing data to HTTP response", err, map[string]interface{}{"config": conf.ToJson()})
+		return err
+	}
+
+	return nil
+}
+
+func executeGetDefaultTimezone(w http.ResponseWriter, r *http.Request) error {
+	timezone := config.GetConfig().TimeZone
+
+	data, err := json.Marshal(timezone)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		logger.Error("Couldn't serialize config data", err, map[string]interface{}{"timezone": timezone})
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(data); err != nil {
+		logger.Error("Error occurred in writing data to HTTP response", err, map[string]interface{}{"data": string(data)})
 		return err
 	}
 

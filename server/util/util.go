@@ -93,8 +93,8 @@ func Difference(a, b []string) []string {
 	return diff
 }
 
-func GetCurrentDateString() string {
-	return otime.Now().Format("20060102")
+func GetCurrentDateString(timezone string) string {
+	return otime.Now(timezone).Format("20060102")
 }
 
 func GetKeyHash(key string) string {
