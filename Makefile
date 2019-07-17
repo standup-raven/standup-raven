@@ -194,12 +194,9 @@ deploy:
 	echo "Plugin uploaded successfully"
 
 release: dist
-	@echo "Installing what-the-changelog"
-	@cd webapp && npm i -D	
 	@echo "Installing ghr"
 	@go get -u github.com/tcnksm/ghr
 	@echo "Create new tag"
 	$(shell git tag $(PLUGINVERSION))
-	@echo "Generating changelog and uploading artifacts"	
-	@changelog=$$(./webapp/node_modules/what-the-changelog/lib/index.js standup-raven standup-raven '.' 'security,added,changed,deprecated,removed,fixed,long term' 'docs/assets/images/resolutions' $(PLUGINVERSION)) && \
-	ghr -body="$$changelog" -t $(GITHUB_TOKEN) -u $(ORG_NAME) -r $(REPO_NAME) $(PLUGINVERSION) dist/
+	@echo "Uploading artifacts"
+	@ghr -t $(GITHUB_TOKEN) -u $(ORG_NAME) -r $(REPO_NAME) $(PLUGINVERSION) dist/
