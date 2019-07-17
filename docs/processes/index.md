@@ -1,4 +1,4 @@
-<img src="assets/images/banner.png" width="300px">
+<img src="../assets/images/banner.png" width="300px">
 
 #
 

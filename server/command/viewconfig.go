@@ -2,12 +2,13 @@ package command
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
-	"strings"
 )
 
 func commandViewConfig() *Config {
@@ -52,11 +53,21 @@ func executeViewConfig(args []string, context Context) (*model.CommandResponse, 
 
 			membersString = strings.Join(members, ", ")
 		}
-
+		windowOpenReminder := "disabled"
+		windowCloseReminder := "disabled"
+		if standupConfig.WindowOpenReminderEnabled {
+			windowOpenReminder = "enabled"
+		}
+		if standupConfig.WindowCloseReminderEnabled {
+			windowCloseReminder = "enabled"
+		}
 		message = fmt.Sprintf(
-			"Window open time: %s, Window close time: %s, Report format: %s \n\nMembers: %s",
+			"Window open time: %s \nWindow close time: %s \nTimezone: %s \nWindow open reminder: %s \nWindow close reminder: %s \nReport format: %s \nMembers: %s",
 			standupConfig.WindowOpenTime.GetTimeString(),
 			standupConfig.WindowCloseTime.GetTimeString(),
+			standupConfig.Timezone,
+			windowOpenReminder,
+			windowCloseReminder,
 			standupConfig.ReportFormat,
 			membersString,
 		)

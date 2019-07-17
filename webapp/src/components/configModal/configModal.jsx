@@ -18,9 +18,11 @@ import style from './style.css';
 import reactStyles from './style';
 import SentryBoundary from '../../SentryBoundary';
 import * as HttpStatus from 'http-status-codes';
+import ToggleSwitch from '../toggleSwitch';
 import Cookies from 'js-cookie';
 
 const configModalCloseTimeout = 1000;
+const timezones = require('../../../../timezones.json');
 
 class ConfigModal extends (SentryBoundary, React.Component) {
     constructor(props) {
@@ -45,6 +47,15 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         };
     }
 
+    static get TIMEZONE_DISPLAY_NAMES() {
+        const timezoneList = {};
+        for (let i = 0; i < Object.keys(timezones).length; ++i) {
+            timezoneList[timezones[i]['display_name']] = timezones[i]['value'];
+        }
+        timezoneList[''] = '-';
+        return timezoneList;
+    }
+
     getInitialState = () => {
         return {
             showSpinner: true,
@@ -60,6 +71,9 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 text: '',
                 type: 'info',
             },
+            windowOpenReminderEnabled: true,
+            windowCloseReminderEnabled: true,
+            timezone: '',
         };
     };
 
@@ -86,9 +100,25 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         });
     };
 
-    handleStatusChange = (status) => {
+    handleStatusChange = () => {
         this.setState({
-            enabled: status,
+            enabled: !this.state.enabled,
+        });
+    };
+
+    handleTimezoneChange = (timezone) => {
+        this.setState({timezone});
+    };
+
+    handleWindowCloseReminderChange = () => {
+        this.setState({
+            windowCloseReminderEnabled: !this.state.windowCloseReminderEnabled,
+        });
+    };
+
+    handleWindowOpenReminderChange = () => {
+        this.setState({
+            windowOpenReminderEnabled: !this.state.windowOpenReminderEnabled,
         });
     };
 
@@ -140,6 +170,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     }
 
     getStandupConfig = () => {
+        const timezoneURL = Constants.URL_GET_TIMEZONE;
         return new Promise((resolve) => {
             const url = `${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}`;
             request
@@ -156,6 +187,9 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             sections: {},
                             enabled: standupConfig.enabled,
                             status: standupConfig.enabled,
+                            timezone: standupConfig.timezone,
+                            windowOpenReminderEnabled: standupConfig.windowOpenReminderEnabled,
+                            windowCloseReminderEnabled: standupConfig.windowCloseReminderEnabled,
                         };
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
@@ -165,9 +199,23 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                         this.setState(state);
                     } else if (result.status !== HttpStatus.NOT_FOUND) {
                         console.log(err);
+                    } else if (result.status === HttpStatus.NOT_FOUND) {
+                        request
+                            .get(timezoneURL)
+                            .withCredentials()
+                            .end((error, response) => {
+                                if (response.ok) {
+                                    const timezone = String(response.body);
+                                    this.setState({
+                                        timezone,
+                                    });
+                                } else if (error) {
+                                    console.log(error);
+                                }
+                            });
                     }
-                    resolve();
                 });
+            resolve();
         });
     };
 
@@ -180,6 +228,9 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             sections: Object.values(this.state.sections).map((x) => x.trim()).filter((x) => x !== ''),
             members: this.state.members,
             enabled: this.state.enabled,
+            timezone: this.state.timezone,
+            windowCloseReminderEnabled: this.state.windowCloseReminderEnabled,
+            windowOpenReminderEnabled: this.state.windowOpenReminderEnabled,
         };
     }
 
@@ -224,11 +275,19 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     render() {
         // eslint-disable-next-line no-shadow
         const style = reactStyles.getStyle();
-
         const showStandupError = false;
         const standupErrorMessage = '';
         const standupErrorSubMessage = '';
-
+        const data = timezones.map((timezone) =>
+            (
+                <MenuItem
+                    key={timezone.value}
+                    eventKey={timezone.value}
+                >
+                    {timezone.display_name}
+                </MenuItem>
+            )
+        );
         return (
             <Modal
                 show={this.props.visible}
@@ -264,15 +323,11 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 <ControlLabel style={style.controlLabel}>
                                     {'Status:'}
                                 </ControlLabel>
-
-                                <SplitButton
-                                    title={ConfigModal.STATUS_DISPLAY_NAMES[this.state.enabled]}
-                                    onSelect={this.handleStatusChange}
-                                    bsStyle={'link'}
-                                >
-                                    <MenuItem eventKey={true}>{ConfigModal.STATUS_DISPLAY_NAMES[true]}</MenuItem>
-                                    <MenuItem eventKey={false}>{ConfigModal.STATUS_DISPLAY_NAMES[false]}</MenuItem>
-                                </SplitButton>
+                                <ToggleSwitch
+                                    onChange={this.handleStatusChange}
+                                    checked={this.state.enabled}
+                                    theme={this.props.theme}
+                                />
                             </FormGroup>
 
                             <FormGroup style={style.formGroup}>
@@ -305,7 +360,37 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                     <MenuItem eventKey={'type_aggregated'}>{'Type Aggregated'}</MenuItem>
                                 </SplitButton>
                             </FormGroup>
-
+                            <FormGroup style={style.formGroup}>
+                                <ControlLabel style={style.controlLabel}>
+                                    {'Timezone:'}
+                                </ControlLabel>
+                                <SplitButton
+                                    title={ConfigModal.TIMEZONE_DISPLAY_NAMES[this.state.timezone]}
+                                    onSelect={this.handleTimezoneChange}
+                                    bsStyle={'link'}
+                                >{data}
+                                </SplitButton>
+                            </FormGroup>
+                            <FormGroup style={style.formGroup}>
+                                <ControlLabel style={style.controlLabel}>
+                                    {'Window Open Reminder:'}
+                                </ControlLabel>
+                                <ToggleSwitch
+                                    onChange={this.handleWindowOpenReminderChange}
+                                    checked={this.state.windowOpenReminderEnabled}
+                                    theme={this.props.theme}
+                                />
+                            </FormGroup>
+                            <FormGroup style={style.formGroup}>
+                                <ControlLabel style={style.controlLabel}>
+                                    {'Window Close Reminder:'}
+                                </ControlLabel>
+                                <ToggleSwitch
+                                    onChange={this.handleWindowCloseReminderChange}
+                                    checked={this.state.windowCloseReminderEnabled}
+                                    theme={this.props.theme}
+                                />
+                            </FormGroup>
                             <FormGroup style={{...style.formGroup, ...style.formGroupNoMarginBottom}}>
                                 <ControlLabel style={style.controlLabel}>{'Sections:'}</ControlLabel>
                             </FormGroup>

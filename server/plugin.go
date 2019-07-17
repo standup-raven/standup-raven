@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/getsentry/raven-go"
 	"github.com/standup-raven/standup-raven/server/logger"
+	"github.com/standup-raven/standup-raven/server/migration"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
 	"io/ioutil"
 	"net/http"
@@ -33,6 +34,10 @@ func (p *Plugin) OnActivate() error {
 	config.Mattermost = p.API
 
 	if err := p.OnConfigurationChange(); err != nil {
+		return err
+	}
+	
+	if err := migration.DatabaseMigration(); err != nil {
 		return err
 	}
 
@@ -102,7 +107,7 @@ func (p *Plugin) OnConfigurationChange() error {
 		configuration.BotUserID = botID
 
 		if err := config.Mattermost.LoadPluginConfiguration(&configuration); err != nil {
-			logger.Error("Error occurred during loading plugin configuraton from Mattermost", err, nil)
+			logger.Error("Error occurred during loading plugin configuration from Mattermost", err, nil)
 			return err
 		}
 
