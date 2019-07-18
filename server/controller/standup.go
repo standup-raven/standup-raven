@@ -59,9 +59,11 @@ func executeGetStandup(w http.ResponseWriter, r *http.Request) error {
 	channelID := r.URL.Query().Get("channel_id")
 	standupConfig, err := standup.GetStandupConfig(channelID)
 	if err != nil {
+		http.Error(w, "Error occurred while fetching standup config", http.StatusInternalServerError)
 		return err
 	}
 	if standupConfig == nil {
+		http.Error(w, "Standup not configured for channel", http.StatusInternalServerError)
 		return errors.New("standup not configured for channel: " + channelID)
 	}
 
