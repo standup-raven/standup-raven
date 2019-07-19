@@ -35,10 +35,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                 type: 'info',
             },
             showSpinner: true,
-            standupConfig: {
-                sections: [],
-                members: [],
-            },
+            standupConfig: undefined,
             standupError: false,
             showStandupError: false,
             standupErrorMessage: '',
@@ -230,7 +227,11 @@ class StandupModal extends (SentryBoundary, React.Component) {
             showStandupError = true;
             standupErrorMessage = 'Standup not configured for this channel.';
             standupErrorSubMessage = 'Make sure you are filling the standup in the right channel or that standup has been configured in this channel.';
-        } else if (!this.state.standupConfig.members) {
+        } else if (!this.state.standupConfig.enabled) {
+            showStandupError = true;
+            standupErrorMessage = 'Standup is disabled for this channel.';
+            standupErrorSubMessage = 'Please enable standup to continue using the features.';
+        } else if (!this.state.standupConfig.members || this.state.standupConfig.members.length === 0) {
             showStandupError = true;
             standupErrorMessage = 'No members configured for this channel\'s standup.';
             standupErrorSubMessage = 'Please add some members to the standup to continue using the features.';
@@ -238,33 +239,31 @@ class StandupModal extends (SentryBoundary, React.Component) {
             showStandupError = true;
             standupErrorMessage = 'You are not a part of this channel\'s standup.';
             standupErrorSubMessage = 'Make sure you are filling standup in the right channel or that you were correctly added to the channel\'s standup.';
-        } else if (!this.state.standupConfig.enabled) {
-            showStandupError = true;
-            standupErrorMessage = 'Standup is disabled for this channel.';
-            standupErrorSubMessage = 'Please enable standup to continue using the features.';
         }
 
         const showSpinner = this.state.showSpinner;
         const showStandupForm = !showStandupError && this.state.standupConfig !== undefined;
 
         const sections = [];
-        for (let i = 0; i < this.state.standupConfig.sections.length; ++i) {
-            const sectionTitle = this.state.standupConfig.sections[i];
-            sections.push(
-                <div
-                    key={i.toString()}
-                    id={sectionTitle}
-                    className={this.state.activeTab === sectionTitle ? '' : 'hidden'}
-                >
-                    {this.insertRows(StandupModal.STANDUP_TASKS_DEFAULT_ROW_COUNT, sectionTitle, (e) => {
-                        this.handleTasks(sectionTitle, e);
-                    })}
-                </div>,
-            );
+        if (this.state.standupConfig && this.state.standupConfig.sections) {
+            for (let i = 0; i < this.state.standupConfig.sections.length; ++i) {
+                const sectionTitle = this.state.standupConfig.sections[i];
+                sections.push(
+                    <div
+                        key={i.toString()}
+                        id={sectionTitle}
+                        className={this.state.activeTab === sectionTitle ? '' : 'hidden'}
+                    >
+                        {this.insertRows(StandupModal.STANDUP_TASKS_DEFAULT_ROW_COUNT, sectionTitle, (e) => {
+                            this.handleTasks(sectionTitle, e);
+                        })}
+                    </div>,
+                );
+            }
         }
 
-        const firstTab = this.state.standupConfig.sections[0];
-        const lastTab = this.state.standupConfig.sections[this.state.standupConfig.sections.length - 1];
+        const firstTab = this.state.standupConfig ? this.state.standupConfig.sections[0] : '';
+        const lastTab = this.state.standupConfig? this.state.standupConfig.sections[this.state.standupConfig.sections.length - 1] : '';
 
         return (
             <Modal
