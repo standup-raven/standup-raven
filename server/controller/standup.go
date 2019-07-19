@@ -63,7 +63,7 @@ func executeGetStandup(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	if standupConfig == nil {
-		http.Error(w, "Standup not configured for channel", http.StatusInternalServerError)
+		http.Error(w, "Standup not configured for channel", http.StatusNotFound)
 		return errors.New("standup not configured for channel: " + channelID)
 	}
 
