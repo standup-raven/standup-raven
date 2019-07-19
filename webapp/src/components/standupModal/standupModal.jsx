@@ -263,7 +263,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
         }
 
         const firstTab = this.state.standupConfig ? this.state.standupConfig.sections[0] : '';
-        const lastTab = this.state.standupConfig? this.state.standupConfig.sections[this.state.standupConfig.sections.length - 1] : '';
+        const lastTab = this.state.standupConfig ? this.state.standupConfig.sections[this.state.standupConfig.sections.length - 1] : '';
 
         return (
             <Modal
