@@ -14,7 +14,7 @@ func Master() *Config {
 		Command: &model.Command{
 			Trigger:          config.CommandPrefix,
 			AutoComplete:     true,
-			AutoCompleteDesc: "Available commands: " + strings.Join(getAvailableCommands(), ", ") + " ; <command> --help for individual command help",
+			AutoCompleteDesc: "Available commands: " + strings.Join(getAvailableCommands(), ", "),
 		},
 		HelpText: "",
 		Validate: validateCommandMaster,

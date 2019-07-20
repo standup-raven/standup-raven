@@ -18,10 +18,11 @@ var (
 //DatabaseMigration gets the current database schema version and performs
 //all the required data migrations.
 func DatabaseMigration() error {
-	err := ensureSchemaVersion(); if err !=nil {
+	if err := ensureSchemaVersion(); err != nil {
 		return err
 	}
-	upgradeErr := upgrade(); if upgradeErr != nil {
+	
+	if upgradeErr := upgrade(); upgradeErr != nil {
 		return upgradeErr
 	}
 	return nil
@@ -48,7 +49,7 @@ func ensureSchemaVersion() error {
 }
 
 func upgrade() error {
-	err := upgradeDatabaseToVersion1_5_0(); if err != nil {
+	if err := upgradeDatabaseToVersion1_5_0(); err != nil {
 		return err
 	}
 	return nil
@@ -106,11 +107,12 @@ func upgradeDatabaseToVersion1_5_0() error {
 			standupConfig.Timezone = defaultTimezone
 			standupConfig.WindowOpenReminderEnabled = true
 			standupConfig.WindowCloseReminderEnabled = true
-			_, configErr := standup.SaveStandupConfig(standupConfig); if configErr != nil {
+			if _, configErr := standup.SaveStandupConfig(standupConfig); configErr != nil {
 				return configErr
 			}
 		}
-		UpdateErr := updateSchemaVersion(version1_5_0); if UpdateErr != nil {
+		
+		if UpdateErr := updateSchemaVersion(version1_5_0); UpdateErr != nil {
 			return UpdateErr
 		}
 	}
