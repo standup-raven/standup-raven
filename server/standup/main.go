@@ -92,8 +92,8 @@ func (sc *StandupConfig) IsValid() error {
 			strings.Join(config.ReportFormats, "\", \"")),
 		)
 	}
-	_, err := time.LoadLocation(sc.Timezone)
-	if err != nil {
+	
+	if _, err := time.LoadLocation(sc.Timezone); err != nil {
 		return errors.New(fmt.Sprintf(
 			"Invalid timezone specified : \"%s\"", sc.Timezone),
 		)
