@@ -13,6 +13,7 @@ var (
 	databaseSchemaVersion = "database_schema_version"
 	version1_4_0          = "1.4.0"
 	version1_5_0          = "1.5.0"
+	version2_0_0          = "2.0.0"
 )
 
 //DatabaseMigration gets the current database schema version and performs
@@ -21,7 +22,7 @@ func DatabaseMigration() error {
 	if err := ensureSchemaVersion(); err != nil {
 		return err
 	}
-	
+
 	if upgradeErr := upgrade(); upgradeErr != nil {
 		return upgradeErr
 	}
@@ -52,6 +53,11 @@ func upgrade() error {
 	if err := upgradeDatabaseToVersion1_5_0(); err != nil {
 		return err
 	}
+	
+	if err := upgradeDatabaseToVersion2_0_0(); err != nil {
+		return err
+	}
+	
 	return nil
 }
 
@@ -115,6 +121,20 @@ func upgradeDatabaseToVersion1_5_0() error {
 		if UpdateErr := updateSchemaVersion(version1_5_0); UpdateErr != nil {
 			return UpdateErr
 		}
+	}
+	return nil
+}
+
+func upgradeDatabaseToVersion2_0_0() error {
+	version, versionErr := getCurrentSchemaVersion()
+	if versionErr != nil {
+		return versionErr
+	}
+	if version == version1_5_0 {
+		// TODO uncomment before release
+		//if UpdateErr := updateSchemaVersion(version1_5_0); UpdateErr != nil {
+		//	return UpdateErr
+		//}
 	}
 	return nil
 }
