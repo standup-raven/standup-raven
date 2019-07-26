@@ -20,11 +20,15 @@ import SentryBoundary from '../../SentryBoundary';
 import * as HttpStatus from 'http-status-codes';
 import ToggleSwitch from '../toggleSwitch';
 import Cookies from 'js-cookie';
+import {Typeahead} from 'react-bootstrap-typeahead';
 
 const configModalCloseTimeout = 1000;
 const timezones = require('../../../../timezones.json');
 
 class ConfigModal extends (SentryBoundary, React.Component) {
+    timezoneData = [];
+    
+    
     constructor(props) {
         super(props);
         this.state = this.getInitialState();
@@ -47,14 +51,14 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         };
     }
 
-    static get TIMEZONE_DISPLAY_NAMES() {
-        const timezoneList = {};
-        for (let i = 0; i < Object.keys(timezones).length; ++i) {
-            timezoneList[timezones[i]['display_name']] = timezones[i]['value'];
-        }
-        timezoneList[''] = '-';
-        return timezoneList;
-    }
+    // static get TIMEZONE_DISPLAY_NAMES() {
+    //     const timezoneList = {};
+    //     for (let i = 0; i < Object.keys(timezones).length; ++i) {
+    //         timezoneList[timezones[i]['display_name']] = timezones[i]['value'];
+    //     }
+    //     timezoneList[''] = '-';
+    //     return timezoneList;
+    // }
 
     getInitialState = () => {
         return {
@@ -73,7 +77,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             },
             windowOpenReminderEnabled: true,
             windowCloseReminderEnabled: true,
-            timezone: '',
+            timezone: {id: '', label: '-'},
         };
     };
 
@@ -168,6 +172,16 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 });
         }
     }
+    
+    componentDidMount() {
+        this.timezoneData = [];
+        for (let timezone of timezones) {
+            this.timezoneData.push({
+                id: timezone.value,
+                label: timezone.display_name,
+            });
+        }
+    }
 
     getStandupConfig = () => {
         const timezoneURL = Constants.URL_GET_TIMEZONE;
@@ -187,7 +201,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             sections: {},
                             enabled: standupConfig.enabled,
                             status: standupConfig.enabled,
-                            timezone: standupConfig.timezone,
+                            timezone: {id: standupConfig.timezone, label: standupConfig.timezone},
                             windowOpenReminderEnabled: standupConfig.windowOpenReminderEnabled,
                             windowCloseReminderEnabled: standupConfig.windowCloseReminderEnabled,
                         };
@@ -228,7 +242,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             sections: Object.values(this.state.sections).map((x) => x.trim()).filter((x) => x !== ''),
             members: this.state.members,
             enabled: this.state.enabled,
-            timezone: this.state.timezone,
+            timezone: this.state.timezone.id,
             windowCloseReminderEnabled: this.state.windowCloseReminderEnabled,
             windowOpenReminderEnabled: this.state.windowOpenReminderEnabled,
         };
@@ -273,6 +287,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     };
 
     render() {
+        console.log(this.props.theme);
+        
         // eslint-disable-next-line no-shadow
         const style = reactStyles.getStyle();
         const showStandupError = false;
@@ -364,12 +380,29 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 <ControlLabel style={style.controlLabel}>
                                     {'Timezone:'}
                                 </ControlLabel>
-                                <SplitButton
-                                    title={ConfigModal.TIMEZONE_DISPLAY_NAMES[this.state.timezone]}
-                                    onSelect={this.handleTimezoneChange}
-                                    bsStyle={'link'}
-                                >{data}
-                                </SplitButton>
+                                <span style={{display: 'inline-block'}}>
+                                    <Typeahead
+                                        options={this.timezoneData}
+                                        onChange={this.handleTimezoneChange}
+                                        // selected={[{id: 'Asia/Kolkata', label: 'Asia/Kolkata'}]}
+                                        defaultInputValue={this.state.timezone.label}
+                                        style={{display: 'inline-block !important'}}
+                                        inputProps={{
+                                            style: {
+                                                borderColor: this.props.theme.linkColor,
+                                                color: this.props.theme.linkColor,
+                                            }
+                                        }}
+                                    />
+                                </span>
+                                
+                                
+                                {/*<SplitButton*/}
+                                {/*    title={ConfigModal.TIMEZONE_DISPLAY_NAMES[this.state.timezone]}*/}
+                                {/*    onSelect={this.handleTimezoneChange}*/}
+                                {/*    bsStyle={'link'}*/}
+                                {/*>{data}*/}
+                                {/*</SplitButton>*/}
                             </FormGroup>
                             <FormGroup style={style.formGroup}>
                                 <ControlLabel style={style.controlLabel}>
