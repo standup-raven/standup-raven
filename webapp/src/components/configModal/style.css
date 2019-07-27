@@ -3,3 +3,7 @@
         transform: scale(1.2);
     }
 }
+
+.timezone-selector {
+  display: flex;
+}

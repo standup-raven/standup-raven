@@ -1,4 +1,4 @@
-function getStyle() {
+function getStyle(theme={}) {
     return {
         controlLabel: {
             paddingRight: '10px',
@@ -42,6 +42,19 @@ function getStyle() {
         body: {
             minHeight: '380px',
         },
+        typeaheadCaret: {
+            width: '30px',
+            minWidth: '30px',
+            maxWidth: '30px',
+            marginLeft: '-30px',
+            zIndex: '50',
+            display: 'flex',
+            border: '1px solid',
+            borderRadius: '2px',
+            color: theme.linkColor,
+            borderColor: theme.linkColor,
+            backgroundColor: theme.centerChannelBg,
+        }
     };
 }
 

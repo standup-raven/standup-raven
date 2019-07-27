@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import PropTypes from 'prop-types';
 import {
     Alert,
@@ -9,7 +9,7 @@ import {
     InputGroup,
     MenuItem,
     Modal,
-    SplitButton,
+    SplitButton, SplitToggle,
 } from 'react-bootstrap';
 import Constants from '../../constants';
 import TimePicker from '../timePicker';
@@ -126,9 +126,9 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         });
     };
 
-    generateSections = (onChangeCallback) => {
+    generateSections = (theme, onChangeCallback) => {
         // eslint-disable-next-line no-shadow
-        const style = reactStyles.getStyle();
+        const style = reactStyles.getStyle(theme);
         const sections = [];
 
         for (let i = 0; i <= Object.keys(this.state.sections).length; ++i) {
@@ -380,20 +380,49 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 <ControlLabel style={style.controlLabel}>
                                     {'Timezone:'}
                                 </ControlLabel>
-                                <span style={{display: 'inline-block'}}>
-                                    <Typeahead
-                                        options={this.timezoneData}
-                                        onChange={this.handleTimezoneChange}
-                                        // selected={[{id: 'Asia/Kolkata', label: 'Asia/Kolkata'}]}
-                                        defaultInputValue={this.state.timezone.label}
-                                        style={{display: 'inline-block !important'}}
-                                        inputProps={{
-                                            style: {
-                                                borderColor: this.props.theme.linkColor,
-                                                color: this.props.theme.linkColor,
-                                            }
-                                        }}
-                                    />
+                                <span style={{
+                                    display: 'inline-block',
+                                    verticalAlign: 'middle',
+                                }}>
+                                    <Fragment>
+                                        <Typeahead
+                                            className={'timezone-selector'}
+                                            options={this.timezoneData}
+                                            onChange={this.handleTimezoneChange}
+                                            // selected={[{id: 'Asia/Kolkata', label: 'Asia/Kolkata'}]}
+                                            defaultInputValue={this.state.timezone.label}
+                                            style={{
+                                                display: 'inline-block !important',
+                                            }}
+                                            inputProps={{
+                                                style: {
+                                                    borderColor: this.props.theme.linkColor,
+                                                    color: this.props.theme.linkColor,
+                                                    borderRadius: '2px',
+                                                }
+                                            }}
+                                            ref={(typeahead) => this._typeahead = typeahead}
+                                        >
+                                            {({isMenuShown, ...props}) => (
+                                                <div className={`rbt-aux${isMenuShown ? ' dropup' : ''}`} style={reactStyles.getStyle(this.props.theme).typeaheadCaret}>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            const instance = this._typeahead.getInstance();
+                                                            isMenuShown ? instance._hideMenu() : instance._showMenu();
+                                                        }}
+                                                        style={{
+                                                            backgroundColor: 'transparent',
+                                                            border: 0,
+                                                            pointerEvents: 'auto',
+                                                        }}
+                                                        type="button">
+                                                        <span className="caret" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </Typeahead>
+                                        
+                                    </Fragment>
                                 </span>
                                 
                                 
@@ -429,7 +458,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             </FormGroup>
 
                             <div style={style.sectionGroup}>
-                                {this.generateSections(this.handleSectionChange)}
+                                {this.generateSections(this.props.theme, this.handleSectionChange)}
                             </div>
                         </span>
                     </div>
@@ -469,6 +498,7 @@ ConfigModal.propTypes = {
     currentUserId: PropTypes.string.isRequired,
     close: PropTypes.func.isRequired,
     visible: PropTypes.bool,
+    theme: PropTypes.object,
 };
 
 export default ConfigModal;
