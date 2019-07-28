@@ -27,8 +27,8 @@ const timezones = require('../../../../timezones.json');
 
 class ConfigModal extends (SentryBoundary, React.Component) {
     timezoneData = [];
-    
-    
+
+
     constructor(props) {
         super(props);
         this.state = this.getInitialState();
@@ -77,7 +77,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             },
             windowOpenReminderEnabled: true,
             windowCloseReminderEnabled: true,
-            timezone: {id: '', label: '-'},
+            timezone: {id: 'Asia/Kolkata', label: 'Asia/Kolkata'},
+            flip: false,
         };
     };
 
@@ -110,8 +111,12 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         });
     };
 
-    handleTimezoneChange = (timezone) => {
-        this.setState({timezone});
+    handleTimezoneChange = (timezones) => {
+        if (timezones.length > 1) {
+            this.setState({
+                timezone: timezones[0],
+            });
+        }
     };
 
     handleWindowCloseReminderChange = () => {
@@ -172,7 +177,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 });
         }
     }
-    
+
     componentDidMount() {
         this.timezoneData = [];
         for (let timezone of timezones) {
@@ -204,6 +209,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             timezone: {id: standupConfig.timezone, label: standupConfig.timezone},
                             windowOpenReminderEnabled: standupConfig.windowOpenReminderEnabled,
                             windowCloseReminderEnabled: standupConfig.windowCloseReminderEnabled,
+                            flip: true,
                         };
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
@@ -211,8 +217,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                         }
 
                         this.setState(state);
-                    } else if (result.status !== HttpStatus.NOT_FOUND) {
-                        console.log(err);
                     } else if (result.status === HttpStatus.NOT_FOUND) {
                         request
                             .get(timezoneURL)
@@ -221,7 +225,9 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 if (response.ok) {
                                     const timezone = String(response.body);
                                     this.setState({
-                                        timezone,
+                                        timezone: {id: timezone, label: timezone},
+                                        foobar: timezone,
+                                        flip: true,
                                     });
                                 } else if (error) {
                                     console.log(error);
@@ -288,7 +294,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
 
     render() {
         console.log(this.props.theme);
-        
+
         // eslint-disable-next-line no-shadow
         const style = reactStyles.getStyle();
         const showStandupError = false;
@@ -386,10 +392,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 }}>
                                     <Fragment>
                                         <Typeahead
+                                            flip={this.state.flip}
                                             className={'timezone-selector'}
                                             options={this.timezoneData}
                                             onChange={this.handleTimezoneChange}
-                                            // selected={[{id: 'Asia/Kolkata', label: 'Asia/Kolkata'}]}
                                             defaultInputValue={this.state.timezone.label}
                                             style={{
                                                 display: 'inline-block !important',
@@ -401,10 +407,15 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                                     borderRadius: '2px',
                                                 }
                                             }}
-                                            ref={(typeahead) => this._typeahead = typeahead}
+                                            ref={(typeahead) => {
+                                                this._typeahead = typeahead;
+                                                console.log(typeahead);
+                                            }}
+                                            selected={[this.state.timezone]}
                                         >
                                             {({isMenuShown, ...props}) => (
-                                                <div className={`rbt-aux${isMenuShown ? ' dropup' : ''}`} style={reactStyles.getStyle(this.props.theme).typeaheadCaret}>
+                                                <div className={`rbt-aux${isMenuShown ? ' dropup' : ''}`}
+                                                     style={reactStyles.getStyle(this.props.theme).typeaheadCaret}>
                                                     <button
                                                         onClick={(e) => {
                                                             const instance = this._typeahead.getInstance();
@@ -416,7 +427,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                                             pointerEvents: 'auto',
                                                         }}
                                                         type="button">
-                                                        <span className="caret" />
+                                                        <span className="caret"/>
                                                     </button>
                                                 </div>
                                             )}
@@ -424,8 +435,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                         
                                     </Fragment>
                                 </span>
-                                
-                                
+
+
                                 {/*<SplitButton*/}
                                 {/*    title={ConfigModal.TIMEZONE_DISPLAY_NAMES[this.state.timezone]}*/}
                                 {/*    onSelect={this.handleTimezoneChange}*/}
