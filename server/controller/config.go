@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
@@ -13,21 +14,27 @@ var getConfig = &Endpoint{
 	Path:         "/config",
 	Method:       http.MethodGet,
 	Execute:      executeGetConfig,
-	RequiresAuth: true,
+	Middlewares: []middleware.Middleware{
+		middleware.Authenticate,
+		middleware.ChannelAdmin,
+	},
 }
 
 var setConfig = &Endpoint{
 	Path:         "/config",
 	Method:       http.MethodPost,
 	Execute:      executeSetConfig,
-	RequiresAuth: true,
+	Middlewares: []middleware.Middleware{
+		middleware.Authenticate,
+		middleware.ChannelAdmin,
+	},
 }
 
 var getDefaultTimezone = &Endpoint{
 	Path:         "/timezone",
 	Method:       http.MethodGet,
 	Execute:      executeGetDefaultTimezone,
-	RequiresAuth: true,
+	//RequiresAuth: true,
 }
 
 func executeGetConfig(w http.ResponseWriter, r *http.Request) error {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/standup"
@@ -13,15 +14,19 @@ import (
 var getStandup = &Endpoint{
 	Path:         "/standup",
 	Method:       http.MethodGet,
-	RequiresAuth: true,
 	Execute:      executeGetStandup,
+	Middlewares: []middleware.Middleware{
+		middleware.Authenticate,
+	},
 }
 
 var saveStandup = &Endpoint{
 	Path:         "/standup",
 	Method:       http.MethodPost,
-	RequiresAuth: true,
 	Execute:      executeSaveStandup,
+	Middlewares: []middleware.Middleware{
+		middleware.Authenticate,
+	},
 }
 
 func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {

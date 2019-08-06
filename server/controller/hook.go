@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
@@ -13,7 +14,9 @@ var hook = &Endpoint{
 	Path:         "/hook",
 	Method:       http.MethodGet,
 	Execute:      executeHook,
-	RequiresAuth: true,
+	Middlewares: []middleware.Middleware{
+		middleware.Authenticate,
+	},
 }
 
 func executeHook(w http.ResponseWriter, r *http.Request) error {

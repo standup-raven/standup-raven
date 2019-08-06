@@ -89,6 +89,11 @@
             "value": "6"
           }
         ]
+      },
+      {
+        "key": "permissionSchemaEnabled",
+        "display_name": "Enable Permission Schema",
+        "type": "bool"
       }
     ]
   }

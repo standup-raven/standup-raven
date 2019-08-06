@@ -78,6 +78,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
             .send(payload)
             .set('X-CSRF-Token', Cookies.get(Constants.MATTERMOST_CSRF_COOKIE))
             .set('Content-Type', 'application/json')
+            .set('Mattermost-Channel-Id', this.props.channelID)
             .end((err, res) => {
                 if (err) {
                     console.log(err);
