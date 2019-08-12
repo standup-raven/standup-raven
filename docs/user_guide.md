@@ -26,7 +26,7 @@ Just follow these steps and you'll be ready in no time.
     An additional reminder notification is sent in the channel at 80% completion of the window duration.
     This message tags members who have not yet filled their standups.
      
-    * **Sections** - sections defile the type of tasks users will fill in their standup.
+    * **Sections** - sections define the type of tasks users will fill in their standup.
     For example, if your team fills their standup at beginning of their work day, suggested sections would be
     `yesterday`, `today` and maybe `blockers`.
         
