@@ -59,6 +59,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     getInitialState = () => {
         return {
             showSpinner: true,
+            hasPermission: undefined,
             windowOpenTime: '00:00',
             windowCloseTime: '00:00',
             reportFormat: 'user_aggregated',
@@ -159,11 +160,15 @@ class ConfigModal extends (SentryBoundary, React.Component) {
 
     componentDidUpdate(prevProp) {
         if (this.props.visible !== prevProp.visible && this.props.visible) {
+            this.setState({
+                showSpinner: true,
+            });
+
             this.getStandupConfig()
                 .then(() => {
                     this.setState({showSpinner: false});
                 })
-                .catch(() => {
+                .catch((e) => {
                     this.setState({showSpinner: false});
                 });
         }
@@ -180,6 +185,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                     if (result.ok) {
                         const standupConfig = result.body;
                         const state = {
+                            hasPermission: true,
                             windowOpenTime: standupConfig.windowOpenTime,
                             windowCloseTime: standupConfig.windowCloseTime,
                             reportFormat: standupConfig.reportFormat,
@@ -197,9 +203,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                         }
 
                         this.setState(state);
-                    } else if (result.status !== HttpStatus.NOT_FOUND) {
-                        console.log(err);
                     } else if (result.status === HttpStatus.NOT_FOUND) {
+                        // fetch system default timezone
                         request
                             .get(timezoneURL)
                             .withCredentials()
@@ -213,11 +218,18 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                     console.log(error);
                                 }
                             });
+                        
+                        this.setState({
+                            hasPermission: true,
+                        });
                     } else if (result.status === HttpStatus.UNAUTHORIZED) {
-                        console.log("Done");
+                        this.setState({
+                            hasPermission: false,
+                        });
                     }
+
+                    resolve();
                 });
-            resolve();
         });
     };
 
@@ -278,9 +290,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     render() {
         // eslint-disable-next-line no-shadow
         const style = reactStyles.getStyle();
-        const showStandupError = false;
-        const standupErrorMessage = '';
-        const standupErrorSubMessage = '';
         const data = timezones.map((timezone) =>
             (
                 <MenuItem
@@ -291,6 +300,30 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 </MenuItem>
             )
         );
+
+        let showStandupError = false;
+        let standupErrorMessage = '';
+        let standupErrorSubMessage = '';
+
+        if (this.state.hasPermission === false) {
+            showStandupError = true;
+            standupErrorMessage = 'You do not have permission to perform this operation';
+            standupErrorSubMessage = 'Only a channel admin can perform this operation';
+        }
+        
+        const spinner =
+            <div style={style.spinner}>
+                <img src={Constants.URL_SPINNER_ICON} alt={'loading...'}/>
+            </div>;
+
+        const errorMessage =
+            <span>
+                <span style={style.standupErrorMessage}>{standupErrorMessage}</span>
+                <br/><br/>
+                <span>{standupErrorSubMessage}</span>
+            </span>;
+
+
         return (
             <Modal
                 show={this.props.visible}
@@ -304,24 +337,17 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 </Modal.Header>
 
                 <Modal.Body style={showStandupError ? {} : style.body}>
-                    <div
-                        className={this.state.showSpinner ? '' : 'hidden'}
-                        style={style.spinner}
-                    >
-                        <img
-                            src={Constants.URL_SPINNER_ICON}
-                            alt={'loading...'}
-                        />
-                    </div>
+                    {/* in progress spinner */}
+                    <span hidden={!this.state.showSpinner}>
+                        {spinner}
+                    </span>
+                    
+                    {/* generic error message section */}
+                    <span hidden={this.state.showSpinner || !showStandupError}>
+                        {errorMessage}
+                    </span>
 
-                    <div className={this.state.showSpinner ? 'hidden' : ''}>
-                        <span className={showStandupError ? '' : 'hidden'}>
-                            <span style={style.standupErrorMessage}>{standupErrorMessage}</span>
-                            <br/><br/>
-                            <span>{standupErrorSubMessage}</span>
-                        </span>
-
-                        <span className={showStandupError ? 'hidden' : ''}>
+                    <div hidden={this.state.showSpinner || !this.state.hasPermission || showStandupError}>
                             <FormGroup style={style.formGroup}>
                                 <ControlLabel style={style.controlLabel}>
                                     {'Status:'}
@@ -401,7 +427,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             <div style={style.sectionGroup}>
                                 {this.generateSections(this.handleSectionChange)}
                             </div>
-                        </span>
                     </div>
                 </Modal.Body>
 
