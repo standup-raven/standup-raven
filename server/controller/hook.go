@@ -11,9 +11,9 @@ import (
 )
 
 var hook = &Endpoint{
-	Path:         "/hook",
-	Method:       http.MethodGet,
-	Execute:      executeHook,
+	Path:    "/hook",
+	Method:  http.MethodGet,
+	Execute: executeHook,
 	Middlewares: []middleware.Middleware{
 		middleware.Authenticate,
 	},

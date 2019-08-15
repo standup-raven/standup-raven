@@ -7,10 +7,10 @@ import (
 )
 
 type Endpoint struct {
-	Path         string
-	Method       string
-	Execute      func(w http.ResponseWriter, r *http.Request) error
-	Middlewares  []middleware.Middleware
+	Path        string
+	Method      string
+	Execute     func(w http.ResponseWriter, r *http.Request) error
+	Middlewares []middleware.Middleware
 }
 
 var Endpoints = map[string]*Endpoint{

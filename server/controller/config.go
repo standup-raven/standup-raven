@@ -14,27 +14,27 @@ import (
 )
 
 var getConfig = &Endpoint{
-	Path:         "/config",
-	Method:       http.MethodGet,
-	Execute:      executeGetConfig,
+	Path:    "/config",
+	Method:  http.MethodGet,
+	Execute: executeGetConfig,
 	Middlewares: []middleware.Middleware{
 		middleware.Authenticate,
 	},
 }
 
 var setConfig = &Endpoint{
-	Path:         "/config",
-	Method:       http.MethodPost,
-	Execute:      executeSetConfig,
+	Path:    "/config",
+	Method:  http.MethodPost,
+	Execute: executeSetConfig,
 	Middlewares: []middleware.Middleware{
 		middleware.Authenticate,
 	},
 }
 
 var getDefaultTimezone = &Endpoint{
-	Path:         "/timezone",
-	Method:       http.MethodGet,
-	Execute:      executeGetDefaultTimezone,
+	Path:    "/timezone",
+	Method:  http.MethodGet,
+	Execute: executeGetDefaultTimezone,
 }
 
 func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
@@ -56,7 +56,7 @@ func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 			return nil
 		}
 	}
-	
+
 	c, err := standup.GetStandupConfig(channelId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -93,7 +93,7 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 		http.Error(w, "Could not decode request body", http.StatusBadRequest)
 		return err
 	}
-	
+
 	userID := r.Header.Get(config.HeaderMattermostUserId)
 	channelID := conf.ChannelId
 

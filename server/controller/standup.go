@@ -12,18 +12,18 @@ import (
 )
 
 var getStandup = &Endpoint{
-	Path:         "/standup",
-	Method:       http.MethodGet,
-	Execute:      executeGetStandup,
+	Path:    "/standup",
+	Method:  http.MethodGet,
+	Execute: executeGetStandup,
 	Middlewares: []middleware.Middleware{
 		middleware.Authenticate,
 	},
 }
 
 var saveStandup = &Endpoint{
-	Path:         "/standup",
-	Method:       http.MethodPost,
-	Execute:      executeSaveStandup,
+	Path:    "/standup",
+	Method:  http.MethodPost,
+	Execute: executeSaveStandup,
 	Middlewares: []middleware.Middleware{
 		middleware.Authenticate,
 	},
