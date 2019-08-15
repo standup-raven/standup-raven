@@ -15,7 +15,6 @@ const (
 	URLStaticBase = URLPluginBase + "/static"
 
 	HeaderMattermostUserId = "Mattermost-User-Id"
-	HeaderMattermostChannelId = "Mattermost-Channel-Id"
 
 	ReportFormatUserAggregated = "user_aggregated"
 	ReportFormatTypeAggregated = "type_aggregated"

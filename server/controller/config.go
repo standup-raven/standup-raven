@@ -2,12 +2,15 @@ package controller
 
 import (
 	"encoding/json"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
 	"net/http"
+	"strings"
 )
 
 var getConfig = &Endpoint{
@@ -16,7 +19,6 @@ var getConfig = &Endpoint{
 	Execute:      executeGetConfig,
 	Middlewares: []middleware.Middleware{
 		middleware.Authenticate,
-		middleware.ChannelAdmin,
 	},
 }
 
@@ -26,7 +28,6 @@ var setConfig = &Endpoint{
 	Execute:      executeSetConfig,
 	Middlewares: []middleware.Middleware{
 		middleware.Authenticate,
-		middleware.ChannelAdmin,
 	},
 }
 
@@ -39,6 +40,24 @@ var getDefaultTimezone = &Endpoint{
 
 func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 	channelId := r.URL.Query().Get("channel_id")
+	userID := r.Header.Get(config.HeaderMattermostUserId)
+
+	// verifying if user is an effective channel admin
+	if config.GetConfig().PermissionSchemaEnabled {
+		isAdmin, appErr := isEffectiveAdmin(userID, channelId)
+
+		if appErr != nil {
+			http.Error(w, "An error occurred while verifying user permissions", appErr.StatusCode)
+			logger.Error("An error occurred while verifying user permissions", errors.New(appErr.Error()), nil)
+			return appErr
+		}
+
+		if !isAdmin {
+			http.Error(w, "You do not have permission to perform this operation", http.StatusUnauthorized)
+			return nil
+		}
+	}
+	
 	c, err := standup.GetStandupConfig(channelId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -74,6 +93,25 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 		logger.Error("Could not decode request body", err, map[string]interface{}{"request": util.DumpRequest(r)})
 		http.Error(w, "Could not decode request body", http.StatusBadRequest)
 		return err
+	}
+	
+	userID := r.Header.Get(config.HeaderMattermostUserId)
+	channelID := conf.ChannelId
+
+	// verifying if user is an effective channel admin
+	if config.GetConfig().PermissionSchemaEnabled {
+		isAdmin, appErr := isEffectiveAdmin(userID, channelID)
+
+		if appErr != nil {
+			http.Error(w, "An error occurred while verifying user permissions", appErr.StatusCode)
+			logger.Error("An error occurred while verifying user permissions", errors.New(appErr.Error()), nil)
+			return appErr
+		}
+
+		if !isAdmin {
+			http.Error(w, "You do not have permission to perform this operation", http.StatusUnauthorized)
+			return nil
+		}
 	}
 
 	if err := conf.IsValid(); err != nil {
@@ -118,4 +156,61 @@ func executeGetDefaultTimezone(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return nil
+}
+
+func isEffectiveAdmin(userID string, channelID string) (bool, *model.AppError) {
+	if isChannelAdmin, appErr := isChannelAdmin(userID, channelID); appErr != nil {
+		return false, appErr
+	} else if isChannelAdmin {
+		config.Mattermost.LogInfo("Is channel admin")
+		return true, nil
+	}
+
+	channel, appErr := config.Mattermost.GetChannel(channelID)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	if isTeamAdmin, appErr := isTeamAdmin(userID, channel.TeamId); appErr != nil {
+		return false, appErr
+	} else if isTeamAdmin {
+		config.Mattermost.LogInfo("Is team admin")
+		return true, nil
+	}
+
+	if isSystemAdmin, appErr := isSystemAdmin(userID); appErr != nil {
+		return false, appErr
+	} else if isSystemAdmin {
+		config.Mattermost.LogInfo("Is system admin")
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func isChannelAdmin(userID string, channelID string) (bool, *model.AppError) {
+	channelMember, appErr := config.Mattermost.GetChannelMember(channelID, userID)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	return strings.Contains(channelMember.Roles, model.CHANNEL_ADMIN_ROLE_ID), nil
+}
+
+func isTeamAdmin(userID string, teamID string) (bool, *model.AppError) {
+	teamMember, appErr := config.Mattermost.GetTeamMember(teamID, userID)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	return strings.Contains(teamMember.Roles, model.TEAM_ADMIN_ROLE_ID), nil
+}
+
+func isSystemAdmin(userID string) (bool, *model.AppError) {
+	user, appErr := config.Mattermost.GetUser(userID)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	return strings.Contains(user.Roles, model.SYSTEM_ADMIN_ROLE_ID), nil
 }
