@@ -9,7 +9,7 @@ Just follow these steps and you'll be ready in no time.
 
 1. **Creating channels for standup** - create a new channel, or use existing one, for each team who wants to use Standup Raven for their standup.
 
-1. **Configuring channel standup** for each channel, a team member can enter a few configurations for the team.
+1. **Configuring channel standup** - for each channel any member can enter configurations for the channel standup. If you are on Mattermost Enterprise Edition and have *Permission Schema* enabled, only a channel admin, team admin or a system admin can perform this operation.
     
     Running the following slash command allows specifying team specific settings -
     
@@ -25,6 +25,12 @@ Just follow these steps and you'll be ready in no time.
     will include standups for all members who have filled their standups until this time.
     An additional reminder notification is sent in the channel at 80% completion of the window duration.
     This message tags members who have not yet filled their standups.
+    
+    * **Timezone** - channel specific timezone to follow for standup notifications.
+    
+    * **Window Open Reminder** - enable of disable window open reminder.
+    
+    * **Window Close Reminder** - enable or disable window close reminder.
      
     * **Sections** - sections defile the type of tasks users will fill in their standup.
     For example, if your team fills their standup at beginning of their work day, suggested sections would be

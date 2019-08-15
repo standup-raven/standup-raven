@@ -7,7 +7,7 @@
 The plugin can be deployed to Mattermost directly via the `deploy` make command. You need to expose the following
 environment variable for it to work -
 
-    $ export MM_SERVICESETTINGS_SITEURL="<mattermost-site0url>"; \
+    $ export MM_SERVICESETTINGS_SITEURL="<mattermost-site-url>"; \
     export MM_ADMIN_USERNAME="<username-to-upload-via>"; \
     read -s MM_ADMIN_PASSWORD; export MM_ADMIN_PASSWORD; \
     export PLATFORM="<target-mattermost-platform>";
