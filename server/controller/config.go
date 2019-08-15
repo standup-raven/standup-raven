@@ -35,7 +35,6 @@ var getDefaultTimezone = &Endpoint{
 	Path:         "/timezone",
 	Method:       http.MethodGet,
 	Execute:      executeGetDefaultTimezone,
-	//RequiresAuth: true,
 }
 
 func executeGetConfig(w http.ResponseWriter, r *http.Request) error {

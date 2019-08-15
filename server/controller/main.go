@@ -29,14 +29,3 @@ func getEndpointKey(endpoint *Endpoint) string {
 func GetEndpoint(r *http.Request) *Endpoint {
 	return Endpoints[util.GetKeyHash(r.URL.Path+"-"+r.Method)]
 }
-
-// verifies if provided request is performed by a logged in Mattermost user.
-//func Authenticated(w http.ResponseWriter, r *http.Request) bool {
-//	userId := r.Header.Get(config.HeaderMattermostUserId)
-//
-//	if userId == "" {
-//		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-//		return false
-//	}
-//	return true
-//}

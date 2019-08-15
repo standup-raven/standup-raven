@@ -178,12 +178,6 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.handler.ServeHTTP(w, r)
 		return
 	}
-	//else if !endpoint.RequiresAuth || controller.Authenticated(w, r) {
-	//	if err := endpoint.Execute(w, r); err != nil {
-	//		logger.Error("Error occurred processing "+r.URL.String(), err, map[string]interface{}{"request": string(d)})
-	//		raven.CaptureError(err, nil)
-	//	}
-	//}
 
 	// running endpoint middlewares
 	for _, middleware := range endpoint.Middlewares {
