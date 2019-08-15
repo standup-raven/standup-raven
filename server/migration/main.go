@@ -53,11 +53,11 @@ func upgrade() error {
 	if err := upgradeDatabaseToVersion1_5_0(); err != nil {
 		return err
 	}
-	
+
 	if err := upgradeDatabaseToVersion2_0_0(); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -117,7 +117,7 @@ func upgradeDatabaseToVersion1_5_0() error {
 				return configErr
 			}
 		}
-		
+
 		if UpdateErr := updateSchemaVersion(version1_5_0); UpdateErr != nil {
 			return UpdateErr
 		}

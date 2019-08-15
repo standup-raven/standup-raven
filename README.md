@@ -61,6 +61,8 @@ This message tags members who haven't yet filled their standup.
 * Receive auto-generated standup report at the end of configured window close time. 
 The generated standup contains names of members who have yet not filled their standup.
 
+* Allow or restrict standup configuration modification to channel admins (Requires Mattermost EE).
+
 ## Guides
 
 ### User Guide
@@ -85,7 +87,7 @@ The generated standup contains names of members who have yet not filled their st
 
 ### TODO
 
-* [ ] Permissions
+* [x] Permissions
 * [ ] Vacation
 * [ ] Periodic reports
 
