@@ -60,7 +60,7 @@ func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
 }
 
 func executeGetStandup(w http.ResponseWriter, r *http.Request) error {
-	userId := r.Header.Get(config.HeaderMattermostUserId)
+	userID := r.Header.Get(config.HeaderMattermostUserId)
 	channelID := r.URL.Query().Get("channel_id")
 	standupConfig, err := standup.GetStandupConfig(channelID)
 	if err != nil {
@@ -72,7 +72,7 @@ func executeGetStandup(w http.ResponseWriter, r *http.Request) error {
 		return errors.New("standup not configured for channel: " + channelID)
 	}
 
-	userStandup, err := standup.GetUserStandup(userId, channelID, otime.Now(standupConfig.Timezone))
+	userStandup, err := standup.GetUserStandup(userID, channelID, otime.Now(standupConfig.Timezone))
 	if err != nil {
 		http.Error(w, "Error occurred while fetching user standup", http.StatusInternalServerError)
 		return err
