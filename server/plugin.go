@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/getsentry/raven-go"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/migration"
@@ -168,16 +169,27 @@ func (p *Plugin) prepareContext(args *model.CommandArgs) command.Context {
 }
 
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+	config.Mattermost.LogInfo(fmt.Sprintf("%v", r.Header))
+
 	d := util.DumpRequest(r)
 	endpoint := controller.GetEndpoint(r)
 
 	if endpoint == nil {
 		p.handler.ServeHTTP(w, r)
-	} else if !endpoint.RequiresAuth || controller.Authenticated(w, r) {
-		if err := endpoint.Execute(w, r); err != nil {
-			logger.Error("Error occurred processing "+r.URL.String(), err, map[string]interface{}{"request": string(d)})
-			raven.CaptureError(err, nil)
+		return
+	}
+
+	// running endpoint middlewares
+	for _, middleware := range endpoint.Middlewares {
+		if appErr := middleware(w, r); appErr != nil {
+			http.Error(w, appErr.Error(), appErr.StatusCode)
+			return
 		}
+	}
+
+	if err := endpoint.Execute(w, r); err != nil {
+		logger.Error("Error occurred processing "+r.URL.String(), err, map[string]interface{}{"request": string(d)})
+		raven.CaptureError(err, nil)
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/standup"
@@ -11,17 +12,21 @@ import (
 )
 
 var getStandup = &Endpoint{
-	Path:         "/standup",
-	Method:       http.MethodGet,
-	RequiresAuth: true,
-	Execute:      executeGetStandup,
+	Path:    "/standup",
+	Method:  http.MethodGet,
+	Execute: executeGetStandup,
+	Middlewares: []middleware.Middleware{
+		middleware.Authenticate,
+	},
 }
 
 var saveStandup = &Endpoint{
-	Path:         "/standup",
-	Method:       http.MethodPost,
-	RequiresAuth: true,
-	Execute:      executeSaveStandup,
+	Path:    "/standup",
+	Method:  http.MethodPost,
+	Execute: executeSaveStandup,
+	Middlewares: []middleware.Middleware{
+		middleware.Authenticate,
+	},
 }
 
 func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
@@ -55,7 +60,7 @@ func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
 }
 
 func executeGetStandup(w http.ResponseWriter, r *http.Request) error {
-	userId := r.Header.Get(config.HeaderMattermostUserId)
+	userID := r.Header.Get(config.HeaderMattermostUserId)
 	channelID := r.URL.Query().Get("channel_id")
 	standupConfig, err := standup.GetStandupConfig(channelID)
 	if err != nil {
@@ -67,7 +72,7 @@ func executeGetStandup(w http.ResponseWriter, r *http.Request) error {
 		return errors.New("standup not configured for channel: " + channelID)
 	}
 
-	userStandup, err := standup.GetUserStandup(userId, channelID, otime.Now(standupConfig.Timezone))
+	userStandup, err := standup.GetUserStandup(userID, channelID, otime.Now(standupConfig.Timezone))
 	if err != nil {
 		http.Error(w, "Error occurred while fetching user standup", http.StatusInternalServerError)
 		return err

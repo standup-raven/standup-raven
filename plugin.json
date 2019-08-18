@@ -17,13 +17,15 @@
         "display_name": "Time Zone",
         "type": "dropdown",
         "default": "",
-        "options": []
+        "options": [],
+        "help_text": "The time zone your team is working in. This is to make sure all datetimes you enter are interpreted in your timezone and not in server's. This can be overridden in channel standup configuration."
       },
       {
         "key": "workWeekStart",
         "display_name": "Work Week Start",
         "type": "dropdown",
         "default": "1",
+        "help_text": "Day on which your work week starts.",
         "options": [
           {
             "display_name": "Sunday",
@@ -60,6 +62,7 @@
         "display_name": "Work Week End",
         "type": "dropdown",
         "default": "5",
+        "help_text": "Day on which your work week ends.",
         "options": [
           {
             "display_name": "Sunday",
@@ -90,6 +93,12 @@
             "value": "6"
           }
         ]
+      },
+      {
+        "key": "permissionSchemaEnabled",
+        "display_name": "Enable Permission Schema",
+        "type": "bool",
+        "help_text": "Requires Mattermost Enterprise Edition. If enabled, only channel admins, team admins or system admins are allowed to configure standup for a channel or update it."
       }
     ]
   }
