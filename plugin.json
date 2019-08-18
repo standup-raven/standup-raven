@@ -16,6 +16,7 @@
         "key": "timeZone",
         "display_name": "Time Zone",
         "type": "dropdown",
+        "default": "",
         "options": []
       },
       {
