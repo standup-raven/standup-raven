@@ -42,7 +42,8 @@ func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 	userID := r.Header.Get(config.HeaderMattermostUserId)
 
 	// verifying if user is an effective channel admin
-	if config.GetConfig().PermissionSchemaEnabled {
+	source := r.URL.Query().Get("source")
+	if config.GetConfig().PermissionSchemaEnabled && source != "standup-modal" {
 		isAdmin, appErr := isEffectiveAdmin(userID, channelId)
 
 		if appErr != nil {
