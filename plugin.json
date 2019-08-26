@@ -16,6 +16,7 @@
         "key": "timeZone",
         "display_name": "Time Zone",
         "type": "dropdown",
+        "default": "",
         "options": [],
         "help_text": "The time zone your team is working in. This is to make sure all datetimes you enter are interpreted in your timezone and not in server's. This can be overridden in channel standup configuration."
       },
