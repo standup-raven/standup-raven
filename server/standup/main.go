@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
@@ -60,6 +61,7 @@ type StandupConfig struct {
 	Timezone                   string      `json:"timezone"`
 	WindowOpenReminderEnabled  bool        `json:"windowOpenReminderEnabled"`
 	WindowCloseReminderEnabled bool        `json:"windowCloseReminderEnabled"`
+	Schedule                   string      	`json:"schedule"`
 }
 
 func (sc *StandupConfig) IsValid() error {
@@ -221,6 +223,13 @@ func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 	if err := config.Mattermost.KVSet(util.GetKeyHash(key), serializedStandupConfig); err != nil {
 		logger.Error("Couldn't save channel standup config in KV store", err, map[string]interface{}{"channelID": standupConfig.ChannelId})
 		return nil, err
+	}
+	updatedChannel := model.Channel{
+		Header: "NewHeader",
+	}
+	channel, err := config.Mattermost.UpdateChannel(&updatedChannel)
+	if err != nil {
+		fmt.Println("Channel header not updated\n")
 	}
 
 	return standupConfig, nil
