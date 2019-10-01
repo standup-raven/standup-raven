@@ -90,6 +90,16 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "hubpav",
+      "name": "Pavel Hübner",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/19538414?v=4",
+      "profile": "https://www.hardwario.com/",
+      "contributions": [
+        "ideas",
+        "userTesting"
+      ]
     }
   ],
   "contributorsPerLine": 7
