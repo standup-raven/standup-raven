@@ -30,7 +30,7 @@ func TestCommandMaster_Validation(t *testing.T) {
 
 	response, err = command.Validate([]string{}, context)
 	assert.Nil(t, err)
-	assert.Equal(t, "Please specify a command", response.Text)
+	assert.Nil(t, response)
 	
 	monkey.Patch(commandViewConfig().Validate, func([]string, Context) (*model.CommandResponse, *model.AppError) {
 		return util.SendEphemeralText("error")
