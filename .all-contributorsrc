@@ -16,7 +16,12 @@
       "avatar_url": "https://avatars2.githubusercontent.com/u/50952137?v=4",
       "profile": "https://github.com/jatinjtg",
       "contributions": [
-        "code"
+        "code",
+        "bug",
+        "ideas",
+        "doc",
+        "infra",
+        "test"
       ]
     },
     {
