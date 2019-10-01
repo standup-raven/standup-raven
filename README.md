@@ -1,5 +1,5 @@
 <div align="center">
-[![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square)](#contributors-)
 
 <img src="docs/assets/images/banner.png?raw=true" width="70%" max-width="1500px"></img>
 #
@@ -119,6 +119,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/Amalkh5"><img src="https://avatars2.githubusercontent.com/u/20528562?v=4" width="100px;" alt="Amal Alkhamees"/><br /><sub><b>Amal Alkhamees</b></sub></a><br /><a href="https://github.com/Harshil Sharma/Standup Raven/commits?author=Amalkh5" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/henzai"><img src="https://avatars2.githubusercontent.com/u/25699758?v=4" width="100px;" alt="henzai"/><br /><sub><b>henzai</b></sub></a><br /><a href="https://github.com/Harshil Sharma/Standup Raven/issues?q=author%3Ahenzai" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://www.hardwario.com/"><img src="https://avatars0.githubusercontent.com/u/19538414?v=4" width="100px;" alt="Pavel Hübner"/><br /><sub><b>Pavel Hübner</b></sub></a><br /><a href="#ideas-hubpav" title="Ideas, Planning, & Feedback">🤔</a> <a href="#userTesting-hubpav" title="User Testing">📓</a></td>
+    <td align="center"><a href="https://github.com/tgly307"><img src="https://avatars3.githubusercontent.com/u/25153311?v=4" width="100px;" alt="tgly307"/><br /><sub><b>tgly307</b></sub></a><br /><a href="#ideas-tgly307" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Harshil Sharma/Standup Raven/issues?q=author%3Atgly307" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
