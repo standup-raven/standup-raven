@@ -1,5 +1,5 @@
 <div align="center">
-[![All Contributors](https://img.shields.io/badge/all_contributors-14-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-15-orange.svg?style=flat-square)](#contributors-)
 
 <img src="docs/assets/images/banner.png?raw=true" width="70%" max-width="1500px"></img>
 #
@@ -123,6 +123,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://tzonkovs.wixsite.com/alex"><img src="https://avatars1.githubusercontent.com/u/4975715?v=4" width="100px;" alt="Alex Tzonkov"/><br /><sub><b>Alex Tzonkov</b></sub></a><br /><a href="#ideas-attzonko" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/Harshil Sharma/Standup Raven/issues?q=author%3Aattzonko" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://github.com/sonam-singh"><img src="https://avatars1.githubusercontent.com/u/10594597?v=4" width="100px;" alt="Sonam Singh"/><br /><sub><b>Sonam Singh</b></sub></a><br /><a href="https://github.com/Harshil Sharma/Standup Raven/issues?q=author%3Asonam-singh" title="Bug reports">🐛</a> <a href="#ideas-sonam-singh" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/skyscooby"><img src="https://avatars1.githubusercontent.com/u/4450935?v=4" width="100px;" alt="Andrew Greenwood"/><br /><sub><b>Andrew Greenwood</b></sub></a><br /><a href="#ideas-skyscooby" title="Ideas, Planning, & Feedback">🤔</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/mihai-satmarean"><img src="https://avatars0.githubusercontent.com/u/4729542?v=4" width="100px;" alt="mihai-satmarean"/><br /><sub><b>mihai-satmarean</b></sub></a><br /><a href="#ideas-mihai-satmarean" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
