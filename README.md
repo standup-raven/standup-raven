@@ -1,5 +1,5 @@
 <div align="center">
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
 
 <img src="docs/assets/images/banner.png?raw=true" width="70%" max-width="1500px"></img>
 #
@@ -108,6 +108,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="https://github.com/jatinjtg"><img src="https://avatars2.githubusercontent.com/u/50952137?v=4" width="100px;" alt="jatinjtg"/><br /><sub><b>jatinjtg</b></sub></a><br /><a href="https://github.com/Harshil Sharma/Standup Raven/commits?author=jatinjtg" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/goku321"><img src="https://avatars2.githubusercontent.com/u/12848015?v=4" width="100px;" alt="Deepak Sah"/><br /><sub><b>Deepak Sah</b></sub></a><br /><a href="https://github.com/Harshil Sharma/Standup Raven/commits?author=goku321" title="Code">💻</a></td>
   </tr>
 </table>
 
