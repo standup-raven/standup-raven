@@ -1,0 +1,163 @@
+{
+  "projectName": "Standup Raven",
+  "projectOwner": "Harshil Sharma",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": true,
+  "commitConvention": "none",
+  "contributors": [
+    {
+      "login": "jatinjtg",
+      "name": "jatinjtg",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/50952137?v=4",
+      "profile": "https://github.com/jatinjtg",
+      "contributions": [
+        "code",
+        "bug",
+        "ideas",
+        "doc",
+        "infra",
+        "test"
+      ]
+    },
+    {
+      "login": "goku321",
+      "name": "Deepak Sah",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/12848015?v=4",
+      "profile": "https://github.com/goku321",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "sandipagarwal",
+      "name": "Sandip Agarwal",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/988003?v=4",
+      "profile": "http://sandipagarwal.in",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "chetanyakan",
+      "name": "Chetanya Kandhari",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/35728906?v=4",
+      "profile": "https://github.com/chetanyakan",
+      "contributions": [
+        "code",
+        "bug",
+        "ideas",
+        "doc"
+      ]
+    },
+    {
+      "login": "ayadav",
+      "name": "Amit Yadav",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/154998?v=4",
+      "profile": "https://github.com/ayadav",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "SezalAgrawal",
+      "name": "SezalAgrawal",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/13785694?v=4",
+      "profile": "https://github.com/SezalAgrawal",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "RagingRoosevelt",
+      "name": "Theodore S Lindsey",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/6985440?v=4",
+      "profile": "http://TheodoreLindsey.io",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Amalkh5",
+      "name": "Amal Alkhamees",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/20528562?v=4",
+      "profile": "https://github.com/Amalkh5",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "henzai",
+      "name": "henzai",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/25699758?v=4",
+      "profile": "https://github.com/henzai",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "hubpav",
+      "name": "Pavel Hübner",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/19538414?v=4",
+      "profile": "https://www.hardwario.com/",
+      "contributions": [
+        "ideas",
+        "userTesting",
+        "talk"
+      ]
+    },
+    {
+      "login": "tgly307",
+      "name": "tgly307",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/25153311?v=4",
+      "profile": "https://github.com/tgly307",
+      "contributions": [
+        "ideas",
+        "bug"
+      ]
+    },
+    {
+      "login": "attzonko",
+      "name": "Alex Tzonkov",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/4975715?v=4",
+      "profile": "http://tzonkovs.wixsite.com/alex",
+      "contributions": [
+        "ideas",
+        "bug"
+      ]
+    },
+    {
+      "login": "sonam-singh",
+      "name": "Sonam Singh",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/10594597?v=4",
+      "profile": "https://github.com/sonam-singh",
+      "contributions": [
+        "bug",
+        "ideas"
+      ]
+    },
+    {
+      "login": "skyscooby",
+      "name": "Andrew Greenwood",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/4450935?v=4",
+      "profile": "https://github.com/skyscooby",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "mihai-satmarean",
+      "name": "mihai-satmarean",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/4729542?v=4",
+      "profile": "https://github.com/mihai-satmarean",
+      "contributions": [
+        "ideas"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7
+}
