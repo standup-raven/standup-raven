@@ -81,6 +81,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "henzai",
+      "name": "henzai",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/25699758?v=4",
+      "profile": "https://github.com/henzai",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7
