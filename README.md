@@ -1,5 +1,5 @@
 <div align="center">
-[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
 
 <img src="docs/assets/images/banner.png?raw=true" width="70%" max-width="1500px"></img>
 #
@@ -112,6 +112,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://sandipagarwal.in"><img src="https://avatars0.githubusercontent.com/u/988003?v=4" width="100px;" alt="Sandip Agarwal"/><br /><sub><b>Sandip Agarwal</b></sub></a><br /><a href="https://github.com/Harshil Sharma/Standup Raven/commits?author=sandipagarwal" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/chetanyakan"><img src="https://avatars3.githubusercontent.com/u/35728906?v=4" width="100px;" alt="Chetanya Kandhari"/><br /><sub><b>Chetanya Kandhari</b></sub></a><br /><a href="https://github.com/Harshil Sharma/Standup Raven/commits?author=chetanyakan" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/ayadav"><img src="https://avatars2.githubusercontent.com/u/154998?v=4" width="100px;" alt="Amit Yadav"/><br /><sub><b>Amit Yadav</b></sub></a><br /><a href="https://github.com/Harshil Sharma/Standup Raven/commits?author=ayadav" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/SezalAgrawal"><img src="https://avatars1.githubusercontent.com/u/13785694?v=4" width="100px;" alt="SezalAgrawal"/><br /><sub><b>SezalAgrawal</b></sub></a><br /><a href="https://github.com/Harshil Sharma/Standup Raven/commits?author=SezalAgrawal" title="Code">💻</a></td>
   </tr>
 </table>
 
