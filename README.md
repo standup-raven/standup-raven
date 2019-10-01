@@ -1,5 +1,5 @@
 <div align="center">
-[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
 
 <img src="docs/assets/images/banner.png?raw=true" width="70%" max-width="1500px"></img>
 #
@@ -117,6 +117,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/Amalkh5"><img src="https://avatars2.githubusercontent.com/u/20528562?v=4" width="100px;" alt="Amal Alkhamees"/><br /><sub><b>Amal Alkhamees</b></sub></a><br /><a href="https://github.com/Harshil Sharma/Standup Raven/commits?author=Amalkh5" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/henzai"><img src="https://avatars2.githubusercontent.com/u/25699758?v=4" width="100px;" alt="henzai"/><br /><sub><b>henzai</b></sub></a><br /><a href="https://github.com/Harshil Sharma/Standup Raven/issues?q=author%3Ahenzai" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
