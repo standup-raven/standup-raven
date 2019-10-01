@@ -111,6 +111,16 @@
         "ideas",
         "bug"
       ]
+    },
+    {
+      "login": "attzonko",
+      "name": "Alex Tzonkov",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/4975715?v=4",
+      "profile": "http://tzonkovs.wixsite.com/alex",
+      "contributions": [
+        "ideas",
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7
