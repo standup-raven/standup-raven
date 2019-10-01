@@ -29,6 +29,12 @@ class StandupRavenPlugin {
                 store.dispatch(Actions.openConfigModal());
             },
         );
+        registry.registerWebSocketEventHandler(
+            `custom_${Constants.PLUGIN_NAME}_open_standup_modal`,
+            () => {
+                store.dispatch(Actions.openStandupModal());
+            },
+        );
 
         registry.registerReducer(reducer);
     }

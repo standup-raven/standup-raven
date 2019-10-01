@@ -31,26 +31,23 @@ func getAvailableCommands() []string {
 }
 
 func validateCommandMaster(args []string, context Context) (*model.CommandResponse, *model.AppError) {
-	// validate that a command is specified
-	if len(args) == 0 {
-		return util.SendEphemeralText("Please specify a command")
-	}
+	if len(args) > 0 {
+		subCommand := args[0]
+		subCommandCommand, ok := commands[subCommand]
 
-	subCommand := args[0]
-	subCommandCommand, ok := commands[subCommand]
+		// validate sub-command exists
+		if !ok {
+			return util.SendEphemeralText("Invalid command: " + subCommand)
+		}
 
-	// validate sub-command exists
-	if !ok {
-		return util.SendEphemeralText("Invalid command: " + subCommand)
-	}
+		// add sub-command in props so we don't need to extract it again
+		context.Props["subCommand"] = subCommandCommand
+		context.Props["subCommandArgs"] = args[1:]
 
-	// add sub-command in props so we don't need to extract it again
-	context.Props["subCommand"] = subCommandCommand
-	context.Props["subCommandArgs"] = args[1:]
-
-	// run validation for sub-command
-	if response, appErr := subCommandCommand.Validate(args[1:], context); response != nil || appErr != nil {
-		return response, appErr
+		// run validation for sub-command
+		if response, appErr := subCommandCommand.Validate(args[1:], context); response != nil || appErr != nil {
+			return response, appErr
+		}
 	}
 
 	// all okay
@@ -58,7 +55,24 @@ func validateCommandMaster(args []string, context Context) (*model.CommandRespon
 }
 
 func executeCommandMaster(args []string, context Context) (*model.CommandResponse, *model.AppError) {
-	subCommand := context.Props["subCommand"].(*Config)
-	subCommandArgs := context.Props["subCommandArgs"].([]string)
-	return subCommand.Execute(subCommandArgs, context)
+	if _, ok := context.Props["subCommand"]; ok {
+		subCommand := context.Props["subCommand"].(*Config)
+		subCommandArgs := context.Props["subCommandArgs"].([]string)
+		return subCommand.Execute(subCommandArgs, context)
+	} else {
+		config.Mattermost.PublishWebSocketEvent(
+			"open_standup_modal",
+			map[string]interface{}{
+				"channel_id": context.CommandArgs.ChannelId,
+			},
+			&model.WebsocketBroadcast{
+				UserId: context.CommandArgs.UserId,
+			},
+		)
+
+		return &model.CommandResponse{
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			Text:         "Submit your standup from the open modal!",
+		}, nil
+	}
 }
