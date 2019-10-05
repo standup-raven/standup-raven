@@ -95,6 +95,13 @@ The generated standup contains names of members who have yet not filled their st
 * [ ] Vacation
 * [ ] Periodic reports
 
+## Reporting Security Vulnerabilities
+
+Due to the sensitive nature of such vulnerabilities, please refrain from posting them publically
+over Github issues or any other medium.
+
+Be responsible and report them to raven@joshtechnologygroup.com .
+
 ## 🌟 Attribution
 
 <div>Project logo (the Raven) is made by <a href="https://www.freepik.com/" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
