@@ -1,5 +1,4 @@
 <div align="center">
-[![All Contributors](https://img.shields.io/badge/all_contributors-15-orange.svg?style=flat-square)](#contributors-)
 
 <img src="docs/assets/images/banner.png?raw=true" width="70%" max-width="1500px"></img>
 #
