@@ -233,9 +233,9 @@ func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 func updateChannelHeader(newConfig *StandupConfig) {
 	channelID := newConfig.ChannelId
 
-	oldConfig, err1 := GetStandupConfig(channelID)
-	if err1 != nil {
-		logger.Error("Error getting channel", err1, nil)
+	oldConfig, err := GetStandupConfig(channelID)
+	if err != nil {
+		logger.Error("Error getting channel", err, nil)
 		return
 	}
 
