@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
@@ -61,7 +60,8 @@ type StandupConfig struct {
 	Timezone                   string      `json:"timezone"`
 	WindowOpenReminderEnabled  bool        `json:"windowOpenReminderEnabled"`
 	WindowCloseReminderEnabled bool        `json:"windowCloseReminderEnabled"`
-	Schedule                   string      	`json:"schedule"`
+	ScheduleEnabled            bool        `json:"scheduleEnabled"`
+	Schedule                   string      `json:"schedule"`
 }
 
 func (sc *StandupConfig) IsValid() error {
@@ -219,20 +219,58 @@ func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 		return nil, err
 	}
 
+	updateChannelHeader(standupConfig)
+
 	key := config.CacheKeyPrefixTeamStandupConfig + standupConfig.ChannelId
 	if err := config.Mattermost.KVSet(util.GetKeyHash(key), serializedStandupConfig); err != nil {
 		logger.Error("Couldn't save channel standup config in KV store", err, map[string]interface{}{"channelID": standupConfig.ChannelId})
 		return nil, err
 	}
-	updatedChannel := model.Channel{
-		Header: "NewHeader",
-	}
-	channel, err := config.Mattermost.UpdateChannel(&updatedChannel)
-	if err != nil {
-		fmt.Println("Channel header not updated\n")
-	}
 
 	return standupConfig, nil
+}
+
+func updateChannelHeader(newConfig *StandupConfig) {
+	channelID := newConfig.ChannelId
+
+	oldConfig, err1 := GetStandupConfig(channelID)
+	if err1 != nil {
+		logger.Error("Error getting channel", err1, nil)
+		return
+	}
+
+	if !oldConfig.ScheduleEnabled && !newConfig.ScheduleEnabled {
+		return
+	}
+
+	channel, err := config.Mattermost.GetChannel(channelID)
+	if err != nil {
+		logger.Error("Error getting Channel", err, nil)
+		return
+	}
+
+	if oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled {
+		if oldConfig.WindowOpenTime != newConfig.WindowOpenTime || oldConfig.WindowCloseTime != newConfig.WindowCloseTime || oldConfig.Timezone != newConfig.Timezone {
+			x := strings.SplitAfterN(channel.Header, "|", 2)[1:]
+			updatedHeader := newConfig.Schedule + " | " + strings.TrimSpace(strings.Join(x, ""))
+
+			channel.Header = updatedHeader
+		}
+	} else if newConfig.ScheduleEnabled {
+		if len(channel.Header) > 0 {
+			updatedHeader := newConfig.Schedule + " | " + channel.Header
+			channel.Header = updatedHeader
+		} else {
+			updatedHeader := newConfig.Schedule
+			channel.Header = updatedHeader
+		}
+	} else {
+		x := strings.SplitAfterN(channel.Header, "|", 2)[1:]
+		updatedHeader := strings.TrimSpace(strings.Join(x, ""))
+		channel.Header = updatedHeader
+	}
+
+	config.Mattermost.UpdateChannel(channel)
 }
 
 // GetStandupConfig fetches standup config for the specified channel
