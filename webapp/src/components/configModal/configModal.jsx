@@ -253,9 +253,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             windowCloseReminderEnabled: this.state.windowCloseReminderEnabled,
             windowOpenReminderEnabled: this.state.windowOpenReminderEnabled,
             scheduleEnabled: this.state.scheduleEnabled,
-            schedule: (this.state.scheduleEnabled ?
-                `Mon-Fri from ${windowOpenTime} to ${windowCloseTime} ${timezone}` :
-                ''),
+            schedule: (this.state.scheduleEnabled ? `Mon-Fri from ${windowOpenTime} to ${windowCloseTime} ${timezone}` : ''),
         };
     }
 

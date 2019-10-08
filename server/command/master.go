@@ -57,7 +57,7 @@ func validateCommandMaster(args []string, context Context) (*model.CommandRespon
 func executeCommandMaster(args []string, context Context) (*model.CommandResponse, *model.AppError) {
 	var response *model.CommandResponse
 	var appErr *model.AppError
-	
+
 	if _, ok := context.Props["subCommand"]; ok {
 		subCommand := context.Props["subCommand"].(*Config)
 		subCommandArgs := context.Props["subCommandArgs"].([]string)
@@ -73,11 +73,11 @@ func executeCommandMaster(args []string, context Context) (*model.CommandRespons
 			},
 		)
 
-		response, appErr =  &model.CommandResponse{
+		response, appErr = &model.CommandResponse{
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 			Text:         "Submit your standup from the open modal!",
 		}, nil
 	}
-	
+
 	return response, appErr
 }
