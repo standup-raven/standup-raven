@@ -302,7 +302,7 @@ func TestGetStandupChannels(t *testing.T) {
 	mockAPI.On("LogError", mock.AnythingOfType("string"), mock.AnythingOfType("string"))
 	mockAPI.On("KVGet", "uScyewRiWEwQavauYw9iOK76jISl+5Qq0mV+Cn/jFPs=").Return([]byte("{\"channel_1\":\"channel_1\""), nil)
 
-	standupChannels, err = GetStandupChannels()
+	_, err = GetStandupChannels()
 	assert.NotNil(t, err, "error should have been produced as KVGet returned an invalid JSON")
 }
 
