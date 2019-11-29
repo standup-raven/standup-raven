@@ -240,7 +240,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     };
 
     prepareStandupConfigPayload() {
-        const {windowOpenTime, windowCloseTime, timezone} = this.state;
         return {
             channelId: this.props.channelID,
             windowOpenTime: this.state.windowOpenTime,
@@ -253,7 +252,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             windowCloseReminderEnabled: this.state.windowCloseReminderEnabled,
             windowOpenReminderEnabled: this.state.windowOpenReminderEnabled,
             scheduleEnabled: this.state.scheduleEnabled,
-            schedule: (this.state.scheduleEnabled ? `Mon-Fri from ${windowOpenTime} to ${windowCloseTime} ${timezone}` : ''),
         };
     }
 

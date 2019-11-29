@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 
 const (
 	standupSectionsMinLength = 1
+	channelHeaderScheduleSeparator = "|"
 )
 
 type UserStandup struct {
@@ -61,7 +63,6 @@ type StandupConfig struct {
 	WindowOpenReminderEnabled  bool        `json:"windowOpenReminderEnabled"`
 	WindowCloseReminderEnabled bool        `json:"windowCloseReminderEnabled"`
 	ScheduleEnabled            bool        `json:"scheduleEnabled"`
-	Schedule                   string      `json:"schedule"`
 }
 
 func (sc *StandupConfig) IsValid() error {
@@ -119,6 +120,20 @@ func (sc *StandupConfig) IsValid() error {
 func (sc *StandupConfig) ToJson() string {
 	b, _ := json.Marshal(sc)
 	return string(b)
+}
+
+func (sc *StandupConfig) GenerateScheduleString() string {
+	pluginConfig := config.GetConfig()
+	
+	windowOpenTime := sc.WindowOpenTime.Format("15:04")
+	windowCloseTime := sc.WindowCloseTime.Format("15:04")
+	
+	workWeekStartNumber, _ := strconv.Atoi(pluginConfig.WorkWeekStart) 
+	workWeekEndNumber, _ := strconv.Atoi(pluginConfig.WorkWeekEnd) 
+	workWeekStart := time.Weekday(workWeekStartNumber).String()
+	workWeekEnd := time.Weekday(workWeekEndNumber).String()
+	
+	return fmt.Sprintf("**Standup Schedule**: %s to %s, %s to %s", workWeekStart, workWeekEnd, windowOpenTime, windowCloseTime)
 }
 
 // AddStandupChannel adds the specified channel to the list of standup channels.
@@ -230,47 +245,50 @@ func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 	return standupConfig, nil
 }
 
-func updateChannelHeader(newConfig *StandupConfig) {
-	channelID := newConfig.ChannelId
-
-	oldConfig, err := GetStandupConfig(channelID)
+func updateChannelHeader(newConfig *StandupConfig) error {
+	oldConfig, err := GetStandupConfig(newConfig.ChannelId)
 	if err != nil {
-		logger.Error("Error getting channel", err, nil)
-		return
+		return err
 	}
 
-	if !oldConfig.ScheduleEnabled && !newConfig.ScheduleEnabled {
-		return
+	channel, appErr := config.Mattermost.GetChannel(newConfig.ChannelId)
+	if appErr != nil {
+		return errors.New(appErr.Error())
 	}
-
-	channel, err := config.Mattermost.GetChannel(channelID)
-	if err != nil {
-		logger.Error("Error getting Channel", err, nil)
-		return
+	
+	if oldConfig.ScheduleEnabled && !newConfig.ScheduleEnabled {
+		channel.Header = removeChannelHeaderSchedule(channel.Header)
+	} else if !oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled {
+		channel.Header = addChannelHeaderSchedule(channel.Header, newConfig.GenerateScheduleString())
+	} else if oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled {
+		channel.Header = removeChannelHeaderSchedule(channel.Header)
+		channel.Header = addChannelHeaderSchedule(channel.Header, newConfig.GenerateScheduleString())
 	}
-
-	if oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled {
-		if oldConfig.WindowOpenTime != newConfig.WindowOpenTime || oldConfig.WindowCloseTime != newConfig.WindowCloseTime || oldConfig.Timezone != newConfig.Timezone {
-			x := strings.SplitAfterN(channel.Header, "|", 2)[1:]
-			updatedHeader := newConfig.Schedule + " | " + strings.TrimSpace(strings.Join(x, ""))
-
-			channel.Header = updatedHeader
-		}
-	} else if newConfig.ScheduleEnabled {
-		if len(channel.Header) > 0 {
-			updatedHeader := newConfig.Schedule + " | " + channel.Header
-			channel.Header = updatedHeader
-		} else {
-			updatedHeader := newConfig.Schedule
-			channel.Header = updatedHeader
-		}
-	} else {
-		x := strings.SplitAfterN(channel.Header, "|", 2)[1:]
-		updatedHeader := strings.TrimSpace(strings.Join(x, ""))
-		channel.Header = updatedHeader
+	
+	_, appErr = config.Mattermost.UpdateChannel(channel)
+	if appErr != nil {
+		return errors.New(appErr.Error())
 	}
+	
+	return nil
+}
 
-	config.Mattermost.UpdateChannel(channel)
+func removeChannelHeaderSchedule(channelHeader string) string {
+	components := strings.Split(channelHeader, channelHeaderScheduleSeparator)
+	if len(components) < 2 {
+		return channelHeader
+	}
+	
+	updatedHeader := strings.TrimLeft(components[1], " ")
+	if len(components) > 2 {
+		updatedHeader = updatedHeader + "|" + strings.Join(components[2:], "|")
+	}
+	
+	return updatedHeader
+}
+
+func addChannelHeaderSchedule(channelHeader string, schedule string) string {
+	return schedule + " | " + channelHeader
 }
 
 // GetStandupConfig fetches standup config for the specified channel
