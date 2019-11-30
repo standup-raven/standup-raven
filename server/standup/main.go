@@ -122,7 +122,7 @@ func (sc *StandupConfig) ToJson() string {
 	return string(b)
 }
 
-// Generates a user-friendly, string representation of standup schedule.
+// GenerateScheduleString generates a user-friendly, string representation of standup schedule.
 func (sc *StandupConfig) GenerateScheduleString() string {
 	pluginConfig := config.GetConfig()
 
