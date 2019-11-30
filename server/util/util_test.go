@@ -1,7 +1,7 @@
 package util
 
 import (
-	"github.com/bouk/monkey"
+	"bou.ke/monkey"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"net/http"

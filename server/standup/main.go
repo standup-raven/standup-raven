@@ -2,11 +2,12 @@ package standup
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
@@ -15,7 +16,8 @@ import (
 )
 
 const (
-	standupSectionsMinLength = 1
+	standupSectionsMinLength       = 1
+	channelHeaderScheduleSeparator = "|"
 )
 
 type UserStandup struct {
@@ -60,6 +62,7 @@ type StandupConfig struct {
 	Timezone                   string      `json:"timezone"`
 	WindowOpenReminderEnabled  bool        `json:"windowOpenReminderEnabled"`
 	WindowCloseReminderEnabled bool        `json:"windowCloseReminderEnabled"`
+	ScheduleEnabled            bool        `json:"scheduleEnabled"`
 }
 
 func (sc *StandupConfig) IsValid() error {
@@ -117,6 +120,21 @@ func (sc *StandupConfig) IsValid() error {
 func (sc *StandupConfig) ToJson() string {
 	b, _ := json.Marshal(sc)
 	return string(b)
+}
+
+// GenerateScheduleString generates a user-friendly, string representation of standup schedule.
+func (sc *StandupConfig) GenerateScheduleString() string {
+	pluginConfig := config.GetConfig()
+
+	windowOpenTime := sc.WindowOpenTime.Format("15:04")
+	windowCloseTime := sc.WindowCloseTime.Format("15:04")
+
+	workWeekStartNumber, _ := strconv.Atoi(pluginConfig.WorkWeekStart)
+	workWeekEndNumber, _ := strconv.Atoi(pluginConfig.WorkWeekEnd)
+	workWeekStart := time.Weekday(workWeekStartNumber).String()
+	workWeekEnd := time.Weekday(workWeekEndNumber).String()
+
+	return fmt.Sprintf("**Standup Schedule**: %s to %s, %s to %s", workWeekStart, workWeekEnd, windowOpenTime, windowCloseTime)
 }
 
 // AddStandupChannel adds the specified channel to the list of standup channels.
@@ -217,6 +235,8 @@ func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 		return nil, err
 	}
 
+	updateChannelHeader(standupConfig)
+
 	key := config.CacheKeyPrefixTeamStandupConfig + standupConfig.ChannelId
 	if err := config.Mattermost.KVSet(util.GetKeyHash(key), serializedStandupConfig); err != nil {
 		logger.Error("Couldn't save channel standup config in KV store", err, map[string]interface{}{"channelID": standupConfig.ChannelId})
@@ -224,6 +244,52 @@ func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 	}
 
 	return standupConfig, nil
+}
+
+func updateChannelHeader(newConfig *StandupConfig) error {
+	oldConfig, err := GetStandupConfig(newConfig.ChannelId)
+	if err != nil {
+		return err
+	}
+
+	channel, appErr := config.Mattermost.GetChannel(newConfig.ChannelId)
+	if appErr != nil {
+		return errors.New(appErr.Error())
+	}
+
+	if oldConfig.ScheduleEnabled && !newConfig.ScheduleEnabled {
+		channel.Header = removeChannelHeaderSchedule(channel.Header)
+	} else if !oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled {
+		channel.Header = addChannelHeaderSchedule(channel.Header, newConfig.GenerateScheduleString())
+	} else if oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled {
+		channel.Header = removeChannelHeaderSchedule(channel.Header)
+		channel.Header = addChannelHeaderSchedule(channel.Header, newConfig.GenerateScheduleString())
+	}
+
+	_, appErr = config.Mattermost.UpdateChannel(channel)
+	if appErr != nil {
+		return errors.New(appErr.Error())
+	}
+
+	return nil
+}
+
+func removeChannelHeaderSchedule(channelHeader string) string {
+	components := strings.Split(channelHeader, channelHeaderScheduleSeparator)
+	if len(components) < 2 {
+		return channelHeader
+	}
+
+	updatedHeader := strings.TrimLeft(components[1], " ")
+	if len(components) > 2 {
+		updatedHeader = updatedHeader + "|" + strings.Join(components[2:], "|")
+	}
+
+	return updatedHeader
+}
+
+func addChannelHeaderSchedule(channelHeader string, schedule string) string {
+	return schedule + " | " + channelHeader
 }
 
 // GetStandupConfig fetches standup config for the specified channel

@@ -14,5 +14,5 @@ import:
   version: ^1.3.0
   subpackages:
   - assert
-- package: github.com/bouk/monkey
+- package: bou.ke/monkey
   version: ^1.0.1

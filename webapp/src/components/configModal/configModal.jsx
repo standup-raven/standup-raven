@@ -75,6 +75,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             windowOpenReminderEnabled: true,
             windowCloseReminderEnabled: true,
             timezone: '',
+            scheduleEnabled: false,
+            schedule: '',
         };
     };
 
@@ -120,6 +122,12 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     handleWindowOpenReminderChange = () => {
         this.setState({
             windowOpenReminderEnabled: !this.state.windowOpenReminderEnabled,
+        });
+    };
+
+    handleScheduleStatusChange = () => {
+        this.setState({
+            scheduleEnabled: !this.state.scheduleEnabled,
         });
     };
 
@@ -192,6 +200,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             timezone: standupConfig.timezone,
                             windowOpenReminderEnabled: standupConfig.windowOpenReminderEnabled,
                             windowCloseReminderEnabled: standupConfig.windowCloseReminderEnabled,
+                            scheduleEnabled: standupConfig.scheduleEnabled,
+                            schedule: standupConfig.schedule,
                         };
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
@@ -241,6 +251,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             timezone: this.state.timezone,
             windowCloseReminderEnabled: this.state.windowCloseReminderEnabled,
             windowOpenReminderEnabled: this.state.windowOpenReminderEnabled,
+            scheduleEnabled: this.state.scheduleEnabled,
         };
     }
 
@@ -414,6 +425,16 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             <ToggleSwitch
                                 onChange={this.handleWindowCloseReminderChange}
                                 checked={this.state.windowCloseReminderEnabled}
+                                theme={this.props.theme}
+                            />
+                        </FormGroup>
+                        <FormGroup style={style.formGroup}>
+                            <ControlLabel style={style.controlLabel}>
+                                {'Standup Schedule:'}
+                            </ControlLabel>
+                            <ToggleSwitch
+                                onChange={this.handleScheduleStatusChange}
+                                checked={this.state.scheduleEnabled}
                                 theme={this.props.theme}
                             />
                         </FormGroup>
