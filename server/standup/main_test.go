@@ -2,7 +2,7 @@ package standup
 
 import (
 	"encoding/json"
-	"github.com/bouk/monkey"
+	"bou.ke/monkey"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/pkg/errors"
@@ -393,7 +393,10 @@ func TestGetUserStandup(t *testing.T) {
 func TestSaveStandupConfig(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
+	mockAPI.On("KVGet", util.GetKeyHash("standup_config_channel_id")).Return([]byte("{\"scheduleEnabled\":false}"), nil)
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
+	mockAPI.On("GetChannel", "channel_id").Return(&model.Channel{}, nil)
+	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
 
 	standupConfig := &StandupConfig{
 		ChannelId: "channel_id",
@@ -403,6 +406,7 @@ func TestSaveStandupConfig(t *testing.T) {
 		 Sections: []string{"section 1"},
 		 ReportFormat: config.ReportFormatUserAggregated,
 		 Enabled: true,
+		 ScheduleEnabled: true,
 	}
 
 	savedStandupConfig, err := SaveStandupConfig(standupConfig)
@@ -410,6 +414,9 @@ func TestSaveStandupConfig(t *testing.T) {
 	assert.Equal(t, standupConfig, savedStandupConfig, "both standup config should be identical")
 
 	mockAPI = baseMock()
+	mockAPI.On("KVGet", util.GetKeyHash("standup_config_channel_id")).Return([]byte("{\"scheduleEnabled\":false}"), nil)
+	mockAPI.On("GetChannel", "channel_id").Return(&model.Channel{}, nil)
+	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(util.EmptyAppError())
 
 	savedStandupConfig, err = SaveStandupConfig(standupConfig)
@@ -422,6 +429,9 @@ func TestSaveStandupConfig(t *testing.T) {
 func TestSaveStandupConfig_DuplicateMembers(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
+	mockAPI.On("KVGet", util.GetKeyHash("standup_config_channel_id")).Return([]byte("{\"scheduleEnabled\":false}"), nil)
+	mockAPI.On("GetChannel", "channel_id").Return(&model.Channel{}, nil)
+	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
 	
 	now := otime.Now("Asia/Kolkata")

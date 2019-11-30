@@ -1,7 +1,7 @@
 package command
 
 import (
-	"github.com/bouk/monkey"
+	"bou.ke/monkey"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/standup-raven/standup-raven/server/util"
 	"github.com/stretchr/testify/assert"

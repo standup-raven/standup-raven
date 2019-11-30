@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bouk/monkey"
+	"bou.ke/monkey"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"

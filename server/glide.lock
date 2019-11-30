@@ -1,10 +1,12 @@
-hash: 1f98fe7e9c2b5284681d0dfb33cbfbbada69f570ed38910dce69cc5a02f7a32c
-updated: 2019-06-18T23:07:40.131869528+05:30
+hash: 4efcc52ad61d021a5ec848f94be74e20c0b07522bbf39023ca31c5a801f3a0d8
+updated: 2019-11-30T09:00:29.814831+05:30
 imports:
+- name: bou.ke/monkey
+  version: bdf6dea004c6fd1cdf4b25da8ad45a606c09409a
 - name: github.com/blang/semver
   version: 3c1074078d32d767e08ab2c8564867292da86926
-- name: github.com/bouk/monkey
-  version: bdf6dea004c6fd1cdf4b25da8ad45a606c09409a
+- name: github.com/BurntSushi/toml
+  version: 3012a1dbe2e4bd1391d42b32f0577cb7bbc7f005
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
 - name: github.com/davecgh/go-spew
@@ -45,7 +47,7 @@ imports:
   - i18n/language
   - i18n/translation
 - name: github.com/mattermost/mattermost-server
-  version: bfd66aa445a2df8c6ed6ba9f2567021ecf6c9f3b
+  version: 96e36f73b25d7caa4d09c4a967fea54f57e9a52c
   subpackages:
   - mlog
   - model
@@ -74,17 +76,21 @@ imports:
 - name: github.com/stretchr/objx
   version: ea4fe68685ee0d3cee7032121851b57e7494e8ea
 - name: github.com/stretchr/testify
-  version: ffdc059bfe9ce6a4e144ba849dbedead332c6053
+  version: 221dbe5ed46703ee255b1da0dec05086f5035f62
   subpackages:
   - assert
   - mock
   - require
 - name: github.com/thoas/go-funk
-  version: c43409e2d5def27be9b081e316441108def35c8d
+  version: 310880620b0fe943c45bf032685df5fdf5f4c14e
 - name: go.uber.org/atomic
-  version: 1ea20fb1cbb1cc08cbd0d913a96dead89aa18289
+  version: 40ae6a40a970ef4cdbffa7b24b280e316db8accc
 - name: go.uber.org/multierr
-  version: 3c4937480c32f4c13a875a1829af76c98ca3d40a
+  version: 824d08f79702fe5f54aca8400aa0d754318786e7
+- name: go.uber.org/tools
+  version: 2cfd321de3ee5d5f8a5fda2521d1703478334d98
+  subpackages:
+  - update-license
 - name: go.uber.org/zap
   version: 2dc8d10634f473f4dc678e48391a9dc8cf6ae6f9
   subpackages:
@@ -98,6 +104,10 @@ imports:
   subpackages:
   - bcrypt
   - blowfish
+- name: golang.org/x/lint
+  version: fdd1cda4f05fd1fd86124f0ef9ce31a0b72c8448
+  subpackages:
+  - golint
 - name: golang.org/x/net
   version: aaf60122140d3fcf75376d319f0554393160eb50
   subpackages:
@@ -125,6 +135,26 @@ imports:
   - transform
   - unicode/bidi
   - unicode/norm
+- name: golang.org/x/tools
+  version: ecd32218bd7f33fd31c1abbfb74283690bedd093
+  subpackages:
+  - go/analysis
+  - go/analysis/passes/inspect
+  - go/ast/astutil
+  - go/ast/inspector
+  - go/buildutil
+  - go/gcexportdata
+  - go/internal/cgo
+  - go/internal/gcimporter
+  - go/internal/packagesdriver
+  - go/loader
+  - go/packages
+  - go/types/objectpath
+  - go/types/typeutil
+  - internal/fastwalk
+  - internal/gopathwalk
+  - internal/semver
+  - internal/span
 - name: google.golang.org/genproto
   version: c66870c02cf823ceb633bcd05be3c7cda29976f4
   subpackages:
@@ -165,4 +195,38 @@ imports:
   version: a96e63847dc3c67d17befa69c303767e2f84e54f
 - name: gopkg.in/yaml.v2
   version: 287cf08546ab5e7e37d55a84f7ed3fd1db036de5
-testImports: []
+- name: honnef.co/go/tools
+  version: dfe37feaecf7b73ce53f4fb8fa347265a77c6c4b
+  subpackages:
+  - arg
+  - cmd/staticcheck
+  - code
+  - config
+  - deprecated
+  - edit
+  - facts
+  - functions
+  - go/types/typeutil
+  - internal/cache
+  - internal/passes/buildir
+  - internal/renameio
+  - internal/robustio
+  - internal/sharedcheck
+  - ir
+  - ir/irutil
+  - lint
+  - lint/lintdsl
+  - lint/lintutil
+  - lint/lintutil/format
+  - loader
+  - pattern
+  - printf
+  - report
+  - simple
+  - staticcheck
+  - stylecheck
+  - unused
+  - version
+testImports:
+- name: bou.ke/monkey
+  version: bdf6dea004c6fd1cdf4b25da8ad45a606c09409a

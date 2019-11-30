@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	standupSectionsMinLength = 1
+	standupSectionsMinLength       = 1
 	channelHeaderScheduleSeparator = "|"
 )
 
@@ -124,15 +124,15 @@ func (sc *StandupConfig) ToJson() string {
 
 func (sc *StandupConfig) GenerateScheduleString() string {
 	pluginConfig := config.GetConfig()
-	
+
 	windowOpenTime := sc.WindowOpenTime.Format("15:04")
 	windowCloseTime := sc.WindowCloseTime.Format("15:04")
-	
-	workWeekStartNumber, _ := strconv.Atoi(pluginConfig.WorkWeekStart) 
-	workWeekEndNumber, _ := strconv.Atoi(pluginConfig.WorkWeekEnd) 
+
+	workWeekStartNumber, _ := strconv.Atoi(pluginConfig.WorkWeekStart)
+	workWeekEndNumber, _ := strconv.Atoi(pluginConfig.WorkWeekEnd)
 	workWeekStart := time.Weekday(workWeekStartNumber).String()
 	workWeekEnd := time.Weekday(workWeekEndNumber).String()
-	
+
 	return fmt.Sprintf("**Standup Schedule**: %s to %s, %s to %s", workWeekStart, workWeekEnd, windowOpenTime, windowCloseTime)
 }
 
@@ -255,7 +255,7 @@ func updateChannelHeader(newConfig *StandupConfig) error {
 	if appErr != nil {
 		return errors.New(appErr.Error())
 	}
-	
+
 	if oldConfig.ScheduleEnabled && !newConfig.ScheduleEnabled {
 		channel.Header = removeChannelHeaderSchedule(channel.Header)
 	} else if !oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled {
@@ -264,12 +264,12 @@ func updateChannelHeader(newConfig *StandupConfig) error {
 		channel.Header = removeChannelHeaderSchedule(channel.Header)
 		channel.Header = addChannelHeaderSchedule(channel.Header, newConfig.GenerateScheduleString())
 	}
-	
+
 	_, appErr = config.Mattermost.UpdateChannel(channel)
 	if appErr != nil {
 		return errors.New(appErr.Error())
 	}
-	
+
 	return nil
 }
 
@@ -278,12 +278,12 @@ func removeChannelHeaderSchedule(channelHeader string) string {
 	if len(components) < 2 {
 		return channelHeader
 	}
-	
+
 	updatedHeader := strings.TrimLeft(components[1], " ")
 	if len(components) > 2 {
 		updatedHeader = updatedHeader + "|" + strings.Join(components[2:], "|")
 	}
-	
+
 	return updatedHeader
 }
 
