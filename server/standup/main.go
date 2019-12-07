@@ -253,7 +253,7 @@ func updateChannelHeader(newConfig *StandupConfig) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// no old config is equivalent to having standup schedule disabled in old config
 	if oldConfig == nil {
 		oldConfig = &StandupConfig{
