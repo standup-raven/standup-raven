@@ -235,7 +235,9 @@ func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 		return nil, err
 	}
 
-	updateChannelHeader(standupConfig)
+	if err := updateChannelHeader(standupConfig); err != nil {
+		return nil, err
+	}
 
 	key := config.CacheKeyPrefixTeamStandupConfig + standupConfig.ChannelId
 	if err := config.Mattermost.KVSet(util.GetKeyHash(key), serializedStandupConfig); err != nil {
@@ -250,6 +252,13 @@ func updateChannelHeader(newConfig *StandupConfig) error {
 	oldConfig, err := GetStandupConfig(newConfig.ChannelId)
 	if err != nil {
 		return err
+	}
+	
+	// no old config is equivalent to having standup schedule disabled in old config
+	if oldConfig == nil {
+		oldConfig = &StandupConfig{
+			ScheduleEnabled: false,
+		}
 	}
 
 	channel, appErr := config.Mattermost.GetChannel(newConfig.ChannelId)
