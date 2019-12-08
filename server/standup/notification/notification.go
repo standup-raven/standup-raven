@@ -33,6 +33,8 @@ const (
 	ReportVisibilityPrivate = "private"
 )
 
+var reminderPosts []string
+
 // SendNotificationsAndReports checks for all standup channels and sends
 // notifications and standup reports as needed.
 // This is the entry point of the whole standup cycle.
@@ -147,7 +149,7 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 		var members []*standup.UserStandup
 
 		// names of channel standup members who haven't yet submitted their standup
-		membersNoStandup := []string{}
+		var membersNoStandup []string
 		for _, userID := range standupConfig.Members {
 			userStandup, err := standup.GetUserStandup(userID, channelID, date)
 			if err != nil {
@@ -194,6 +196,15 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 				return errors.New(appErr.Error())
 			}
 		}
+
+		for _, postId := range reminderPosts {
+			appErr := config.Mattermost.DeletePost(postId)
+			if appErr != nil {
+				logger.Error("Couldn't remove standup reminder post", appErr, nil)
+				return errors.New(appErr.Error())
+			}
+		}
+		reminderPosts = reminderPosts[:0]
 
 		if updateStatus {
 			notificationStatus, err := GetNotificationStatus(channelID)
@@ -354,6 +365,8 @@ func sendWindowOpenNotification(channelIDs []string) {
 		if _, appErr := config.Mattermost.CreatePost(post); appErr != nil {
 			logger.Error("Error sending window open notification for channel", appErr, map[string]interface{}{"channelID": channelID})
 			continue
+		} else {
+			reminderPosts = append(reminderPosts, post.Id)
 		}
 
 		notificationStatus, err := GetNotificationStatus(channelID)
@@ -430,6 +443,8 @@ func sendWindowCloseNotification(channelIDs []string) error {
 		if _, appErr := config.Mattermost.CreatePost(post); appErr != nil {
 			logger.Error("Error sending window open notification for channel", appErr, map[string]interface{}{"channelID": channelID})
 			continue
+		} else {
+			reminderPosts = append(reminderPosts, post.Id)
 		}
 
 		notificationStatus, err := GetNotificationStatus(channelID)
