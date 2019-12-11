@@ -18,13 +18,13 @@ Set up your development environment for building, running, and testing the Stand
 
 #### Go
 
-Requires go version 1.12
+Requires go version 1.13
 
     https://golang.org/doc/install
     
 #### NodeJS
 
-Recommended NodeJS version 10.11
+Recommended NodeJS version 10.17
 
     https://nodejs.org/download/release/v10.11.0/
 
