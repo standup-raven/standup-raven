@@ -207,8 +207,8 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 			return err
 		}
 
-		for _, postId := range reminderPosts {
-			appErr := config.Mattermost.DeletePost(string(postId))
+		for _, postID := range reminderPosts {
+			appErr := config.Mattermost.DeletePost(string(postID))
 			if appErr != nil {
 				logger.Error("Couldn't remove standup reminder post", appErr, nil)
 				return errors.New(appErr.Error())
@@ -623,13 +623,13 @@ func getUserDisplayName(userID string) (string, error) {
 
 func addReminderPost(postID string, channelID string) error {
 	key := fmt.Sprintf("%s_%s", "reminderPosts", channelID)
-	reminderPostsJson, appErr := config.Mattermost.KVGet(util.GetKeyHash(key))
+	reminderPostsJSON, appErr := config.Mattermost.KVGet(util.GetKeyHash(key))
 	if appErr != nil {
 		logger.Error("Couldn't get standup reminder posts from KV store", appErr, nil)
 		return errors.New(appErr.Error())
 	}
 	var reminderPosts []string
-	if err := json.Unmarshal(reminderPostsJson, &reminderPosts); err != nil {
+	if err := json.Unmarshal(reminderPostsJSON, &reminderPosts); err != nil {
 		logger.Error("Couldn't unmarshal standup reminder posts", err, nil)
 		return err
 	}
