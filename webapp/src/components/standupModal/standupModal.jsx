@@ -1,12 +1,25 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Alert, Button, FormControl, FormGroup, InputGroup, Modal, OverlayTrigger, Tooltip} from 'react-bootstrap';
+import {
+    Alert,
+    Button,
+    ControlLabel,
+    FormControl,
+    FormGroup,
+    InputGroup,
+    Modal,
+    OverlayTrigger,
+    Tooltip
+} from 'react-bootstrap';
 import request from 'superagent';
 import Constants from '../../constants';
 import reactStyles from './style';
 import SentryBoundary from '../../SentryBoundary';
 import * as HttpStatus from 'http-status-codes';
 import Cookies from 'js-cookie';
+import DayPicker from 'react-day-picker';
+import DayPickerStyle from 'react-day-picker/lib/style.css';
+import DayPickerInput from 'react-day-picker/DayPickerInput';
 
 const standupModalCloseTimeout = 1000;
 const standupTaskDefaultRowCount = 5;
@@ -15,6 +28,9 @@ class StandupModal extends (SentryBoundary, React.Component) {
     constructor(props) {
         super(props);
         this.state = StandupModal.getInitialState();
+
+        // eslint-disable-next-line no-unused-vars
+        const x = DayPickerStyle;
     }
 
     static get MODAL_CLOSE_TIMEOUT() {
@@ -40,6 +56,8 @@ class StandupModal extends (SentryBoundary, React.Component) {
             showStandupError: false,
             standupErrorMessage: '',
             standupErrorSubMessage: '',
+            selectedDay: null,
+            calendarVisible: true,
         };
     }
 
@@ -216,13 +234,20 @@ class StandupModal extends (SentryBoundary, React.Component) {
         return rows;
     };
 
+    handleDayClick = (day, { selected }) => {
+        this.setState({
+            selectedDay: selected ? undefined : day,
+            calendarVisible: false
+        });
+    };
+
     render() {
         const style = reactStyles.getStyle();
 
         let showStandupError = false;
         let standupErrorMessage = '';
         let standupErrorSubMessage = '';
-
+ 
         if (!this.state.standupConfig) {
             showStandupError = true;
             standupErrorMessage = 'Standup not configured for this channel.';
@@ -265,6 +290,8 @@ class StandupModal extends (SentryBoundary, React.Component) {
         const firstTab = this.state.standupConfig ? this.state.standupConfig.sections[0] : '';
         const lastTab = this.state.standupConfig ? this.state.standupConfig.sections[this.state.standupConfig.sections.length - 1] : '';
 
+        
+        
         return (
             <Modal
                 show={this.props.visible}
@@ -278,6 +305,31 @@ class StandupModal extends (SentryBoundary, React.Component) {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+                    {/*<FormGroup>*/}
+                    {/*    <ControlLabel>*/}
+                    {/*        {'Selected Date:'}*/}
+                    {/*    </ControlLabel>*/}
+                    {/*    <DayPickerInput*/}
+                    {/*        value={this.state.selectedDay || 'Please select a date'}*/}
+                    {/*        onDayChange={this.handleDayClick}*/}
+                    {/*        dayPickerProps={{*/}
+                    {/*            selectedDays: this.state.selectedDay,*/}
+                    {/*        }}*/}
+                    {/*    />*/}
+                    {/*</FormGroup>*/}
+                    
+                    <div className={this.state.calendarVisible ? '' : 'hidden'}>
+                        <DayPicker
+                            selectedDays={this.state.selectedDay}
+                            onDayClick={this.handleDayClick}
+                        />
+                        <p>
+                            {this.state.selectedDay
+                                ? this.state.selectedDay.toLocaleDateString()
+                                : 'Please select a day 👻'}
+                        </p>
+                    </div>
+                    
                     <div
                         className={showSpinner ? '' : 'hidden'}
                         style={style.spinner}
@@ -329,14 +381,17 @@ class StandupModal extends (SentryBoundary, React.Component) {
                     <OverlayTrigger
                         placement={'bottom'}
                         overlay={
-                            <Tooltip
-                                id={'standup-submit-btn-tooltip'}
-                                className={this.state.activeTab === lastTab ? 'hidden' : ''}
-                            >
-                                <strong>
-                                    {'navigate to last tab to submit'}
-                                </strong>
-                            </Tooltip>
+                            <div show={true}>
+                                <DayPicker
+                                    selectedDays={this.state.selectedDay}
+                                    onDayClick={this.handleDayClick}
+                                />
+                                <p>
+                                    {this.state.selectedDay
+                                        ? this.state.selectedDay.toLocaleDateString()
+                                        : 'Please select a day 👻'}
+                                </p>
+                            </div>
                         }
                     >
                         <Button

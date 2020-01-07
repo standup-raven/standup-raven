@@ -43,6 +43,7 @@
     "react": "^16.7.0",
     "react-bootstrap": "^0.32.4",
     "react-bootstrap-typeahead": "^3.3.0",
+    "react-day-picker": "^7.4.0",
     "react-dom": "^16.7.0",
     "react-redux": "5.0.7",
     "react-switch": "^5.0.0",
