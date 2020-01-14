@@ -195,29 +195,8 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 			}
 		}
 
-		key := fmt.Sprintf("%s_%s", "reminderPosts", channelID)
-		reminderPosts, appErr := config.Mattermost.KVGet(util.GetKeyHash(key))
-		if appErr != nil {
-			logger.Error("Couldn't get standup reminder posts from KV store", appErr, nil)
-			return errors.New(appErr.Error())
-		}
-		var dat []interface{}
-		if err := json.Unmarshal(reminderPosts, &dat); err != nil {
-			logger.Error("Couldn't unmarshal standup reminder posts", err, nil)
+		if err := deleteReminderPosts(channelID); err != nil {
 			return err
-		}
-
-		for _, postID := range reminderPosts {
-			appErr := config.Mattermost.DeletePost(string(postID))
-			if appErr != nil {
-				logger.Error("Couldn't remove standup reminder post", appErr, nil)
-				return errors.New(appErr.Error())
-			}
-		}
-
-		if appErr := config.Mattermost.KVDelete(util.GetKeyHash(key)); appErr != nil {
-			logger.Error("Couldn't delete standup reminder posts from KV store", appErr, nil)
-			return errors.New(appErr.Error())
 		}
 
 		if updateStatus {
@@ -233,6 +212,29 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 		}
 	}
 
+	return nil
+}
+
+func deleteReminderPosts(channelID string) error {
+	key := fmt.Sprintf("%s_%s", "reminderPosts", channelID)
+	reminderPosts, err := getReminderPosts(channelID)
+	if err != nil {
+		return err
+	}
+
+	// delete reminder posts
+	for _, postID := range reminderPosts {
+		if appErr := config.Mattermost.DeletePost(postID); appErr != nil {
+			logger.Error("Couldn't delete standup reminder post", appErr, nil)
+		}
+	}
+
+	// deleting KV store entry storing reminder posts for current channel
+	if appErr := config.Mattermost.KVDelete(util.GetKeyHash(key)); appErr != nil {
+		logger.Error("Couldn't delete standup reminder posts from KV store", appErr, nil)
+		return errors.New(appErr.Error())
+	}
+	
 	return nil
 }
 
@@ -376,7 +378,8 @@ func sendWindowOpenNotification(channelIDs []string) {
 			Message:   "Please start filling your standup!",
 		}
 
-		if _, appErr := config.Mattermost.CreatePost(post); appErr != nil {
+		post, appErr := config.Mattermost.CreatePost(post)
+		if appErr != nil {
 			logger.Error("Error sending window open notification for channel", appErr, map[string]interface{}{"channelID": channelID})
 			continue
 		} else {
@@ -384,6 +387,12 @@ func sendWindowOpenNotification(channelIDs []string) {
 			if appErr != nil {
 				logger.Error("Couldn't add standup reminder posts", appErr, nil)
 				continue
+			}
+			x, e := getReminderPosts(channelID)
+			if e != nil {
+				logger.Debug(e.Error(), e)
+			} else {
+				logger.Debug(fmt.Sprintf("reminder posts from sendWindowOpenNotification: %v", x,), nil)
 			}
 		}
 
@@ -458,7 +467,8 @@ func sendWindowCloseNotification(channelIDs []string) error {
 			Message:   message,
 		}
 
-		if _, appErr := config.Mattermost.CreatePost(post); appErr != nil {
+		post, appErr := config.Mattermost.CreatePost(post)
+		if appErr != nil {
 			logger.Error("Error sending window open notification for channel", appErr, map[string]interface{}{"channelID": channelID})
 			continue
 		} else {
@@ -622,26 +632,48 @@ func getUserDisplayName(userID string) (string, error) {
 }
 
 func addReminderPost(postID string, channelID string) error {
-	key := fmt.Sprintf("%s_%s", "reminderPosts", channelID)
-	reminderPostsJSON, appErr := config.Mattermost.KVGet(util.GetKeyHash(key))
-	if appErr != nil {
-		logger.Error("Couldn't get standup reminder posts from KV store", appErr, nil)
-		return errors.New(appErr.Error())
-	}
-	var reminderPosts []string
-	if err := json.Unmarshal(reminderPostsJSON, &reminderPosts); err != nil {
-		logger.Error("Couldn't unmarshal standup reminder posts", err, nil)
+	reminderPosts, err := getReminderPosts(channelID)
+	if err != nil {
 		return err
 	}
 
 	reminderPosts = append(reminderPosts, postID)
+	if err := saveReminderPosts(reminderPosts2, channelID); err != nil {
+		return err
+	} 
 
+	return nil
+}
+
+func getReminderPosts(channelID string) ([]string, error) {
+	key := fmt.Sprintf("%s_%s", "reminderPosts", channelID)
+	reminderPostsJSON, appErr := config.Mattermost.KVGet(util.GetKeyHash(key))
+	if appErr != nil {
+		logger.Error("Couldn't get standup reminder posts from KV store", appErr, nil)
+		return nil, errors.New(appErr.Error())
+	}
+	
+	if len(reminderPostsJSON) == 0 {
+		return []string{}, nil
+	}
+	
+	var reminderPosts []string
+	if err := json.Unmarshal(reminderPostsJSON, &reminderPosts); err != nil {
+		logger.Error("Couldn't unmarshal standup reminder posts", err, nil)
+		return nil, err
+	}
+	
+	return reminderPosts, nil
+}
+
+func saveReminderPosts(reminderPosts []string, channelID string) error {
 	serializedReminderPosts, err := json.Marshal(reminderPosts)
 	if err != nil {
 		logger.Error("Couldn't marshal standup reminder posts", err, nil)
 		return err
 	}
 
+	key := fmt.Sprintf("%s_%s", "reminderPosts", channelID)
 	if appErr := config.Mattermost.KVSet(util.GetKeyHash(key), serializedReminderPosts); appErr != nil {
 		logger.Error("Couldn't save standup reminder posts into KV store", appErr, nil)
 		return errors.New(appErr.Error())
