@@ -215,29 +215,6 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 	return nil
 }
 
-func deleteReminderPosts(channelID string) error {
-	key := fmt.Sprintf("%s_%s", "reminderPosts", channelID)
-	reminderPosts, err := getReminderPosts(channelID)
-	if err != nil {
-		return err
-	}
-
-	// delete reminder posts
-	for _, postID := range reminderPosts {
-		if appErr := config.Mattermost.DeletePost(postID); appErr != nil {
-			logger.Error("Couldn't delete standup reminder post", appErr, nil)
-		}
-	}
-
-	// deleting KV store entry storing reminder posts for current channel
-	if appErr := config.Mattermost.KVDelete(util.GetKeyHash(key)); appErr != nil {
-		logger.Error("Couldn't delete standup reminder posts from KV store", appErr, nil)
-		return errors.New(appErr.Error())
-	}
-	
-	return nil
-}
-
 // SetNotificationStatus sets provided notification status for the specified channel ID.
 func SetNotificationStatus(channelID string, status *ChannelNotificationStatus) error {
 	standupConfig, err := standup.GetStandupConfig(channelID)
@@ -387,12 +364,6 @@ func sendWindowOpenNotification(channelIDs []string) {
 			if appErr != nil {
 				logger.Error("Couldn't add standup reminder posts", appErr, nil)
 				continue
-			}
-			x, e := getReminderPosts(channelID)
-			if e != nil {
-				logger.Debug(e.Error(), e)
-			} else {
-				logger.Debug(fmt.Sprintf("reminder posts from sendWindowOpenNotification: %v", x,), nil)
 			}
 		}
 
@@ -638,7 +609,7 @@ func addReminderPost(postID string, channelID string) error {
 	}
 
 	reminderPosts = append(reminderPosts, postID)
-	if err := saveReminderPosts(reminderPosts2, channelID); err != nil {
+	if err := saveReminderPosts(reminderPosts, channelID); err != nil {
 		return err
 	} 
 
@@ -676,6 +647,29 @@ func saveReminderPosts(reminderPosts []string, channelID string) error {
 	key := fmt.Sprintf("%s_%s", "reminderPosts", channelID)
 	if appErr := config.Mattermost.KVSet(util.GetKeyHash(key), serializedReminderPosts); appErr != nil {
 		logger.Error("Couldn't save standup reminder posts into KV store", appErr, nil)
+		return errors.New(appErr.Error())
+	}
+
+	return nil
+}
+
+func deleteReminderPosts(channelID string) error {
+	reminderPosts, err := getReminderPosts(channelID)
+	if err != nil {
+		return err
+	}
+
+	// delete reminder posts
+	for _, postID := range reminderPosts {
+		if appErr := config.Mattermost.DeletePost(postID); appErr != nil {
+			logger.Error("Couldn't delete standup reminder post", appErr, nil)
+		}
+	}
+
+	// deleting KV store entry storing reminder posts for current channel
+	key := fmt.Sprintf("%s_%s", "reminderPosts", channelID)
+	if appErr := config.Mattermost.KVDelete(util.GetKeyHash(key)); appErr != nil {
+		logger.Error("Couldn't delete standup reminder posts from KV store", appErr, nil)
 		return errors.New(appErr.Error())
 	}
 
