@@ -611,7 +611,7 @@ func addReminderPost(postID string, channelID string) error {
 	reminderPosts = append(reminderPosts, postID)
 	if err := saveReminderPosts(reminderPosts, channelID); err != nil {
 		return err
-	} 
+	}
 
 	return nil
 }
@@ -623,17 +623,17 @@ func getReminderPosts(channelID string) ([]string, error) {
 		logger.Error("Couldn't get standup reminder posts from KV store", appErr, nil)
 		return nil, errors.New(appErr.Error())
 	}
-	
+
 	if len(reminderPostsJSON) == 0 {
 		return []string{}, nil
 	}
-	
+
 	var reminderPosts []string
 	if err := json.Unmarshal(reminderPostsJSON, &reminderPosts); err != nil {
 		logger.Error("Couldn't unmarshal standup reminder posts", err, nil)
 		return nil, err
 	}
-	
+
 	return reminderPosts, nil
 }
 
