@@ -21,9 +21,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func baseMock() *plugintest.API {
+func setUp() *plugintest.API {
 	mockAPI := &plugintest.API{}
 	config.Mattermost = mockAPI
+	return mockAPI
+}
+
+func baseMock(mockAPI *plugintest.API) {
+	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return(nil, nil)
+	mockAPI.On("KVSet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1")), mock.Anything).Return(nil)
+	mockAPI.On("KVDelete", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return(nil)
+	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_2"))).Return(nil, nil)
+	mockAPI.On("KVSet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_2")), mock.Anything).Return(nil)
+	mockAPI.On("KVDelete", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_2"))).Return(nil)
+	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_3"))).Return(nil, nil)
+	mockAPI.On("KVSet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_3")), mock.Anything).Return(nil)
+	mockAPI.On("KVDelete", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_3"))).Return(nil)
 
 	monkey.Patch(logger.Debug, func(msg string, err error, keyValuePairs ...interface{}) {})
 	monkey.Patch(logger.Error, func(msg string, err error, extraData map[string]interface{}) {})
@@ -38,8 +51,6 @@ func baseMock() *plugintest.API {
 	}
 
 	config.SetConfig(mockConfig)
-
-	return mockAPI
 }
 
 func TearDown() {
@@ -48,7 +59,8 @@ func TearDown() {
 
 func TestSendNotificationsAndReports(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -187,11 +199,14 @@ func TestSendNotificationsAndReports(t *testing.T) {
 
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 1)
 }
 
 func TestSendNotificationsAndReports_NoStandupChannels(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -210,7 +225,8 @@ func TestSendNotificationsAndReports_NoStandupChannels(t *testing.T) {
 
 func TestSendNotificationsAndReports_GetStandupChannels_Error(t *testing.T) {
 	defer TearDown()
-	baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -230,7 +246,8 @@ func TestSendNotificationsAndReports_GetStandupChannels_Error(t *testing.T) {
 
 func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -369,11 +386,14 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 
 	assert.NotNil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 1)
 }
 
 func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -491,11 +511,15 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 1)
+
 }
 
 func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(nil, &model.AppError{})
 
@@ -597,11 +621,15 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 
 	assert.NotNil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 0)
 }
 
 func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(nil, &model.AppError{})
 
@@ -697,7 +725,8 @@ func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 
 func TestSendNotificationsAndReports_GetStandupConfig_Nil(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
@@ -788,7 +817,8 @@ func TestSendNotificationsAndReports_GetStandupConfig_Nil(t *testing.T) {
 
 func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -931,7 +961,8 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 
 func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -994,7 +1025,8 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 
 func TestSendNotificationsAndReports_Integration(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
@@ -1034,7 +1066,8 @@ func TestSendNotificationsAndReports_Integration(t *testing.T) {
 
 func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(nil, util.EmptyAppError())
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -1097,7 +1130,8 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 
 func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(nil, util.EmptyAppError())
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -1163,7 +1197,8 @@ func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing
 
 func TestSendNotificationsAndReports_Standup_Disabled(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -1213,7 +1248,8 @@ func TestSendNotificationsAndReports_Standup_Disabled(t *testing.T) {
 
 func TestSendNotificationsAndReports_StandupReport_Sent(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -1267,7 +1303,8 @@ func TestSendNotificationsAndReports_StandupReport_Sent(t *testing.T) {
 
 func TestSendNotificationsAndReports_SendWindowOpenNotification_CreatePost_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, model.NewAppError("", "", nil, "", 0))
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -1330,7 +1367,8 @@ func TestSendNotificationsAndReports_SendWindowOpenNotification_CreatePost_Error
 
 func TestSendNotificationsAndReports_ShouldSendWindowOpenNotification_NotYet(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -1379,7 +1417,8 @@ func TestSendNotificationsAndReports_ShouldSendWindowOpenNotification_NotYet(t *
 
 func TestSendNotificationsAndReports_WindowCloseNotification(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -1447,11 +1486,15 @@ func TestSendNotificationsAndReports_WindowCloseNotification(t *testing.T) {
 
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 0)
 }
 
 func TestGetNotificationStatus(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	notificationStatusJSON, _ := json.Marshal(ChannelNotificationStatus{
 		WindowOpenNotificationSent:  true,
@@ -1482,7 +1525,8 @@ func TestGetNotificationStatus(t *testing.T) {
 
 func TestGetNotificationStatus_KVGet_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(nil, model.NewAppError("", "", nil, "", 0))
 
@@ -1502,7 +1546,8 @@ func TestGetNotificationStatus_KVGet_Error(t *testing.T) {
 
 func TestGetNotificationStatus_Json_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	notificationStatusJSON, _ := json.Marshal(ChannelNotificationStatus{
 		WindowOpenNotificationSent:  true,
@@ -1527,7 +1572,8 @@ func TestGetNotificationStatus_Json_Error(t *testing.T) {
 
 func TestGetNotificationStatus_KVSet_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	notificationStatusJSON, _ := json.Marshal(ChannelNotificationStatus{
 		WindowOpenNotificationSent:  true,
@@ -1559,7 +1605,8 @@ func TestGetNotificationStatus_KVSet_Error(t *testing.T) {
 
 func TestSendStandupReport(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	mockAPI.On("GetUser", "user_id_1").Return(
 		&model.User{
@@ -1576,7 +1623,6 @@ func TestSendStandupReport(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
@@ -1654,11 +1700,407 @@ func TestSendStandupReport(t *testing.T) {
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 4)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 4)
+}
+
+func TestSendStandupReport_GetReminderPosts_Error(t *testing.T) {
+	defer TearDown()
+	mockAPI := setUp()
+	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return(nil, model.NewAppError("", "", nil, "", 0))
+	baseMock(mockAPI)
+
+	mockAPI.On("GetUser", "user_id_1").Return(
+		&model.User{
+			FirstName: "Foo",
+			LastName:  "Bar",
+		}, nil,
+	)
+
+	mockAPI.On("GetUser", "user_id_2").Return(
+		&model.User{
+			FirstName: "John",
+			LastName:  "Doe",
+		}, nil,
+	)
+
+	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+
+		return &standup.StandupConfig{
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
+		}, nil
+	})
+
+	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
+		return &standup.UserStandup{
+			UserID:    userID,
+			ChannelID: channelID,
+			Standup: map[string]*[]string{
+				"section_1": {"task_1", "task_2"},
+				"section_2": {"task_3", "task_4"},
+			},
+		}, nil
+	})
+
+	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
+		return &ChannelNotificationStatus{}, nil
+	})
+
+	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
+		return nil
+	})
+
+	err := SendStandupReport([]string{"channel_1"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
+	assert.Nil(t, err, "should not produce any error")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 0)
+}
+
+func TestSendStandupReport_DeleteReminderPosts_Error(t *testing.T) {
+	defer TearDown()
+	mockAPI := setUp()
+	mockAPI.On("KVDelete", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return(nil, model.NewAppError("", "", nil, "", 0))
+	baseMock(mockAPI)
+
+	mockAPI.On("GetUser", "user_id_1").Return(
+		&model.User{
+			FirstName: "Foo",
+			LastName:  "Bar",
+		}, nil,
+	)
+
+	mockAPI.On("GetUser", "user_id_2").Return(
+		&model.User{
+			FirstName: "John",
+			LastName:  "Doe",
+		}, nil,
+	)
+
+	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+
+		return &standup.StandupConfig{
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
+		}, nil
+	})
+
+	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
+		return &standup.UserStandup{
+			UserID:    userID,
+			ChannelID: channelID,
+			Standup: map[string]*[]string{
+				"section_1": {"task_1", "task_2"},
+				"section_2": {"task_3", "task_4"},
+			},
+		}, nil
+	})
+
+	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
+		return &ChannelNotificationStatus{}, nil
+	})
+
+	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
+		return nil
+	})
+
+	err := SendStandupReport([]string{"channel_1"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
+	assert.Nil(t, err, "should not produce any error")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 1)
+}
+
+func TestSendStandupReport_GetReminderPosts_DeletePostError(t *testing.T) {
+	defer TearDown()
+	mockAPI := setUp()
+	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return([]byte("[\"post-id-1\"]"), nil)
+	mockAPI.On("DeletePost", "post-id-1").Return(model.NewAppError("", "", nil, "", 0))
+	baseMock(mockAPI)
+
+	mockAPI.On("DeletePost", "post-id-1").Return(nil)
+
+	mockAPI.On("GetUser", "user_id_1").Return(
+		&model.User{
+			FirstName: "Foo",
+			LastName:  "Bar",
+		}, nil,
+	)
+
+	mockAPI.On("GetUser", "user_id_2").Return(
+		&model.User{
+			FirstName: "John",
+			LastName:  "Doe",
+		}, nil,
+	)
+
+	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+
+		return &standup.StandupConfig{
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
+		}, nil
+	})
+
+	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
+		return &standup.UserStandup{
+			UserID:    userID,
+			ChannelID: channelID,
+			Standup: map[string]*[]string{
+				"section_1": {"task_1", "task_2"},
+				"section_2": {"task_3", "task_4"},
+			},
+		}, nil
+	})
+
+	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
+		return &ChannelNotificationStatus{}, nil
+	})
+
+	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
+		return nil
+	})
+
+	err := SendStandupReport([]string{"channel_1"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
+	assert.Nil(t, err, "should not produce any error")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 1)
+}
+
+func TestSendStandupReport_GetReminderPosts_KVDeleteError(t *testing.T) {
+	defer TearDown()
+	mockAPI := setUp()
+	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return([]byte("[\"post-id-1\"]"), nil)
+	mockAPI.On("KVDelete", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return(model.NewAppError("", "", nil, "", 0))
+	baseMock(mockAPI)
+
+	mockAPI.On("DeletePost", "post-id-1").Return(nil)
+
+	mockAPI.On("GetUser", "user_id_1").Return(
+		&model.User{
+			FirstName: "Foo",
+			LastName:  "Bar",
+		}, nil,
+	)
+
+	mockAPI.On("GetUser", "user_id_2").Return(
+		&model.User{
+			FirstName: "John",
+			LastName:  "Doe",
+		}, nil,
+	)
+
+	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+
+		return &standup.StandupConfig{
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
+		}, nil
+	})
+
+	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
+		return &standup.UserStandup{
+			UserID:    userID,
+			ChannelID: channelID,
+			Standup: map[string]*[]string{
+				"section_1": {"task_1", "task_2"},
+				"section_2": {"task_3", "task_4"},
+			},
+		}, nil
+	})
+
+	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
+		return &ChannelNotificationStatus{}, nil
+	})
+
+	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
+		return nil
+	})
+
+	err := SendStandupReport([]string{"channel_1"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
+	assert.Nil(t, err, "should not produce any error")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 1)
+}
+
+func TestSendStandupReport_GetReminderPosts_JsonError(t *testing.T) {
+	defer TearDown()
+	mockAPI := setUp()
+	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return([]byte("{"), nil)
+	baseMock(mockAPI)
+
+	mockAPI.On("GetUser", "user_id_1").Return(
+		&model.User{
+			FirstName: "Foo",
+			LastName:  "Bar",
+		}, nil,
+	)
+
+	mockAPI.On("GetUser", "user_id_2").Return(
+		&model.User{
+			FirstName: "John",
+			LastName:  "Doe",
+		}, nil,
+	)
+
+	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+
+		return &standup.StandupConfig{
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
+		}, nil
+	})
+
+	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
+		return &standup.UserStandup{
+			UserID:    userID,
+			ChannelID: channelID,
+			Standup: map[string]*[]string{
+				"section_1": {"task_1", "task_2"},
+				"section_2": {"task_3", "task_4"},
+			},
+		}, nil
+	})
+
+	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
+		return &ChannelNotificationStatus{}, nil
+	})
+
+	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
+		return nil
+	})
+
+	err := SendStandupReport([]string{"channel_1"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
+	assert.Nil(t, err, "should not produce any error")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 0)
+}
+
+func TestSendStandupReport_GetReminderPosts_Data(t *testing.T) {
+	defer TearDown()
+	mockAPI := setUp()
+	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return([]byte("[\"post-id-1\"]"), nil)
+	baseMock(mockAPI)
+	
+	mockAPI.On("DeletePost", "post-id-1").Return(nil)
+
+	mockAPI.On("GetUser", "user_id_1").Return(
+		&model.User{
+			FirstName: "Foo",
+			LastName:  "Bar",
+		}, nil,
+	)
+
+	mockAPI.On("GetUser", "user_id_2").Return(
+		&model.User{
+			FirstName: "John",
+			LastName:  "Doe",
+		}, nil,
+	)
+
+	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
+		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+
+		return &standup.StandupConfig{
+			ChannelId:                  channelID,
+			WindowOpenTime:             windowOpenTime,
+			WindowCloseTime:            windowCloseTime,
+			ReportFormat:               config.ReportFormatTypeAggregated,
+			Sections:                   []string{"section_1", "section_2"},
+			Members:                    []string{"user_id_1", "user_id_2"},
+			Enabled:                    true,
+			WindowOpenReminderEnabled:  true,
+			WindowCloseReminderEnabled: true,
+		}, nil
+	})
+
+	monkey.Patch(standup.GetUserStandup, func(userID, channelID string, date otime.OTime) (*standup.UserStandup, error) {
+		return &standup.UserStandup{
+			UserID:    userID,
+			ChannelID: channelID,
+			Standup: map[string]*[]string{
+				"section_1": {"task_1", "task_2"},
+				"section_2": {"task_3", "task_4"},
+			},
+		}, nil
+	})
+
+	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
+		return &ChannelNotificationStatus{}, nil
+	})
+
+	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
+		return nil
+	})
+
+	err := SendStandupReport([]string{"channel_1"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
+	assert.Nil(t, err, "should not produce any error")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 1)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 1)
 }
 
 func TestSendStandupReport_GetUserStandup_Error(t *testing.T) {
 	defer TearDown()
-	baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -1688,10 +2130,10 @@ func TestSendStandupReport_GetUserStandup_Error(t *testing.T) {
 
 func TestSendStandupReport_GetUserStandup_Nil(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything).Return()
-
 	mockAPI.On("GetUser", "user_id_1").Return(
 		&model.User{
 			FirstName: "Foo",
@@ -1779,11 +2221,15 @@ func TestSendStandupReport_GetUserStandup_Nil(t *testing.T) {
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 4)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 4)
 }
 
 func TestSendStandupReport_GetUserStandup_Nil_GetUser_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything).Return()
 
@@ -1828,7 +2274,8 @@ func TestSendStandupReport_GetUserStandup_Nil_GetUser_Error(t *testing.T) {
 
 func TestSendStandupReport_ReportFormatUserAggregated(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	mockAPI.On("GetUser", "user_id_1").Return(
 		&model.User{
@@ -1924,11 +2371,15 @@ func TestSendStandupReport_ReportFormatUserAggregated(t *testing.T) {
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
 	assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 4)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 4)
 }
 
 func TestSendStandupReport_UnknownReportFormat(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	mockAPI.On("GetUser", "user_id_1").Return(
 		&model.User{
@@ -1981,7 +2432,8 @@ func TestSendStandupReport_UnknownReportFormat(t *testing.T) {
 
 func TestSendStandupReport_ReportVisibility_Public(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	mockAPI.On("GetUser", "user_id_1").Return(
 		&model.User{
@@ -1998,6 +2450,12 @@ func TestSendStandupReport_ReportVisibility_Public(t *testing.T) {
 	)
 
 	mockAPI.On("CreatePost", mock.AnythingOfType("*model.Post"), mock.Anything).Return(&model.Post{}, nil)
+	//mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return(nil, nil)
+	//mockAPI.On("KVSet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1")), mock.Anything).Return(nil)
+	//mockAPI.On("KVDelete", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return(nil)
+	//mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_2"))).Return(nil, nil)
+	//mockAPI.On("KVSet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_2")), mock.Anything).Return(nil)
+	//mockAPI.On("KVDelete", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_2"))).Return(nil)
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -2077,11 +2535,15 @@ func TestSendStandupReport_ReportVisibility_Public(t *testing.T) {
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", false)
 	assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 4)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 4)
 }
 
 func TestSendStandupReport_ReportVisibility_Public_CreatePost_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	mockAPI.On("GetUser", "user_id_1").Return(
 		&model.User{
@@ -2181,7 +2643,8 @@ func TestSendStandupReport_ReportVisibility_Public_CreatePost_Error(t *testing.T
 
 func TestSendStandupReport_UpdateStatus_True(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	mockAPI.On("GetUser", "user_id_1").Return(
 		&model.User{
@@ -2277,11 +2740,15 @@ func TestSendStandupReport_UpdateStatus_True(t *testing.T) {
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", true)
 	assert.Nil(t, err, "shouldn't produce error as standup with no members is a valid case")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 4)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 4)
 }
 
 func TestSendStandupReport_UpdateStatus_True_GetNotificationStatus_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	mockAPI.On("GetUser", "user_id_1").Return(
 		&model.User{
@@ -2370,11 +2837,15 @@ func TestSendStandupReport_UpdateStatus_True_GetNotificationStatus_Error(t *test
 
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", true)
 	assert.NotNil(t, err, "should not produce any error")
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 3)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 3)
 }
 
 func TestSetNotificationStatus(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -2398,7 +2869,8 @@ func TestSetNotificationStatus(t *testing.T) {
 
 func TestSetNotificationStatus_JsonMarshal_Error(t *testing.T) {
 	defer TearDown()
-	baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 
 	monkey.Patch(json.Marshal, func(v interface{}) ([]byte, error) {
 		return nil, errors.New("")
@@ -2426,7 +2898,8 @@ func TestSetNotificationStatus_JsonMarshal_Error(t *testing.T) {
 
 func TestSetNotificationStatus_KVSet_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(model.NewAppError("", "", nil, "", 0))
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -2450,7 +2923,8 @@ func TestSetNotificationStatus_KVSet_Error(t *testing.T) {
 
 func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -2570,11 +3044,15 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 	assert.Nil(t, err, "should not produce any error")
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 3)
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 3)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 3)
 }
 
 func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -2713,12 +3191,15 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 	err := SendStandupReport([]string{"channel_1", "channel_2", "channel_3"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", true)
 	assert.Nil(t, err, "should not produce any error")
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
-
+	mockAPI.AssertNumberOfCalls(t, "KVGet", 5)
+	mockAPI.AssertNumberOfCalls(t, "KVSet", 2)
+	mockAPI.AssertNumberOfCalls(t, "KVDelete", 3)
 }
 
 func TestSendNotificationsAndReports_StandupConfig_Error(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
@@ -2822,7 +3303,8 @@ func TestSendNotificationsAndReports_StandupConfig_Error(t *testing.T) {
 
 func TestSendNotificationsAndReports_StandupConfig_Nil(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
@@ -2925,7 +3407,8 @@ func TestSendNotificationsAndReports_StandupConfig_Nil(t *testing.T) {
 
 func TestSendNotificationsAndReports_WindowCloseReminderEnabled_Disabled(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
@@ -2997,7 +3480,8 @@ func TestSendNotificationsAndReports_WindowCloseReminderEnabled_Disabled(t *test
 
 func TestSendNotificationsAndReports_WindowOpenReminderEnabled_Disabled(t *testing.T) {
 	defer TearDown()
-	mockAPI := baseMock()
+	mockAPI := setUp()
+	baseMock(mockAPI)
 	mockAPI.On("CreatePost", mock.AnythingOfType(model.Post{}.Type)).Return(&model.Post{}, nil)
 	mockAPI.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{Username: "username"}, nil)
 
