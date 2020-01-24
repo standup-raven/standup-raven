@@ -196,7 +196,8 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 		}
 
 		if err := deleteReminderPosts(channelID); err != nil {
-			return err
+			// log and continue. This shouldn't affect primary flow
+			logger.Error("Error occurred while deleting reminder posts for channel: " + channelID, err, nil)
 		}
 
 		if updateStatus {
