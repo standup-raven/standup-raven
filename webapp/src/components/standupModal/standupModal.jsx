@@ -73,7 +73,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
         const payload = this.prepareUserStandup();
 
         request
-            .post(Constants.URL_SUBMIT_USER_STANDUP)
+            .post(`${this.props.siteURL}/${Constants.URL_SUBMIT_USER_STANDUP}`)
             .withCredentials()
             .send(payload)
             .set('X-CSRF-Token', Cookies.get(Constants.MATTERMOST_CSRF_COOKIE))
@@ -106,7 +106,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
     getUserStandup = () => {
         return new Promise((resolve) => {
             request
-                .get(`${Constants.URL_SUBMIT_USER_STANDUP}?channel_id=${this.props.channelID}`)
+                .get(`${this.props.siteURL}/${Constants.URL_SUBMIT_USER_STANDUP}?channel_id=${this.props.channelID}`)
                 .withCredentials()
                 .end((err, result) => {
                     if (result.ok) {
@@ -136,7 +136,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
 
     getStandupConfig = () => {
         return new Promise((resolve) => {
-            const url = `${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}&source=standup-modal`;
+            const url = `${this.props.siteURL}/${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}&source=standup-modal`;
             request
                 .get(url)
                 .withCredentials()
@@ -283,7 +283,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                         style={style.spinner}
                     >
                         <img
-                            src={Constants.URL_SPINNER_ICON}
+                            src={`${this.props.siteURL}/${Constants.URL_SPINNER_ICON}`}
                             alt={'loading...'}
                         />
                     </div>
@@ -368,6 +368,7 @@ StandupModal.propTypes = {
     currentUserId: PropTypes.string.isRequired,
     close: PropTypes.func.isRequired,
     visible: PropTypes.bool.isRequired,
+    siteURL: PropTypes.string.isRequired,
 };
 
 export default StandupModal;
