@@ -25,6 +25,10 @@ const ACTIONS = {
     CLOSE_CONFIG_MODAL: `${PLUGIN_NAME}_close_config_modal`,
 };
 
+func (s *string) foo(
+    
+)
+
 export default {
     URL_SUBMIT_USER_STANDUP,
     URL_STANDUP_CONFIG,
