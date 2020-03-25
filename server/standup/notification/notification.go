@@ -229,10 +229,9 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 	return nil
 }
 
-
 func sortUserStandups(userStandups []*standup.UserStandup) ([]*standup.UserStandup, error) {
 	// sorts user standups alphabetically by user's display name
-	
+
 	// get all user display names
 	userStandupMapping := make(map[string]*standup.UserStandup, len(userStandups))
 	for _, userStandup := range userStandups {
@@ -246,12 +245,12 @@ func sortUserStandups(userStandups []*standup.UserStandup) ([]*standup.UserStand
 
 	// extract keys, which are the user display names
 	keys := make([]string, 0)
-	for key, _ := range userStandupMapping {
+	for key := range userStandupMapping {
 		keys = append(keys, key)
 	}
 
 	// case insensitive sort of user display names
-	sort.SliceStable(keys, func (i, j int) bool {
+	sort.SliceStable(keys, func(i, j int) bool {
 		return strings.ToLower(keys[i]) < strings.ToLower(keys[j])
 	})
 
