@@ -149,13 +149,6 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 
 		// names of channel standup members who haven't yet submitted their standup
 		var membersNoStandup []string
-		config.Mattermost.LogInfo("#####################################################################################################################")
-		config.Mattermost.LogInfo(fmt.Sprintf("%v", standupConfig.Members))
-		config.Mattermost.LogInfo("#####################################################################################################################")
-		sort.Strings(standupConfig.Members)
-		config.Mattermost.LogInfo(fmt.Sprintf("%v", standupConfig.Members))
-		config.Mattermost.LogInfo("#####################################################################################################################")
-
 		for _, userID := range standupConfig.Members {
 			userStandup, err := standup.GetUserStandup(userID, channelID, date)
 			if err != nil {
