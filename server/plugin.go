@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/getsentry/raven-go"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/migration"
