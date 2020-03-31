@@ -10,9 +10,6 @@ function getBaseURL() {
 }
 
 function getValueSafely(obj, path, defaultVal) {
-    console.log('##########################################################################################');
-    console.log(obj);
-    console.log(path);
     try {
         let acc = obj;
         for (const x of path.split('.')) {
@@ -20,10 +17,8 @@ function getValueSafely(obj, path, defaultVal) {
 
             console.log(acc);
         }
-        console.log('##########################################################################################');
         return acc;
     } catch (e) {
-        console.log('##########################################################################################');
         return defaultVal;
     }
 }

@@ -1,5 +1,3 @@
-import Utils from '../utils';
-
 const PLUGIN_NAME = 'standup-raven';
 
 const PLUGIN_DISPLAY_NAME = 'Standup Raven';
@@ -24,10 +22,6 @@ const ACTIONS = {
     OPEN_CONFIG_MODAL: `${PLUGIN_NAME}_open_config_modal`,
     CLOSE_CONFIG_MODAL: `${PLUGIN_NAME}_close_config_modal`,
 };
-
-func (s *string) foo(
-    
-)
 
 export default {
     URL_SUBMIT_USER_STANDUP,
