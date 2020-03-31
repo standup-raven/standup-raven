@@ -3,6 +3,7 @@ package notification
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -170,6 +171,11 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 			members = append(members, userStandup)
 		}
 
+		members, err = sortUserStandups(members)
+		if err != nil {
+			return err
+		}
+
 		var post *model.Post
 
 		if standupConfig.ReportFormat == config.ReportFormatTypeAggregated {
@@ -214,6 +220,40 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 	}
 
 	return nil
+}
+
+func sortUserStandups(userStandups []*standup.UserStandup) ([]*standup.UserStandup, error) {
+	// sorts user standups alphabetically by user's display name
+
+	// get all user display names
+	userStandupMapping := make(map[string]*standup.UserStandup, len(userStandups))
+	for _, userStandup := range userStandups {
+		userDisplayName, err := getUserDisplayName(userStandup.UserID)
+		if err != nil {
+			return nil, err
+		}
+
+		userStandupMapping[userDisplayName] = userStandup
+	}
+
+	// extract keys, which are the user display names
+	keys := make([]string, 0)
+	for key := range userStandupMapping {
+		keys = append(keys, key)
+	}
+
+	// case insensitive sort of user display names
+	sort.SliceStable(keys, func(i, j int) bool {
+		return strings.ToLower(keys[i]) < strings.ToLower(keys[j])
+	})
+
+	// iterate the sorted array and arrange user standups in that order
+	sortedUserStandups := make([]*standup.UserStandup, 0)
+	for _, userDisplayName := range keys {
+		sortedUserStandups = append(sortedUserStandups, userStandupMapping[userDisplayName])
+	}
+
+	return sortedUserStandups, nil
 }
 
 // SetNotificationStatus sets provided notification status for the specified channel ID.

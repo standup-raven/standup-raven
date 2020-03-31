@@ -162,7 +162,7 @@ func isEffectiveAdmin(userID string, channelID string) (bool, *model.AppError) {
 	if isChannelAdmin, appErr := isChannelAdmin(userID, channelID); appErr != nil {
 		return false, appErr
 	} else if isChannelAdmin {
-		config.Mattermost.LogInfo("Is channel admin")
+		config.Mattermost.LogDebug("User is channel admin", "userID", userID)
 		return true, nil
 	}
 
@@ -174,14 +174,14 @@ func isEffectiveAdmin(userID string, channelID string) (bool, *model.AppError) {
 	if isTeamAdmin, appErr := isTeamAdmin(userID, channel.TeamId); appErr != nil {
 		return false, appErr
 	} else if isTeamAdmin {
-		config.Mattermost.LogInfo("Is team admin")
+		config.Mattermost.LogDebug("User is team admin", "userID", userID)
 		return true, nil
 	}
 
 	if isSystemAdmin, appErr := isSystemAdmin(userID); appErr != nil {
 		return false, appErr
 	} else if isSystemAdmin {
-		config.Mattermost.LogInfo("Is system admin")
+		config.Mattermost.LogDebug("User is system admin", "userID", userID)
 		return true, nil
 	}
 

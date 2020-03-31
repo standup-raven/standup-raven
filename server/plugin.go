@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/getsentry/raven-go"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/migration"
@@ -169,8 +168,6 @@ func (p *Plugin) prepareContext(args *model.CommandArgs) command.Context {
 }
 
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	config.Mattermost.LogInfo(fmt.Sprintf("%v", r.Header))
-
 	d := util.DumpRequest(r)
 	endpoint := controller.GetEndpoint(r)
 
