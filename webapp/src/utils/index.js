@@ -21,7 +21,12 @@ function getValueSafely(obj, path, defaultVal) {
     }
 }
 
+function trimTrailingSlash(url) {
+    return url.replace(/\/+$/, "");
+}
+
 export default {
     getBaseURL,
     getValueSafely,
+    trimTrailingSlash,
 };

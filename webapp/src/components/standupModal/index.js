@@ -11,7 +11,7 @@ const mapStateToProps = (state) => ({
     currentUserId: state.entities.users.currentUserId,
     channelID: state.entities.channels.currentChannelId,
     visible: Selectors.isStandupModalVisible(state),
-    siteURL: util.getValueSafely(state, 'entities.general.config.SiteURL', ''),
+    siteURL: util.trimTrailingSlash(util.getValueSafely(state, 'entities.general.config.SiteURL', '')),
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
