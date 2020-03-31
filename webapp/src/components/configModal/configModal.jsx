@@ -481,7 +481,7 @@ ConfigModal.propTypes = {
     currentUserId: PropTypes.string.isRequired,
     close: PropTypes.func.isRequired,
     visible: PropTypes.bool,
-    siteURL: PropTypes.striing.isRequired,
+    siteURL: PropTypes.string.isRequired,
 };
 
 export default ConfigModal;

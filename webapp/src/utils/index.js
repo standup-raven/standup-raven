@@ -14,8 +14,6 @@ function getValueSafely(obj, path, defaultVal) {
         let acc = obj;
         for (const x of path.split('.')) {
             acc = acc[x];
-
-            console.log(acc);
         }
         return acc;
     } catch (e) {
