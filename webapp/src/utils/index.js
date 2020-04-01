@@ -22,7 +22,7 @@ function getValueSafely(obj, path, defaultVal) {
 }
 
 function trimTrailingSlash(url) {
-    return url.replace(/\/+$/, "");
+    return url.replace(/\/+$/, '');
 }
 
 export default {
