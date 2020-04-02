@@ -179,9 +179,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     }
 
     getStandupConfig = () => {
-        const timezoneURL = Constants.URL_GET_TIMEZONE;
         return new Promise((resolve) => {
-            const url = `${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}`;
+            const url = `${this.props.siteURL}/${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}`;
             request
                 .get(url)
                 .withCredentials()
@@ -212,7 +211,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                     } else if (result.status === HttpStatus.NOT_FOUND) {
                         // fetch system default timezone
                         request
-                            .get(timezoneURL)
+                            .get(`${this.props.siteURL}/${Constants.URL_GET_TIMEZONE}`)
                             .withCredentials()
                             .end((error, response) => {
                                 if (response.ok) {
@@ -266,7 +265,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         });
 
         request
-            .post(Constants.URL_STANDUP_CONFIG)
+            .post(`${this.props.siteURL}/${Constants.URL_STANDUP_CONFIG}`)
             .withCredentials()
             .send(this.prepareStandupConfigPayload())
             .set('X-CSRF-Token', Cookies.get(Constants.MATTERMOST_CSRF_COOKIE))
@@ -320,7 +319,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         const spinner =
             (<div style={style.spinner}>
                 <img
-                    src={Constants.URL_SPINNER_ICON}
+                    src={`${this.props.siteURL}/${Constants.URL_SPINNER_ICON}`}
                     alt={'loading...'}
                 />
             </div>);
@@ -482,6 +481,7 @@ ConfigModal.propTypes = {
     currentUserId: PropTypes.string.isRequired,
     close: PropTypes.func.isRequired,
     visible: PropTypes.bool,
+    siteURL: PropTypes.string.isRequired,
 };
 
 export default ConfigModal;

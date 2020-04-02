@@ -5,11 +5,13 @@ import Actions from '../../actions';
 import Selectors from '../../selectors';
 
 import ConfigModal from './configModal';
+import util from '../../utils';
 
 const mapStateToProps = (state) => ({
     currentUserId: state.entities.users.currentUserId,
     channelID: state.entities.channels.currentChannelId,
     visible: Selectors.isConfigModalVisible(state),
+    siteURL: util.trimTrailingSlash(util.getValueSafely(state, 'entities.general.config.SiteURL', '')),
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
