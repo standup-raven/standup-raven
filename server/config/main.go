@@ -48,10 +48,11 @@ var (
 )
 
 type Configuration struct {
-	TimeZone                string `json:"timeZone"`
-	WorkWeekStart           string `json:"workWeekStart"`
-	WorkWeekEnd             string `json:"workWeekEnd"`
-	PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`
+	TimeZone                   string `json:"timeZone"`
+	WorkWeekStart              string `json:"workWeekStart"`
+	WorkWeekEnd                string `json:"workWeekEnd"`
+	PermissionSchemaEnabled    bool   `json:"permissionSchemaEnabled"`
+	DisableChannelHeaderButton bool   `json:"disableChannelHeaderButton"`
 
 	// derived attributes
 	BotUserID string         `json:"botUserId"`
