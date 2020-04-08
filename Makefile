@@ -81,7 +81,7 @@ check-style-server:
 	done
 	@echo "gofmt success"; \
 	
-fix-style: .npminstall check-style-server
+fix-style: check-style-server
 	@echo Checking for style guide compliance
 	cd webapp && npm run fix
 	

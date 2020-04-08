@@ -1,7 +1,7 @@
 import {connect} from 'react-redux';
 
 import ChannelHeaderButtonIcon from './button';
-import util from "../../utils";
+import util from '../../utils';
 import Selectors from '../../selectors';
 
 const mapStateToProps = (state) => ({

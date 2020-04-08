@@ -38,12 +38,12 @@ var getDefaultTimezone = &Endpoint{
 }
 
 var getActiveStandupChannels = &Endpoint{
-	Path: "/active-channels",
-	Method: http.MethodGet,
+	Path:    "/active-channels",
+	Method:  http.MethodGet,
 	Execute: executeGetActiveStandupChannels,
 	Middlewares: []middleware.Middleware{
 		middleware.Authenticate,
-	}, 
+	},
 }
 
 func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
@@ -144,7 +144,7 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 		logger.Error("Error occurred in writing data to HTTP response", err, map[string]interface{}{"config": conf.ToJson()})
 		return err
 	}
-	
+
 	event := ""
 	if conf.Enabled {
 		event = "add_active_channel"
@@ -248,9 +248,9 @@ func executeGetActiveStandupChannels(w http.ResponseWriter, r *http.Request) err
 		http.Error(w, "An error occurred while fetching standup channels", http.StatusInternalServerError)
 		return err
 	}
-	
+
 	activeStandupChannels := []string{}
-	
+
 	for _, channelID := range standupChannels {
 		standupConfig, err := standup.GetStandupConfig(channelID)
 		if err != nil {
@@ -258,16 +258,16 @@ func executeGetActiveStandupChannels(w http.ResponseWriter, r *http.Request) err
 			http.Error(w, "An error occurred while fetching standup config", http.StatusInternalServerError)
 			return err
 		}
-		
+
 		if standupConfig.Enabled {
 			activeStandupChannels = append(activeStandupChannels, channelID)
 		}
 	}
-	
+
 	data, err := json.Marshal(activeStandupChannels)
 	if err != nil {
 		logger.Error("An error occurred serializing active standup channel list", err, nil)
-		http.Error(w,"An error occurred serializing active standup channel list", http.StatusInternalServerError)
+		http.Error(w, "An error occurred serializing active standup channel list", http.StatusInternalServerError)
 		return err
 	}
 
@@ -276,6 +276,6 @@ func executeGetActiveStandupChannels(w http.ResponseWriter, r *http.Request) err
 		logger.Error("Error occurred in writing data to HTTP response", err, map[string]interface{}{"data": string(data)})
 		return err
 	}
-	
+
 	return nil
 }

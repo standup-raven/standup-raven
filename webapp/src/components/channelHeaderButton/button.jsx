@@ -12,32 +12,34 @@ class ChannelHeaderButtonIcon extends React.Component {
         this.myRef = React.createRef();
         this.state = this.getInitialState();
     }
-    
+
     componentDidMount() {
         RavenClient.Config.getActiveChannels(this.props.siteURL)
             .then((activeChannels) => {
-                let activeChannelMap = {};
-                activeChannels.forEach(x => activeChannelMap[x] = true);
+                const activeChannelMap = {};
+                activeChannels.forEach((x) => {
+                    activeChannelMap[x] = true;
+                });
                 this.setState({
                     activeChannels: activeChannelMap,
-                })
+                });
             });
     }
-    
+
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (prevProps.added !== this.props.added || prevProps.removed !== this.props.removed) {
             const activeChannels = this.state.activeChannels;
-            
+
             if (this.props.added !== prevProps.added) {
                 // new active channel is added
                 activeChannels[this.props.added] = true;
             }
-            
+
             if (this.props.removed !== prevProps.removed) {
                 // new channel was removed
                 activeChannels[this.props.removed] = undefined;
             }
-            
+
             this.setState({
                 activeChannels,
             });
@@ -50,11 +52,11 @@ class ChannelHeaderButtonIcon extends React.Component {
         };
     };
 
-    handleRef = ref => {
+    handleRef = (ref) => {
         if (ref) {
             this.setState({
                 parent: ref.parentNode,
-            })
+            });
         }
     }
 
@@ -78,7 +80,7 @@ class ChannelHeaderButtonIcon extends React.Component {
         );
     }
 }
- 
+
 ChannelHeaderButtonIcon.propTypes = {
     channelID: PropTypes.string.isRequired,
     siteURL: PropTypes.string.isRequired,

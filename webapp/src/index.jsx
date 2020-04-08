@@ -47,7 +47,7 @@ class StandupRavenPlugin {
         registry.registerWebSocketEventHandler(
             `custom_${Constants.PLUGIN_NAME}_add_active_channel`,
             (event) => {
-                console.log("ADD: " + event.data.channel_id);
+                console.log('ADD: ' + event.data.channel_id);
                 store.dispatch(Actions.addActiveChannel(event.data.channel_id));
             },
         );
@@ -55,7 +55,7 @@ class StandupRavenPlugin {
         registry.registerWebSocketEventHandler(
             `custom_${Constants.PLUGIN_NAME}_remove_active_channel`,
             (event) => {
-                console.log("REMOVE: " + event.data.channel_id);
+                console.log('REMOVE: ' + event.data.channel_id);
                 store.dispatch(Actions.removeActiveChannel(event.data.channel_id));
             },
         );
