@@ -6,8 +6,6 @@ import StandupModal from './components/standupModal';
 import ConfigModal from './components/configModal';
 import Constants from './constants';
 import * as Sentry from '@sentry/browser';
-import utils from './utils';
-import request from 'superagent';
 
 const buildProperties = require('../../build_properties.json');
 
