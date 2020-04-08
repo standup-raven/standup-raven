@@ -14,8 +14,6 @@ const buildProperties = require('../../build_properties.json');
 class StandupRavenPlugin {
     // eslint-disable-next-line class-methods-use-this
     async initialize(registry, store) {
-        const pluginConfig = await getPluginConfig(store);
-
         registry.registerChannelHeaderButtonAction(
             <ChannelHeaderButtonIcon/>,
             (channel) => store.dispatch(Actions.openStandupModal(channel.id)),

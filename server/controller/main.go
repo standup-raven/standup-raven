@@ -20,7 +20,6 @@ var Endpoints = map[string]*Endpoint{
 	getEndpointKey(getConfig):                getConfig,
 	getEndpointKey(setConfig):                setConfig,
 	getEndpointKey(getDefaultTimezone):       getDefaultTimezone,
-	getEndpointKey(getPluginConfig):          getPluginConfig,
 	getEndpointKey(getActiveStandupChannels): getActiveStandupChannels,
 }
 
