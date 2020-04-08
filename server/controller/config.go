@@ -37,6 +37,15 @@ var getDefaultTimezone = &Endpoint{
 	Execute: executeGetDefaultTimezone,
 }
 
+var getActiveStandupChannels = &Endpoint{
+	Path:    "/active-channels",
+	Method:  http.MethodGet,
+	Execute: executeGetActiveStandupChannels,
+	Middlewares: []middleware.Middleware{
+		middleware.Authenticate,
+	},
+}
+
 func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 	channelId := r.URL.Query().Get("channel_id")
 	userID := r.Header.Get(config.HeaderMattermostUserId)
@@ -136,6 +145,23 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	event := ""
+	if conf.Enabled {
+		event = "add_active_channel"
+	} else {
+		event = "remove_active_channel"
+	}
+
+	config.Mattermost.PublishWebSocketEvent(
+		event,
+		map[string]interface{}{
+			"channel_id": conf.ChannelId,
+		},
+		&model.WebsocketBroadcast{
+			UserId: r.Header.Get(config.HeaderMattermostUserId),
+		},
+	)
+
 	return nil
 }
 
@@ -213,4 +239,43 @@ func isSystemAdmin(userID string) (bool, *model.AppError) {
 	}
 
 	return strings.Contains(user.Roles, model.SYSTEM_ADMIN_ROLE_ID), nil
+}
+
+func executeGetActiveStandupChannels(w http.ResponseWriter, r *http.Request) error {
+	standupChannels, err := standup.GetStandupChannels()
+	if err != nil {
+		logger.Error("An error occurred while fetching standup channels", err, nil)
+		http.Error(w, "An error occurred while fetching standup channels", http.StatusInternalServerError)
+		return err
+	}
+
+	activeStandupChannels := []string{}
+
+	for _, channelID := range standupChannels {
+		standupConfig, err := standup.GetStandupConfig(channelID)
+		if err != nil {
+			logger.Error("An error occurred while fetching standup config for channel", err, map[string]interface{}{"channelID": channelID})
+			http.Error(w, "An error occurred while fetching standup config", http.StatusInternalServerError)
+			return err
+		}
+
+		if standupConfig.Enabled {
+			activeStandupChannels = append(activeStandupChannels, channelID)
+		}
+	}
+
+	data, err := json.Marshal(activeStandupChannels)
+	if err != nil {
+		logger.Error("An error occurred serializing active standup channel list", err, nil)
+		http.Error(w, "An error occurred serializing active standup channel list", http.StatusInternalServerError)
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(data); err != nil {
+		logger.Error("Error occurred in writing data to HTTP response", err, map[string]interface{}{"data": string(data)})
+		return err
+	}
+
+	return nil
 }

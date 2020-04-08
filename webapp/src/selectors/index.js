@@ -6,7 +6,13 @@ export const isStandupModalVisible = (state) => getPluginState(state).standupMod
 
 export const isConfigModalVisible = (state) => getPluginState(state).configModalVisible || false;
 
+export const addedActiveChannel = (state) => getPluginState(state).addedActiveChannel || '';
+
+export const removedActiveChannel = (state) => getPluginState(state).removedActiveChannel || '';
+
 export default {
     isStandupModalVisible,
     isConfigModalVisible,
+    addedActiveChannel,
+    removedActiveChannel,
 };

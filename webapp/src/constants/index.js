@@ -14,6 +14,8 @@ const URL_SPINNER_ICON = `${PLUGIN_STATIC_DIR_URL}/spinner.svg`;
 
 const URL_GET_TIMEZONE = `${PLUGIN_BASE_URL}/timezone`;
 
+const URL_ACTIVE_CHANNELS = `${PLUGIN_BASE_URL}/active-channels`;
+
 const MATTERMOST_CSRF_COOKIE = 'MMCSRF';
 
 const ACTIONS = {
@@ -21,6 +23,8 @@ const ACTIONS = {
     CLOSE_STANDUP_MODAL: `${PLUGIN_NAME}_close_standup_modal`,
     OPEN_CONFIG_MODAL: `${PLUGIN_NAME}_open_config_modal`,
     CLOSE_CONFIG_MODAL: `${PLUGIN_NAME}_close_config_modal`,
+    ADD_ACTIVE_CHANNEL: `${PLUGIN_NAME}_add_active_channel`,
+    REMOVE_ACTIVE_CHANNEL: `${PLUGIN_NAME}_remove_active_channel`,
 };
 
 export default {
@@ -32,4 +36,5 @@ export default {
     PLUGIN_DISPLAY_NAME,
     MATTERMOST_CSRF_COOKIE,
     URL_GET_TIMEZONE,
+    URL_ACTIVE_CHANNELS,
 };
