@@ -80,8 +80,6 @@ class StandupModal extends (SentryBoundary, React.Component) {
             .set('Content-Type', 'application/json')
             .end((err, res) => {
                 if (err) {
-                    console.log(err);
-
                     this.setState({
                         message: {
                             show: true,

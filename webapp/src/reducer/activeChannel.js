@@ -6,8 +6,6 @@ let removedActiveChannelPrevState;
 export const addedActiveChannel = (channelID, action) => {
     switch (action.type) {
         case Constants.ACTIONS.ADD_ACTIVE_CHANNEL:
-            console.log('addedActiveChannel reducer: ' + action.channelID);
-            console.log(JSON.stringify(action));
             addedActiveChannelPrevState = action.channelID;
             return action.channelID;
         default:
@@ -18,8 +16,6 @@ export const addedActiveChannel = (channelID, action) => {
 export const removedActiveChannel = (channelID, action) => {
     switch (action.type) {
         case Constants.ACTIONS.REMOVE_ACTIVE_CHANNEL:
-            console.log('removedActiveChannel reducer: ' + action.channelID);
-            console.log(JSON.stringify(action));
             removedActiveChannelPrevState = action.channelID;
             return action.channelID;
         default:

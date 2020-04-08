@@ -99,13 +99,6 @@
         "display_name": "Enable Permission Schema",
         "type": "bool",
         "help_text": "Requires Mattermost Enterprise Edition. If enabled, only channel admins, team admins or system admins are allowed to configure standup for a channel or update it."
-      },
-      {
-        "key": "disableChannelHeaderButton",
-        "display_name": "Disable Channel Header Button",
-        "type": "bool",
-        "help_text": "Disables the Standup Raven channel header button. Access standup modal via `/standup` command. Enable this setting when you want to use Standup Raven in some channels but don't want to show the channel header button to everyone else.",
-        "default": "false"
       }
     ]
   }
