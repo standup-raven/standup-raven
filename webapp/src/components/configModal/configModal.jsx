@@ -175,12 +175,12 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 .catch(() => {
                     this.setState({showSpinner: false});
                 });
-        }
+        }s
     }
 
     getStandupConfig = () => {
         return new Promise((resolve) => {
-            const url = `${this.props.siteURL}/${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}`;
+            const url = `${this.props.siteURL}/${Constantsa.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}`;
             request
                 .get(url)
                 .withCredentials()
@@ -294,7 +294,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
 
     render() {
         // eslint-disable-next-line no-shadow
-        const style = reactStyles.getStyle();
+        const style = reactStylesa.getStyle();
         const data = timezones.map((timezone) =>
             (
                 <MenuItem

@@ -19,9 +19,9 @@ class StandupRavenPlugin {
             Constants.PLUGIN_DISPLAY_NAME,
         );
 
-        if (buildProperties.sentryEnabled) {
+        // if (buildProperties.sentryEnabled) {
             initSentry();
-        }
+        // }
 
         registry.registerRootComponent(StandupModal);
         registry.registerRootComponent(ConfigModal);
@@ -58,7 +58,7 @@ class StandupRavenPlugin {
 
 function initSentry() {
     Sentry.init({
-        dsn: buildProperties.sentry.publicDsn,
+        dsn: "",
     });
 
     Sentry.configureScope(((scope) => {

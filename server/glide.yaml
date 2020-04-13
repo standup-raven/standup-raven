@@ -16,3 +16,5 @@ import:
   - assert
 - package: bou.ke/monkey
   version: ^1.0.1
+- package: github.com/getsentry/sentry-go
+  version: ~0.5.1

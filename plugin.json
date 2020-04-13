@@ -99,6 +99,18 @@
         "display_name": "Enable Permission Schema",
         "type": "bool",
         "help_text": "Requires Mattermost Enterprise Edition. If enabled, only channel admins, team admins or system admins are allowed to configure standup for a channel or update it."
+      },
+      {
+        "key": "enableErrorReporting",
+        "display_name": "Enable Error Reporting",
+        "type": "bool",
+        "help_text": "TODO"
+      },
+      {
+        "key": "sentryDSN",
+        "display_name": "Sentry DSN",
+        "type": "text",
+        "help_text": "TODO"
       }
     ]
   }

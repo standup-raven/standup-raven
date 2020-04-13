@@ -1,8 +1,10 @@
 package config
 
 import (
+	"errors"
 	"github.com/mattermost/mattermost-server/plugin"
 	"go.uber.org/atomic"
+	"strings"
 	"time"
 )
 
@@ -52,6 +54,8 @@ type Configuration struct {
 	WorkWeekStart           string `json:"workWeekStart"`
 	WorkWeekEnd             string `json:"workWeekEnd"`
 	PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`
+	EnableErrorReporting    bool   `json:"enableErrorReporting"`
+	SentryDSN               string `json:"sentryDSN"`
 
 	// derived attributes
 	BotUserID string         `json:"botUserId"`
@@ -67,12 +71,18 @@ func SetConfig(c *Configuration) {
 }
 
 func (c *Configuration) ProcessConfiguration() error {
-
 	location, err := time.LoadLocation(c.TimeZone)
 	if err != nil {
 		Mattermost.LogError("Couldn't load location in time " + err.Error())
 		return err
 	}
+	
+	c.SentryDSN = strings.TrimSpace(c.SentryDSN)
+	
+	if c.EnableErrorReporting && len(c.SentryDSN) == 0 {
+		Mattermost.LogError("Sentry DSN cannot be empty if error reporting is enabled")
+		return errors.New("Sentry DSN cannot be empty if error reporting is enabled")
+	} 
 
 	c.Location = location
 	return nil

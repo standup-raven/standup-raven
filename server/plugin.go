@@ -2,12 +2,12 @@ package main
 
 import (
 	"github.com/getsentry/raven-go"
+	"github.com/getsentry/sentry-go"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/migration"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -39,10 +39,6 @@ func (p *Plugin) OnActivate() error {
 
 	if err := migration.DatabaseMigration(); err != nil {
 		return err
-	}
-
-	if err := p.initSentry(); err != nil {
-		config.Mattermost.LogError(err.Error())
 	}
 
 	if err := p.setupStaticFileServer(); err != nil {
@@ -116,6 +112,10 @@ func (p *Plugin) OnConfigurationChange() error {
 			return err
 		}
 		config.SetConfig(&configuration)
+
+		if err := p.initSentry(); err != nil {
+			config.Mattermost.LogError(err.Error())
+		}
 	}
 	return nil
 }
@@ -211,13 +211,26 @@ func (p *Plugin) runner() {
 }
 
 func (p *Plugin) initSentry() error {
-	var err error
-
-	if enabled, _ := strconv.ParseBool(SentryEnabled); enabled {
-		err = raven.SetDSN(SentryDSN)
+	conf := config.GetConfig()
+	
+	if !conf.EnableErrorReporting {
+		return nil 
 	}
+	
 
-	raven.SetTagsContext(map[string]string{"pluginComponent": "server"})
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: conf.SentryDSN,
+	})
+
+	if err != nil {
+		return err
+	}
+	
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetTag("pluginComponent", "server")
+	})
+	
+	//raven.SetTagsContext()
 
 	return err
 }

@@ -1,12 +1,10 @@
-hash: 4efcc52ad61d021a5ec848f94be74e20c0b07522bbf39023ca31c5a801f3a0d8
-updated: 2019-11-30T09:00:29.814831+05:30
+hash: 766eaf3dcb8dfce2ff3545dde8891a1fa1f08b636024b0e6581d15bbb08bd706
+updated: 2020-04-11T08:33:24.633476+05:30
 imports:
 - name: bou.ke/monkey
-  version: bdf6dea004c6fd1cdf4b25da8ad45a606c09409a
+  version: c597d8a6b9a52e9f7521b7e8913453b4745820f7
 - name: github.com/blang/semver
   version: 3c1074078d32d767e08ab2c8564867292da86926
-- name: github.com/BurntSushi/toml
-  version: 3012a1dbe2e4bd1391d42b32f0577cb7bbc7f005
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
 - name: github.com/davecgh/go-spew
@@ -21,6 +19,8 @@ imports:
   version: c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9
 - name: github.com/getsentry/raven-go
   version: f04e7487e9a6b9d9837d52743fb5f40576c56411
+- name: github.com/getsentry/sentry-go
+  version: 93b68f59e483f3eede43c3212220a9f6689f8812
 - name: github.com/go-ldap/ldap
   version: 9f0d712775a0973b7824a1585a86a4ea1d5263d9
 - name: github.com/golang/protobuf
@@ -76,21 +76,17 @@ imports:
 - name: github.com/stretchr/objx
   version: ea4fe68685ee0d3cee7032121851b57e7494e8ea
 - name: github.com/stretchr/testify
-  version: 221dbe5ed46703ee255b1da0dec05086f5035f62
+  version: 3ebf1ddaeb260c4b1ae502a01c7844fa8c1fa0e9
   subpackages:
   - assert
   - mock
   - require
 - name: github.com/thoas/go-funk
-  version: 310880620b0fe943c45bf032685df5fdf5f4c14e
+  version: 4dfafc7efb503e26f6d3233c0e519efcd1606959
 - name: go.uber.org/atomic
   version: 40ae6a40a970ef4cdbffa7b24b280e316db8accc
 - name: go.uber.org/multierr
-  version: 824d08f79702fe5f54aca8400aa0d754318786e7
-- name: go.uber.org/tools
-  version: 2cfd321de3ee5d5f8a5fda2521d1703478334d98
-  subpackages:
-  - update-license
+  version: b587143a48b62b01d337824eab43700af6ffe222
 - name: go.uber.org/zap
   version: 2dc8d10634f473f4dc678e48391a9dc8cf6ae6f9
   subpackages:
@@ -138,23 +134,9 @@ imports:
 - name: golang.org/x/tools
   version: ecd32218bd7f33fd31c1abbfb74283690bedd093
   subpackages:
-  - go/analysis
-  - go/analysis/passes/inspect
   - go/ast/astutil
-  - go/ast/inspector
-  - go/buildutil
   - go/gcexportdata
-  - go/internal/cgo
   - go/internal/gcimporter
-  - go/internal/packagesdriver
-  - go/loader
-  - go/packages
-  - go/types/objectpath
-  - go/types/typeutil
-  - internal/fastwalk
-  - internal/gopathwalk
-  - internal/semver
-  - internal/span
 - name: google.golang.org/genproto
   version: c66870c02cf823ceb633bcd05be3c7cda29976f4
   subpackages:
@@ -195,38 +177,4 @@ imports:
   version: a96e63847dc3c67d17befa69c303767e2f84e54f
 - name: gopkg.in/yaml.v2
   version: 287cf08546ab5e7e37d55a84f7ed3fd1db036de5
-- name: honnef.co/go/tools
-  version: dfe37feaecf7b73ce53f4fb8fa347265a77c6c4b
-  subpackages:
-  - arg
-  - cmd/staticcheck
-  - code
-  - config
-  - deprecated
-  - edit
-  - facts
-  - functions
-  - go/types/typeutil
-  - internal/cache
-  - internal/passes/buildir
-  - internal/renameio
-  - internal/robustio
-  - internal/sharedcheck
-  - ir
-  - ir/irutil
-  - lint
-  - lint/lintdsl
-  - lint/lintutil
-  - lint/lintutil/format
-  - loader
-  - pattern
-  - printf
-  - report
-  - simple
-  - staticcheck
-  - stylecheck
-  - unused
-  - version
-testImports:
-- name: bou.ke/monkey
-  version: bdf6dea004c6fd1cdf4b25da8ad45a606c09409a
+testImports: []

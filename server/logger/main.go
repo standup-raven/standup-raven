@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"github.com/getsentry/raven-go"
+	"github.com/getsentry/sentry-go"
 	"github.com/standup-raven/standup-raven/server/config"
 )
 
@@ -28,7 +28,12 @@ func Info(msg string, err error, keyValuePairs ...interface{}) {
 }
 
 func Error(msg string, err error, extraData map[string]interface{}) {
-	raven.CaptureError(raven.WrapWithExtra(err, extraData), map[string]string{"msg": msg})
+	//sentry.CaptureException(raven.WrapWithExtra(err, extraData), map[string]string{"msg": msg})
+	sentry.WithScope(func (scope *sentry.Scope) {
+		scope.SetExtra("message", msg)
+		scope.SetExtras(extraData)
+		sentry.CaptureException(err)
+	})
 
 	if config.Mattermost != nil {
 		errMsg := msg

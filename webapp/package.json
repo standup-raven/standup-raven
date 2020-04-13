@@ -33,7 +33,7 @@
     "what-the-changelog": "^1.5.0"
   },
   "dependencies": {
-    "@sentry/browser": "^4.6.4",
+    "@sentry/browser": "^5.15.4",
     "babel-preset-stage-2": "^6.24.1",
     "color": "^3.1.2",
     "copy-webpack-plugin": "^4.6.0",

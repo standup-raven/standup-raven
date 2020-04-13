@@ -185,6 +185,8 @@ func executeGetDefaultTimezone(w http.ResponseWriter, r *http.Request) error {
 }
 
 func isEffectiveAdmin(userID string, channelID string) (bool, *model.AppError) {
+	return false, model.NewAppError("isEffectiveAdmin", userID, nil, "Test error, thrown intentionally", http.StatusTeapot)
+	
 	if isChannelAdmin, appErr := isChannelAdmin(userID, channelID); appErr != nil {
 		return false, appErr
 	} else if isChannelAdmin {
