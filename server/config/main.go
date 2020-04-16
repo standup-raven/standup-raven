@@ -56,7 +56,8 @@ type Configuration struct {
 	WorkWeekEnd             string `json:"workWeekEnd"`
 	PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`
 	EnableErrorReporting    bool   `json:"enableErrorReporting"`
-	SentryDSN               string `json:"sentryDSN"`
+	SentryServerDSN         string `json:"sentryServerDSN"`
+	SentryWebappDSN         string `json:"sentryWebappDSN"`
 
 	// derived attributes
 	BotUserID string         `json:"botUserId"`
@@ -78,11 +79,18 @@ func (c *Configuration) ProcessConfiguration() error {
 		return err
 	}
 
-	c.SentryDSN = strings.TrimSpace(c.SentryDSN)
+	c.SentryServerDSN = strings.TrimSpace(c.SentryServerDSN)
 
-	if c.EnableErrorReporting && len(c.SentryDSN) == 0 {
-		Mattermost.LogError("Sentry DSN cannot be empty if error reporting is enabled")
-		return errors.New("Sentry DSN cannot be empty if error reporting is enabled")
+	if c.EnableErrorReporting && len(c.SentryServerDSN) == 0 {
+		Mattermost.LogError("Sentry Server DSN cannot be empty if error reporting is enabled")
+		return errors.New("Sentry Server DSN cannot be empty if error reporting is enabled")
+	}
+
+	c.SentryWebappDSN = strings.TrimSpace(c.SentryWebappDSN)
+
+	if c.EnableErrorReporting && len(c.SentryWebappDSN) == 0 {
+		Mattermost.LogError("Sentry Webapp DSN cannot be empty if error reporting is enabled")
+		return errors.New("Sentry Webapp DSN cannot be empty if error reporting is enabled")
 	}
 
 	c.Location = location

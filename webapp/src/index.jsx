@@ -16,7 +16,7 @@ class StandupRavenPlugin {
         const pluginConfig = await RavenClient.Config.getPluginConfig(siteURL);
 
         if (pluginConfig.enableErrorReporting) {
-            initSentry(pluginConfig.sentryDSN);
+            initSentry(pluginConfig.sentryWebappDSN);
         }
 
         registry.registerChannelHeaderButtonAction(

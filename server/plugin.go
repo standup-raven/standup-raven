@@ -218,7 +218,7 @@ func (p *Plugin) initSentry() error {
 	}
 
 	err := sentry.Init(sentry.ClientOptions{
-		Dsn: conf.SentryDSN,
+		Dsn: conf.SentryServerDSN,
 	})
 
 	if err != nil {

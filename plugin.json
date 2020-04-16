@@ -107,8 +107,14 @@
         "help_text": "TODO"
       },
       {
-        "key": "sentryDSN",
-        "display_name": "Sentry DSN",
+        "key": "sentryServerDSN",
+        "display_name": "Sentry Server DSN",
+        "type": "text",
+        "help_text": "TODO"
+      },
+      {
+        "key": "sentryWebappDSN",
+        "display_name": "Sentry Webapp DSN",
         "type": "text",
         "help_text": "TODO"
       }
