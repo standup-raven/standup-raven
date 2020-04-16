@@ -212,11 +212,10 @@ func (p *Plugin) runner() {
 
 func (p *Plugin) initSentry() error {
 	conf := config.GetConfig()
-	
+
 	if !conf.EnableErrorReporting {
-		return nil 
+		return nil
 	}
-	
 
 	err := sentry.Init(sentry.ClientOptions{
 		Dsn: conf.SentryDSN,
@@ -225,11 +224,11 @@ func (p *Plugin) initSentry() error {
 	if err != nil {
 		return err
 	}
-	
+
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetTag("pluginComponent", "server")
 	})
-	
+
 	//raven.SetTagsContext()
 
 	return err

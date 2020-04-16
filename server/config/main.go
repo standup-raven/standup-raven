@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/mattermost/mattermost-server/plugin"
 	"go.uber.org/atomic"
@@ -76,14 +77,32 @@ func (c *Configuration) ProcessConfiguration() error {
 		Mattermost.LogError("Couldn't load location in time " + err.Error())
 		return err
 	}
-	
+
 	c.SentryDSN = strings.TrimSpace(c.SentryDSN)
-	
+
 	if c.EnableErrorReporting && len(c.SentryDSN) == 0 {
 		Mattermost.LogError("Sentry DSN cannot be empty if error reporting is enabled")
 		return errors.New("Sentry DSN cannot be empty if error reporting is enabled")
-	} 
+	}
 
 	c.Location = location
 	return nil
+}
+
+func (c *Configuration) ToJson() []byte {
+	data, _ := json.Marshal(c)
+	return data
+}
+
+func (c *Configuration) Clone() *Configuration {
+	var clone Configuration
+	_ = json.Unmarshal(c.ToJson(), &clone)
+	return &clone
+}
+
+func (c *Configuration) Sanitize() *Configuration {
+	clone := c.Clone()
+	clone.BotUserID = ""
+	clone.Location = nil
+	return clone
 }
