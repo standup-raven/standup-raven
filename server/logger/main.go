@@ -28,7 +28,6 @@ func Info(msg string, err error, keyValuePairs ...interface{}) {
 }
 
 func Error(msg string, err error, extraData map[string]interface{}) {
-	//sentry.CaptureException(raven.WrapWithExtra(err, extraData), map[string]string{"msg": msg})
 	sentry.WithScope(func(scope *sentry.Scope) {
 		scope.SetExtra("message", msg)
 		scope.SetExtras(extraData)

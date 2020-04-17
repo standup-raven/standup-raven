@@ -112,5 +112,6 @@ func (c *Configuration) Sanitize() *Configuration {
 	clone := c.Clone()
 	clone.BotUserID = ""
 	clone.Location = nil
+	clone.SentryServerDSN = ""
 	return clone
 }

@@ -2,7 +2,10 @@
   "id": "standup-raven",
   "version": "2.5.0",
   "name": "Standup Raven",
-  "description": "",
+  "description": "A Mattermost plugin for communicating daily standups across teams",
+  "homepage_url": "https://standup-raven.github.io/",
+  "support_url": "https://github.com/standup-raven/standup-raven/issues",
+  "icon_path": "webapp/static/logo.svg",
   "min_server_version": "5.12.0",
   "webapp": {
     "bundle_path": "webapp/main.js"
@@ -104,19 +107,19 @@
         "key": "enableErrorReporting",
         "display_name": "Enable Error Reporting",
         "type": "bool",
-        "help_text": "TODO"
+        "help_text": "Help Standup Raven by automatically sending error reports."
       },
       {
         "key": "sentryServerDSN",
         "display_name": "Sentry Server DSN",
         "type": "text",
-        "help_text": "TODO"
+        "help_text": "Sentry DSN to record server errors."
       },
       {
         "key": "sentryWebappDSN",
         "display_name": "Sentry Webapp DSN",
         "type": "text",
-        "help_text": "TODO"
+        "help_text": "Sentry DSN to record webapp errors."
       }
     ]
   }

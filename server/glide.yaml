@@ -6,8 +6,6 @@ import:
   - plugin
 - package: github.com/thoas/go-funk
   version: ^0.3.0
-- package: github.com/getsentry/raven-go
-  version: ^0.2.0
 - package: github.com/certifi/gocertifi
   version: ^2018.1.18
 - package: github.com/stretchr/testify

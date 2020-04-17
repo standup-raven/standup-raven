@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/getsentry/raven-go"
 	"github.com/getsentry/sentry-go"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/migration"
@@ -186,7 +185,9 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 
 	if err := endpoint.Execute(w, r); err != nil {
 		logger.Error("Error occurred processing "+r.URL.String(), err, map[string]interface{}{"request": string(d)})
-		raven.CaptureError(err, nil)
+		sentry.WithScope(func(scope *sentry.Scope) {
+			sentry.CaptureException(err)
+		})
 	}
 }
 
