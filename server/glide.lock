@@ -1,20 +1,178 @@
 hash: d8fd9db0e84dba1360405c6986142a1ffe19b61cee2f88057d49991c44dbcbb7
-updated: 2020-04-17T22:02:30.989632+05:30
+updated: 2020-04-17T22:12:37.076432+05:30
 imports:
 - name: bou.ke/monkey
   version: c597d8a6b9a52e9f7521b7e8913453b4745820f7
+- name: github.com/blang/semver
+  version: 3c1074078d32d767e08ab2c8564867292da86926
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
+- name: github.com/davecgh/go-spew
+  version: d8f796af33cc11cb798c1aaeb27a4ebc5099927d
+  subpackages:
+  - spew
+- name: github.com/dyatlov/go-opengraph
+  version: 816b6608b3c8c1e871bc9cf777f390e2532081fe
+  subpackages:
+  - opengraph
+- name: github.com/fsnotify/fsnotify
+  version: c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9
 - name: github.com/getsentry/sentry-go
   version: 93b68f59e483f3eede43c3212220a9f6689f8812
+- name: github.com/go-ldap/ldap
+  version: 9f0d712775a0973b7824a1585a86a4ea1d5263d9
+- name: github.com/golang/protobuf
+  version: 89a0c16f4dc2a70c0ed864d8ef64878f24fdaa51
+  subpackages:
+  - proto
+  - ptypes
+  - ptypes/any
+  - ptypes/duration
+  - ptypes/timestamp
+- name: github.com/gorilla/websocket
+  version: ea4d1f681babbce9545c9c5f3d5194a789c89f5b
+- name: github.com/hashicorp/go-hclog
+  version: ff2cf002a8dd750586d91dddd4470c341f981fe1
+- name: github.com/hashicorp/go-plugin
+  version: a4620f9913d19f03a6bf19b2f304daaaf83ea130
+- name: github.com/hashicorp/yamux
+  version: 3520598351bb3500a49ae9563f5539666ae0a27c
+- name: github.com/mattermost/go-i18n
+  version: 9a9b2eb57c9f39e7142fe48a35f047716c444ed1
+  subpackages:
+  - i18n
+  - i18n/bundle
+  - i18n/language
+  - i18n/translation
 - name: github.com/mattermost/mattermost-server
   version: 96e36f73b25d7caa4d09c4a967fea54f57e9a52c
   subpackages:
+  - mlog
+  - model
   - plugin
+  - plugin/plugintest
+  - plugin/plugintest/mock
+  - services/timezones
+  - utils
+  - utils/fileutils
+  - utils/jsonutils
+  - utils/markdown
+- name: github.com/mitchellh/go-testing-interface
+  version: a61a99592b77c9ba629d254a693acffaeb4b7e28
+- name: github.com/oklog/run
+  version: 6934b124db28979da51d3470dadfa34d73d72652
+- name: github.com/pborman/uuid
+  version: e790cca94e6cc75c7064b1332e63811d4aae1a53
+- name: github.com/pelletier/go-toml
+  version: 4e9e0ee19b60b13eb79915933f44d8ed5f268bdd
+- name: github.com/pkg/errors
+  version: f15c970de5b76fac0b59abb32d62c17cc7bed265
+- name: github.com/pmezard/go-difflib
+  version: 5d4384ee4fb2527b0a1256a821ebfc92f91efefc
+  subpackages:
+  - difflib
+- name: github.com/stretchr/objx
+  version: ea4fe68685ee0d3cee7032121851b57e7494e8ea
 - name: github.com/stretchr/testify
   version: 3ebf1ddaeb260c4b1ae502a01c7844fa8c1fa0e9
   subpackages:
   - assert
+  - mock
+  - require
 - name: github.com/thoas/go-funk
   version: 4dfafc7efb503e26f6d3233c0e519efcd1606959
+- name: go.uber.org/atomic
+  version: 845920076a298bdb984fb0f1b86052e4ca0a281c
+- name: go.uber.org/multierr
+  version: b587143a48b62b01d337824eab43700af6ffe222
+- name: go.uber.org/zap
+  version: 2dc8d10634f473f4dc678e48391a9dc8cf6ae6f9
+  subpackages:
+  - buffer
+  - internal/bufferpool
+  - internal/color
+  - internal/exit
+  - zapcore
+- name: golang.org/x/crypto
+  version: aabede6cba87e37f413b3e60ebfc214f8eeca1b0
+  subpackages:
+  - bcrypt
+  - blowfish
+- name: golang.org/x/lint
+  version: fdd1cda4f05fd1fd86124f0ef9ce31a0b72c8448
+  subpackages:
+  - golint
+- name: golang.org/x/net
+  version: aaf60122140d3fcf75376d319f0554393160eb50
+  subpackages:
+  - context
+  - html
+  - html/atom
+  - http/httpguts
+  - http2
+  - http2/hpack
+  - idna
+  - internal/timeseries
+  - trace
+- name: golang.org/x/sys
+  version: 1c9583448a9c3aa0f9a6a5241bf73c0bd8aafded
+  subpackages:
+  - unix
+- name: golang.org/x/text
+  version: 6e3c4e7365ddcc329f090f96e4348398f6310088
+  subpackages:
+  - internal/language
+  - internal/language/compact
+  - internal/tag
+  - language
+  - secure/bidirule
+  - transform
+  - unicode/bidi
+  - unicode/norm
+- name: golang.org/x/tools
+  version: ecd32218bd7f33fd31c1abbfb74283690bedd093
+  subpackages:
+  - go/ast/astutil
+  - go/gcexportdata
+  - go/internal/gcimporter
+- name: google.golang.org/genproto
+  version: c66870c02cf823ceb633bcd05be3c7cda29976f4
+  subpackages:
+  - googleapis/rpc/status
+- name: google.golang.org/grpc
+  version: 9907ae0e57ce159e835381ed54eb271206bf7b12
+  subpackages:
+  - balancer
+  - balancer/base
+  - balancer/roundrobin
+  - codes
+  - connectivity
+  - credentials
+  - encoding
+  - encoding/proto
+  - grpclog
+  - health
+  - health/grpc_health_v1
+  - internal
+  - internal/backoff
+  - internal/channelz
+  - internal/envconfig
+  - internal/grpcrand
+  - internal/transport
+  - keepalive
+  - metadata
+  - naming
+  - peer
+  - resolver
+  - resolver/dns
+  - resolver/passthrough
+  - stats
+  - status
+  - tap
+- name: gopkg.in/asn1-ber.v1
+  version: f715ec2f112d1e4195b827ad68cf44017a3ef2b1
+- name: gopkg.in/natefinch/lumberjack.v2
+  version: a96e63847dc3c67d17befa69c303767e2f84e54f
+- name: gopkg.in/yaml.v2
+  version: 287cf08546ab5e7e37d55a84f7ed3fd1db036de5
 testImports: []
