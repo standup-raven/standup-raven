@@ -1,13 +1,12 @@
 package main
 
 import (
-	"github.com/getsentry/raven-go"
+	"github.com/getsentry/sentry-go"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/migration"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -39,10 +38,6 @@ func (p *Plugin) OnActivate() error {
 
 	if err := migration.DatabaseMigration(); err != nil {
 		return err
-	}
-
-	if err := p.initSentry(); err != nil {
-		config.Mattermost.LogError(err.Error())
 	}
 
 	if err := p.setupStaticFileServer(); err != nil {
@@ -116,6 +111,10 @@ func (p *Plugin) OnConfigurationChange() error {
 			return err
 		}
 		config.SetConfig(&configuration)
+
+		if err := p.initSentry(); err != nil {
+			config.Mattermost.LogError(err.Error())
+		}
 	}
 	return nil
 }
@@ -186,7 +185,9 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 
 	if err := endpoint.Execute(w, r); err != nil {
 		logger.Error("Error occurred processing "+r.URL.String(), err, map[string]interface{}{"request": string(d)})
-		raven.CaptureError(err, nil)
+		sentry.WithScope(func(scope *sentry.Scope) {
+			sentry.CaptureException(err)
+		})
 	}
 }
 
@@ -211,13 +212,25 @@ func (p *Plugin) runner() {
 }
 
 func (p *Plugin) initSentry() error {
-	var err error
+	conf := config.GetConfig()
 
-	if enabled, _ := strconv.ParseBool(SentryEnabled); enabled {
-		err = raven.SetDSN(SentryDSN)
+	if !conf.EnableErrorReporting {
+		return nil
 	}
 
-	raven.SetTagsContext(map[string]string{"pluginComponent": "server"})
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: conf.SentryServerDSN,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetTag("pluginComponent", "server")
+	})
+
+	//raven.SetTagsContext()
 
 	return err
 }

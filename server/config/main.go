@@ -1,8 +1,11 @@
 package config
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/mattermost/mattermost-server/plugin"
 	"go.uber.org/atomic"
+	"strings"
 	"time"
 )
 
@@ -52,6 +55,9 @@ type Configuration struct {
 	WorkWeekStart           string `json:"workWeekStart"`
 	WorkWeekEnd             string `json:"workWeekEnd"`
 	PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`
+	EnableErrorReporting    bool   `json:"enableErrorReporting"`
+	SentryServerDSN         string `json:"sentryServerDSN"`
+	SentryWebappDSN         string `json:"sentryWebappDSN"`
 
 	// derived attributes
 	BotUserID string         `json:"botUserId"`
@@ -67,13 +73,45 @@ func SetConfig(c *Configuration) {
 }
 
 func (c *Configuration) ProcessConfiguration() error {
-
 	location, err := time.LoadLocation(c.TimeZone)
 	if err != nil {
 		Mattermost.LogError("Couldn't load location in time " + err.Error())
 		return err
 	}
 
+	c.SentryServerDSN = strings.TrimSpace(c.SentryServerDSN)
+
+	if c.EnableErrorReporting && len(c.SentryServerDSN) == 0 {
+		Mattermost.LogError("Sentry Server DSN cannot be empty if error reporting is enabled")
+		return errors.New("Sentry Server DSN cannot be empty if error reporting is enabled")
+	}
+
+	c.SentryWebappDSN = strings.TrimSpace(c.SentryWebappDSN)
+
+	if c.EnableErrorReporting && len(c.SentryWebappDSN) == 0 {
+		Mattermost.LogError("Sentry Webapp DSN cannot be empty if error reporting is enabled")
+		return errors.New("Sentry Webapp DSN cannot be empty if error reporting is enabled")
+	}
+
 	c.Location = location
 	return nil
+}
+
+func (c *Configuration) ToJson() []byte {
+	data, _ := json.Marshal(c)
+	return data
+}
+
+func (c *Configuration) Clone() *Configuration {
+	var clone Configuration
+	_ = json.Unmarshal(c.ToJson(), &clone)
+	return &clone
+}
+
+func (c *Configuration) Sanitize() *Configuration {
+	clone := c.Clone()
+	clone.BotUserID = ""
+	clone.Location = nil
+	clone.SentryServerDSN = ""
+	return clone
 }

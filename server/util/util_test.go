@@ -74,7 +74,7 @@ func TestGetCurrentDateString(t *testing.T) {
 		t, _ := time.Parse("02-Jan-06", "02-Jan-06")
 		return otime.OTime{t}
 	})
-	defer monkey.Unpatch(otime.Now("Asia/Kolkata"))
+	defer monkey.Unpatch(otime.Now)
 	
 	assert.Equal(t, "20060102", GetCurrentDateString("Asia/Kolkata"))
 }

@@ -8,6 +8,14 @@ async function getActiveChannels(siteURL) {
     return response.body;
 }
 
+async function getPluginConfig(siteURL) {
+    const response = await request
+        .get(`${siteURL}/${Constants.URL_PLUGIN_CONFIG}`)
+        .withCredentials();
+    return response.body;
+}
+
 module.exports = {
     getActiveChannels,
+    getPluginConfig,
 };
