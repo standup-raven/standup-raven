@@ -1,13 +1,17 @@
 package main
 
 import (
+	"io/ioutil"
+	"net/http"
+	"time"
+
 	"github.com/getsentry/sentry-go"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/migration"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
-	"io/ioutil"
-	"net/http"
-	"time"
+
+	"os"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
@@ -15,8 +19,6 @@ import (
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller"
 	"github.com/standup-raven/standup-raven/server/util"
-	"os"
-	"path/filepath"
 )
 
 var SentryEnabled string
@@ -30,6 +32,7 @@ type Plugin struct {
 }
 
 func (p *Plugin) OnActivate() error {
+
 	config.Mattermost = p.API
 
 	if err := p.OnConfigurationChange(); err != nil {

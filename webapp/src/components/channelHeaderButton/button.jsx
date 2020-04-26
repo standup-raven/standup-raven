@@ -49,6 +49,7 @@ class ChannelHeaderButtonIcon extends React.Component {
     getInitialState = () => {
         return {
             activeChannels: {},
+            parent: undefined,
         };
     };
 
@@ -60,12 +61,25 @@ class ChannelHeaderButtonIcon extends React.Component {
         }
     }
 
+    isChannelHeaderButtonInDropdown = () => {
+        const classList = this.state.parent.parentNode.parentNode.parentNode.parentNode.classList;
+        return classList.contains('dropdown') && classList.contains('btn-group');
+    }
+
+    getIconParentToHide = () => {
+        if (this.isChannelHeaderButtonInDropdown()) {
+            return this.state.parent.parentNode.parentNode;
+        }
+        return this.state.parent;
+    }
+
     render() {
         if (this.state.parent) {
+            const targetParent = this.getIconParentToHide();
             if (this.state.activeChannels[this.props.channelID]) {
-                this.state.parent.classList.remove('hidden');
+                targetParent.classList.remove('hidden');
             } else {
-                this.state.parent.classList.add('hidden');
+                targetParent.classList.add('hidden');
             }
         }
 
