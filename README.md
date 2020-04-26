@@ -97,7 +97,7 @@ The generated standup contains names of members who have yet not filled their st
 ## Reporting Security Vulnerabilities
 
 Due to the sensitive nature of such vulnerabilities, please refrain from posting them publically
-over Github issues or any other medium.
+over GitHub issues or any other medium.
 
 Be responsible and report them to raven@joshtechnologygroup.com .
 
