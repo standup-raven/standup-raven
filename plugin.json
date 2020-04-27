@@ -1,6 +1,6 @@
 {
   "id": "standup-raven",
-  "version": "2.6.0",
+  "version": "2.5.1",
   "name": "Standup Raven",
   "description": "A Mattermost plugin for communicating daily standups across teams",
   "homepage_url": "https://standup-raven.github.io/",
