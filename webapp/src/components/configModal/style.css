@@ -3,3 +3,7 @@
         transform: scale(1.2);
     }
 }
+
+.standup-config-tab {
+  padding: 12px;
+}

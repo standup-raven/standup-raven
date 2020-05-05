@@ -62,7 +62,7 @@ check-style: check-style-server check-style-webapp
 
 check-style-webapp: .npminstall
 	@echo Checking for style guide compliance
-	cd webapp && npm run lint
+	cd webapp && yarn run lint
 
 check-style-server:
 	@echo Running GOFMT
@@ -83,7 +83,7 @@ check-style-server:
 	
 fix-style: check-style-server
 	@echo Checking for style guide compliance
-	cd webapp && npm run fix
+	cd webapp && yarn run fix
 	
 test-server: vendor
 	@echo Running server tests
@@ -97,7 +97,7 @@ cover: test-server
 .npminstall: webapp/package-lock.json
 	@echo Getting dependencies using npm
 
-	cd webapp && npm install
+	cd webapp && yarn install
 
 vendor: server/glide.lock
 	cd server && go get github.com/Masterminds/glide
@@ -115,7 +115,7 @@ doquickdist:
 	@echo Quick building plugin
 
 	# Build and copy files from webapp
-	cd webapp && npm run build
+	cd webapp && yarn run build
 	mkdir -p dist/$(PLUGINNAME)/webapp
 	cp -r webapp/dist/* dist/$(PLUGINNAME)/webapp/
 
