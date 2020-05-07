@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/standup-raven/standup-raven/server/otime"
 	"go.uber.org/atomic"
 	"strings"
 	"time"
@@ -50,14 +51,21 @@ var (
 	ReportFormats = []string{ReportFormatUserAggregated, ReportFormatTypeAggregated}
 )
 
+type Recurence struct {
+	StartDate otime.OTime
+	RRule string
+}
+
 type Configuration struct {
 	TimeZone                string `json:"timeZone"`
-	WorkWeekStart           string `json:"workWeekStart"`
-	WorkWeekEnd             string `json:"workWeekEnd"`
+	WorkWeekStart           string `json:"workWeekStart"` // TODO remove this in favour of rrule
+	WorkWeekEnd             string `json:"workWeekEnd"` // TODO remove this in favour of rrule
 	PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`
 	EnableErrorReporting    bool   `json:"enableErrorReporting"`
 	SentryServerDSN         string `json:"sentryServerDSN"`
 	SentryWebappDSN         string `json:"sentryWebappDSN"`
+	
+	
 
 	// derived attributes
 	BotUserID string         `json:"botUserId"`

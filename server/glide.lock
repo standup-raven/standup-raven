@@ -1,5 +1,5 @@
-hash: d8fd9db0e84dba1360405c6986142a1ffe19b61cee2f88057d49991c44dbcbb7
-updated: 2020-04-17T22:12:37.076432+05:30
+hash: f031bdf62ab385607d151e4f8d107a1eb5db659097593a8acefba11b2b65b039
+updated: 2020-05-06T07:49:09.771228+05:30
 imports:
 - name: bou.ke/monkey
   version: c597d8a6b9a52e9f7521b7e8913453b4745820f7
@@ -79,6 +79,8 @@ imports:
   - assert
   - mock
   - require
+- name: github.com/teambition/rrule-go
+  version: c4b1bf2c7bbb37a14f9614eaf0b5d764fc173269
 - name: github.com/thoas/go-funk
   version: 4dfafc7efb503e26f6d3233c0e519efcd1606959
 - name: go.uber.org/atomic
@@ -98,10 +100,6 @@ imports:
   subpackages:
   - bcrypt
   - blowfish
-- name: golang.org/x/lint
-  version: fdd1cda4f05fd1fd86124f0ef9ce31a0b72c8448
-  subpackages:
-  - golint
 - name: golang.org/x/net
   version: aaf60122140d3fcf75376d319f0554393160eb50
   subpackages:
@@ -129,12 +127,6 @@ imports:
   - transform
   - unicode/bidi
   - unicode/norm
-- name: golang.org/x/tools
-  version: ecd32218bd7f33fd31c1abbfb74283690bedd093
-  subpackages:
-  - go/ast/astutil
-  - go/gcexportdata
-  - go/internal/gcimporter
 - name: google.golang.org/genproto
   version: c66870c02cf823ceb633bcd05be3c7cda29976f4
   subpackages:

@@ -46,7 +46,7 @@ class RRule extends React.PureComponent {
             rrule: rrule,
         });
 
-        this.sendChanges();
+        this.sendChanges(rrule, this.state.startDate);
     };
 
     startDateChangeHandler = (isoDate) => {
@@ -54,11 +54,11 @@ class RRule extends React.PureComponent {
             startDate: isoDate,
         });
 
-        this.sendChanges();
+        this.sendChanges(this.state.rrule, isoDate);
     };
 
-    sendChanges = () => {
-        this.props.onChange(this.state.rrule, this.state.startDate);
+    sendChanges = (rrule, startaDate) => {
+        this.props.onChange(rrule, startaDate);
     };
 
     render() {
