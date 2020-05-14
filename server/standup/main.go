@@ -63,6 +63,8 @@ type StandupConfig struct {
 	WindowOpenReminderEnabled  bool        `json:"windowOpenReminderEnabled"`
 	WindowCloseReminderEnabled bool        `json:"windowCloseReminderEnabled"`
 	ScheduleEnabled            bool        `json:"scheduleEnabled"`
+	RRule                      string      `json:"rrule"`
+	StartDate                  time.Time   `json:"startDate"`
 }
 
 func (sc *StandupConfig) IsValid() error {

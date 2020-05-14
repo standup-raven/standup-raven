@@ -40,6 +40,10 @@ class RRule extends React.PureComponent {
         };
     }
 
+    componentDidMount() {
+        this.sendChanges(this.state.rrule, this.state.startDate);
+    }
+
     rruleChangeHandler = (rrule) => {
         console.log(rrule);
         this.setState({
@@ -58,7 +62,7 @@ class RRule extends React.PureComponent {
     };
 
     sendChanges = (rrule, startaDate) => {
-        this.props.onChange(rrule, startaDate);
+        this.props.onChange(rrule.replace('RRULE:', ''), startaDate);
     };
 
     render() {
@@ -81,8 +85,13 @@ class RRule extends React.PureComponent {
                 </FormGroup>
                 <FormGroup style={style.formGroup}>
                     <RRuleGenerator
+                        config={{
+                            hideStart: true,
+                            hideEnd: true,
+                        }}  
                         onChange={this.rruleChangeHandler}
                         value={this.state.rrule}
+                        customCalendar={DatePicker}
                     />
                 </FormGroup>
             </div>

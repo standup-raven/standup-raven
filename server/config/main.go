@@ -102,6 +102,7 @@ func (c *Configuration) ProcessConfiguration() error {
 	}
 
 	c.Location = location
+	otime.DefaultLocation = location
 	return nil
 }
 

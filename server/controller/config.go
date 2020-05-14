@@ -2,6 +2,9 @@ package controller
 
 import (
 	"encoding/json"
+	"net/http"
+	"strings"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
 	"github.com/standup-raven/standup-raven/server/config"
@@ -9,8 +12,6 @@ import (
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
-	"net/http"
-	"strings"
 )
 
 var getConfig = &Endpoint{
@@ -165,6 +166,7 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// TODO add migration for default values for start date and rrule
 func executeGetDefaultTimezone(w http.ResponseWriter, r *http.Request) error {
 	timezone := config.GetConfig().TimeZone
 
