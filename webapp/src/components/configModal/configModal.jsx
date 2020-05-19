@@ -81,7 +81,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             recurrence: {
                 rrule: undefined,
                 startDate: undefined,
-            }
+            },
         };
     };
 
@@ -115,7 +115,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     };
 
     handleTimezoneChange = (timezone) => {
-        this.setState({ timezone });
+        this.setState({timezone});
     };
 
     handleWindowCloseReminderChange = () => {
@@ -152,7 +152,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             sections.push(
                 <FormGroup
                     key={i.toString()}
-                    style={{ ...style.formGroup, ...style.sections }}
+                    style={{...style.formGroup, ...style.sections}}
                 >
                     <InputGroup>
                         <InputGroup.Addon>{(i + 1) + '.'}</InputGroup.Addon>
@@ -171,7 +171,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     };
 
     handleSectionChange = (e) => {
-        const sections = { ...this.state.sections };
+        const sections = {...this.state.sections};
         sections[e.target.name] = e.target.value;
         this.setState({
             sections,
@@ -182,10 +182,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         if (this.props.visible !== prevProp.visible && this.props.visible) {
             this.getStandupConfig()
                 .then(() => {
-                    this.setState({ showSpinner: false });
+                    this.setState({showSpinner: false});
                 })
                 .catch(() => {
-                    this.setState({ showSpinner: false });
+                    this.setState({showSpinner: false});
                 });
         }
     }
@@ -343,7 +343,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         const errorMessage =
             (<span>
                 <span style={style.standupErrorMessage}>{standupErrorMessage}</span>
-                <br /><br />
+                <br/><br/>
                 <span>{standupErrorSubMessage}</span>
             </span>);
 
@@ -372,12 +372,15 @@ class ConfigModal extends (SentryBoundary, React.Component) {
 
                     <div hidden={this.state.showSpinner || !this.state.hasPermission || showStandupError}>
                         <Tabs id={'standup-config-tabs'}>
-                            <Tab eventKey={1} title={'General'}>
+                            <Tab
+                                eventKey={1}
+                                title={'General'}
+                            >
                                 <FormGroup style={style.formGroup}>
                                     <ControlLabel style={style.controlLabel}>
                                         {'Status:'}
                                     </ControlLabel>
-                                    <ControlLabel />
+                                    <ControlLabel/>
                                     <ToggleSwitch
                                         onChange={this.handleStatusChange}
                                         checked={this.state.enabled}
@@ -397,7 +400,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                         <MenuItem eventKey={'type_aggregated'}>{'Type Aggregated'}</MenuItem>
                                     </SplitButton>
                                 </FormGroup>
-                                <FormGroup style={{ ...style.formGroup, ...style.formGroupNoMarginBottom }}>
+                                <FormGroup style={{...style.formGroup, ...style.formGroupNoMarginBottom}}>
                                     <ControlLabel style={style.controlLabel}>{'Sections:'}</ControlLabel>
                                 </FormGroup>
 
@@ -405,7 +408,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                     {this.generateSections(this.handleSectionChange)}
                                 </div>
                             </Tab>
-                            <Tab eventKey={2} title={'Notifications'}>
+                            <Tab
+                                eventKey={2}
+                                title={'Notifications'}
+                            >
                                 <FormGroup style={style.formGroup}>
                                     <ControlLabel style={style.controlLabel}>
                                         {'Window Open Reminder:'}
@@ -437,7 +443,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                     />
                                 </FormGroup>
                             </Tab>
-                            <Tab eventKey={3} title={'Schedule'}>
+                            <Tab
+                                eventKey={3}
+                                title={'Schedule'}
+                            >
                                 <FormGroup style={style.formGroup}>
                                     <ControlLabel style={style.controlLabel}>
                                         {'Window Time:'}

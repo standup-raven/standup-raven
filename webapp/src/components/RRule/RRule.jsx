@@ -47,7 +47,7 @@ class RRule extends React.PureComponent {
     rruleChangeHandler = (rrule) => {
         console.log(rrule);
         this.setState({
-            rrule: rrule,
+            rrule,
         });
 
         this.sendChanges(rrule, this.state.startDate);
@@ -66,12 +66,12 @@ class RRule extends React.PureComponent {
     };
 
     render() {
-        const style = configModalStyles.getStyle();
+        const reactStyles = configModalStyles.getStyle();
 
         return (
             <div>
-                <FormGroup style={style.formGroup}>
-                    <ControlLabel style={style.controlLabel}>
+                <FormGroup style={reactStyles.formGroup}>
+                    <ControlLabel style={reactStyles.controlLabel}>
                         {'Start Date:'}
                     </ControlLabel>
                     {/*TODO add local formatted date in value*/}
@@ -83,12 +83,12 @@ class RRule extends React.PureComponent {
                         />
                     </div>
                 </FormGroup>
-                <FormGroup style={style.formGroup}>
+                <FormGroup style={reactStyles.formGroup}>
                     <RRuleGenerator
                         config={{
                             hideStart: true,
                             hideEnd: true,
-                        }}  
+                        }}
                         onChange={this.rruleChangeHandler}
                         value={this.state.rrule}
                         customCalendar={DatePicker}
@@ -99,7 +99,7 @@ class RRule extends React.PureComponent {
     }
 }
 
-RRule.PropTypes = {
+RRule.propTypes = {
     rrule: PropTypes.string,
     startDate: PropTypes.string,
     onChange: PropTypes.func.isRequired,

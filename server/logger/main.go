@@ -41,7 +41,7 @@ func Error(msg string, err error, extraData map[string]interface{}) {
 		if err != nil {
 			errMsg += " " + err.Error()
 		}
-		
+
 		if extraData != nil {
 			errMsg += fmt.Sprintf("%v", extraData)
 		}

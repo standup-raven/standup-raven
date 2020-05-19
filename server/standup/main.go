@@ -65,8 +65,8 @@ type StandupConfig struct {
 	WindowCloseReminderEnabled bool        `json:"windowCloseReminderEnabled"`
 	ScheduleEnabled            bool        `json:"scheduleEnabled"`
 	RRule                      rrule.RRule `json:"rrule"`
-	RRuleString string    `json:"rruleString"`
-	StartDate   time.Time `json:"startDate"`
+	RRuleString                string      `json:"rruleString"`
+	StartDate                  time.Time   `json:"startDate"`
 }
 
 func (sc *StandupConfig) IsValid() error {
@@ -145,12 +145,12 @@ func (sc *StandupConfig) PreSave() error {
 		0,
 		location,
 	)
-	
+
 	// parse rrule
 	rruleOptions, err := rrule.StrToROption(sc.RRuleString)
 	if err != nil {
 		logger.Error("unable to parse rrule string ini standup config pre-save", err, map[string]interface{}{
-			"rrule": sc.RRuleString,
+			"rrule":     sc.RRuleString,
 			"channelID": sc.ChannelId,
 		})
 		return err
@@ -159,12 +159,12 @@ func (sc *StandupConfig) PreSave() error {
 	rrule, err := rrule.NewRRule(*rruleOptions)
 	if err != nil {
 		logger.Error("unable to create new rrule from options", err, map[string]interface{}{
-			"rrule": sc.RRuleString,
+			"rrule":     sc.RRuleString,
 			"channelID": sc.ChannelId,
 		})
 		return err
 	}
-	
+
 	rrule.DTStart(sc.StartDate)
 
 	return nil

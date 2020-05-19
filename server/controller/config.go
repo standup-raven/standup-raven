@@ -98,7 +98,7 @@ func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 
 // TODO add migration for default values for start date and rrule
 func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
-	// get config data from body 
+	// get config data from body
 	decoder := json.NewDecoder(r.Body)
 	conf := &standup.StandupConfig{}
 	if err := decoder.Decode(&conf); err != nil {
@@ -110,7 +110,7 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	userID := r.Header.Get(config.HeaderMattermostUserId)
 	channelID := conf.ChannelId
 
-	// if permission schema is enabled, 
+	// if permission schema is enabled,
 	// verify if user is an effective channel admin
 	if config.GetConfig().PermissionSchemaEnabled {
 		isAdmin, appErr := isEffectiveAdmin(userID, channelID)
@@ -131,7 +131,7 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return err
 	}
-	
+
 	if err := conf.IsValid(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return err
