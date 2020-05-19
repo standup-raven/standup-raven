@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/teambition/rrule-go"
 	"strconv"
 	"strings"
 	"time"
@@ -63,8 +64,9 @@ type StandupConfig struct {
 	WindowOpenReminderEnabled  bool        `json:"windowOpenReminderEnabled"`
 	WindowCloseReminderEnabled bool        `json:"windowCloseReminderEnabled"`
 	ScheduleEnabled            bool        `json:"scheduleEnabled"`
-	RRule                      string      `json:"rrule"`
-	StartDate                  time.Time   `json:"startDate"`
+	RRule                      rrule.RRule `json:"rrule"`
+	RRuleString string    `json:"rruleString"`
+	StartDate   time.Time `json:"startDate"`
 }
 
 func (sc *StandupConfig) IsValid() error {
@@ -122,6 +124,50 @@ func (sc *StandupConfig) IsValid() error {
 func (sc *StandupConfig) ToJson() string {
 	b, _ := json.Marshal(sc)
 	return string(b)
+}
+
+func (sc *StandupConfig) PreSave() error {
+	// parse location
+	location, err := time.LoadLocation(sc.Timezone)
+	if err != nil {
+		logger.Error("Unable to parse standup location", err, map[string]interface{}{"location": sc.Timezone})
+		return err
+	}
+
+	// remove time from start date
+	sc.StartDate = time.Date(
+		sc.StartDate.Year(),
+		sc.StartDate.Month(),
+		sc.StartDate.Day(),
+		0,
+		0,
+		0,
+		0,
+		location,
+	)
+	
+	// parse rrule
+	rruleOptions, err := rrule.StrToROption(sc.RRuleString)
+	if err != nil {
+		logger.Error("unable to parse rrule string ini standup config pre-save", err, map[string]interface{}{
+			"rrule": sc.RRuleString,
+			"channelID": sc.ChannelId,
+		})
+		return err
+	}
+
+	rrule, err := rrule.NewRRule(*rruleOptions)
+	if err != nil {
+		logger.Error("unable to create new rrule from options", err, map[string]interface{}{
+			"rrule": sc.RRuleString,
+			"channelID": sc.ChannelId,
+		})
+		return err
+	}
+	
+	rrule.DTStart(sc.StartDate)
+
+	return nil
 }
 
 // GenerateScheduleString generates a user-friendly, string representation of standup schedule.

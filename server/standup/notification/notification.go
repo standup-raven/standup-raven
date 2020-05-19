@@ -43,6 +43,7 @@ func SendNotificationsAndReports() error {
 		return err
 	}
 
+	// TODO remove this after RRULE
 	channels, err := channelsWorkDay(channelIDs)
 	if err != nil {
 		return err
