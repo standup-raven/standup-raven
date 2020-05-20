@@ -2,6 +2,8 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/standup-raven/standup-raven/server/standup/notification"
 	"net/http"
 	"strings"
 
@@ -170,6 +172,8 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 			UserId: r.Header.Get(config.HeaderMattermostUserId),
 		},
 	)
+
+	fmt.Println(notification.IsStandupDay(conf))
 
 	return nil
 }
