@@ -64,7 +64,7 @@ type StandupConfig struct {
 	WindowOpenReminderEnabled  bool        `json:"windowOpenReminderEnabled"`
 	WindowCloseReminderEnabled bool        `json:"windowCloseReminderEnabled"`
 	ScheduleEnabled            bool        `json:"scheduleEnabled"`
-	RRule                      rrule.RRule `json:"rrule"`
+	RRule                      *rrule.RRule `json:"rrule"`
 	RRuleString                string      `json:"rruleString"`
 	StartDate                  time.Time   `json:"startDate"`
 }
@@ -156,7 +156,7 @@ func (sc *StandupConfig) PreSave() error {
 		return err
 	}
 
-	rrule, err := rrule.NewRRule(*rruleOptions)
+	sc.RRule, err = rrule.NewRRule(*rruleOptions)
 	if err != nil {
 		logger.Error("unable to create new rrule from options", err, map[string]interface{}{
 			"rrule":     sc.RRuleString,
@@ -165,7 +165,7 @@ func (sc *StandupConfig) PreSave() error {
 		return err
 	}
 
-	rrule.DTStart(sc.StartDate)
+	sc.RRule.DTStart(sc.StartDate)
 
 	return nil
 }

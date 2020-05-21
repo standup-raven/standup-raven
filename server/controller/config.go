@@ -139,7 +139,15 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	conf, err := standup.SaveStandupConfig(conf)
+	json, err := json.Marshal(conf)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(string(json))
+	}
+	
+	
+	conf, err = standup.SaveStandupConfig(conf)
 	if err != nil {
 		http.Error(w, "Error occurred while saving standup conf", http.StatusInternalServerError)
 		return err
