@@ -5,6 +5,7 @@ import rruleStyles from 'react-rrule-generator/build/styles.css';
 import {ControlLabel, FormGroup} from 'react-bootstrap';
 import configModalStyles from '../configModal/style';
 import style from './style.css';
+import reactStyles from './style';
 
 import DatePicker from 'react-16-bootstrap-date-picker';
 
@@ -12,6 +13,7 @@ class RRule extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = RRule.getInitialState();
+        this.configModalReactStyles = configModalStyles.getStyle();
 
         // eslint-disable-next-line no-unused-vars
         const x = rruleStyles;
@@ -66,24 +68,30 @@ class RRule extends React.PureComponent {
     };
 
     render() {
-        const reactStyles = configModalStyles.getStyle();
-
         return (
             <div>
-                <FormGroup style={reactStyles.formGroup}>
-                    <ControlLabel style={reactStyles.controlLabel}>
+                <FormGroup style={this.configModalReactStyles.formGroup}>
+                    <ControlLabel style={this.configModalReactStyles.controlLabel}>
                         {'Start Date:'}
                     </ControlLabel>
                     {/*TODO add local formatted date in value*/}
-                    <div className={'recurrence-start-date'}>
+                    <div
+                        className={'recurrence-start-date'}
+                        style={reactStyles.getStyle().recurrenceDatepicker}
+                    >
                         <DatePicker
                             id={'recurrence-start-date-picker'}
                             value={this.state.startDate}
                             onChange={this.startDateChangeHandler}
+                            showClearButton={false}
+                            style={{width: '60%'}}
                         />
                     </div>
                 </FormGroup>
-                <FormGroup style={reactStyles.formGroup}>
+                <FormGroup
+                    style={this.configModalReactStyles.formGroup}
+                    className={'standup-recurrence'}
+                >
                     <RRuleGenerator
                         config={{
                             hideStart: true,

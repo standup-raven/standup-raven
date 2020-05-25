@@ -44,12 +44,12 @@ func SendNotificationsAndReports() error {
 	}
 
 	// TODO remove this after RRULE
-	channels, err := channelsWorkDay(channelIDs)
-	if err != nil {
-		return err
-	}
+	//channels, err := channelsWorkDay(channelIDs)
+	//if err != nil {
+	//	return err
+	//}
 
-	a, b, c, err := filterChannelNotification(channels)
+	a, b, c, err := filterChannelNotification(channelIDs)
 	if err != nil {
 		return err
 	}
@@ -294,12 +294,6 @@ func filterChannelNotification(channelIDs map[string]string) ([]string, []string
 	for channelID := range channelIDs {
 		logger.Debug(fmt.Sprintf("Processing channel: %s", channelID), nil)
 
-		notificationStatus, err := GetNotificationStatus(channelID)
-		if err != nil {
-			logger.Error("A", err, nil)
-			return nil, nil, nil, err
-		}
-
 		standupConfig, err := standup.GetStandupConfig(channelID)
 		if err != nil {
 			logger.Error("B", err, nil)
@@ -314,11 +308,16 @@ func filterChannelNotification(channelIDs map[string]string) ([]string, []string
 		if !standupConfig.Enabled {
 			continue
 		}
-
-		logger.Debug("##########################", nil, nil)
-		standupDay := IsStandupDay(standupConfig)
-		logger.Debug(fmt.Sprintf("Standup config: %t", standupDay), nil, nil)
-		logger.Debug("##########################", nil, nil)
+		
+		if !isStandupDay(standupConfig) {
+			continue
+		}
+		
+		notificationStatus, err := GetNotificationStatus(channelID)
+		if err != nil {
+			logger.Error("A", err, nil)
+			return nil, nil, nil, err
+		}
 
 		// we check in opposite order of time and check for just one notification to send.
 		// This prevents expired notifications from being sent in case some of
@@ -726,7 +725,7 @@ func deleteReminderPosts(channelID string) error {
 	return nil
 }
 
-func IsStandupDay(standupConfig *standup.StandupConfig) bool {
+func isStandupDay(standupConfig *standup.StandupConfig) bool {
 	logger.Debug("C", nil, nil)
 	todayOtime := otime.Now(standupConfig.Timezone)
 	logger.Debug("D", nil, nil)
@@ -741,7 +740,7 @@ func IsStandupDay(standupConfig *standup.StandupConfig) bool {
 	standupConfig.PreSave()
 	logger.Debug(fmt.Sprintf("%v", standupConfig.RRule), nil, nil)
 	
-	rruleDays := standupConfig.RRule.Between(oneMinAfterToday, oneMinBeforeToday, false)
+	rruleDays := standupConfig.RRule.Between(oneMinBeforeToday, oneMinAfterToday, false)
 	logger.Debug("H", nil, nil)
 	logger.Info(fmt.Sprintf("Rrule days: %v", rruleDays), nil, nil)
 	logger.Debug("I", nil, nil)

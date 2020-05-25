@@ -4558,10 +4558,9 @@ react-redux@5.0.7:
     loose-envify "^1.1.0"
     prop-types "^15.6.0"
 
-react-rrule-generator@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/react-rrule-generator/-/react-rrule-generator-1.2.0.tgz#66402b044c67d1b6a6a4536bc72f78d22e0e0d07"
-  integrity sha512-6gBsrbfGaShZ+a8ASOqHwRr8aM/Yfmo5cfQaCEDHd7vU7PRLt7Te/cQl+4r56uvDQihNJaKBXU65DY2oKjqq0w==
+"react-rrule-generator@link:/Users/harshilsharma/codebase/personal/react-rrule-generator":
+  version "0.0.0"
+  uid ""
 
 react-switch@^5.0.0:
   version "5.0.1"
