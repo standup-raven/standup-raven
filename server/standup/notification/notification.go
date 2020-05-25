@@ -308,11 +308,11 @@ func filterChannelNotification(channelIDs map[string]string) ([]string, []string
 		if !standupConfig.Enabled {
 			continue
 		}
-		
+
 		if !isStandupDay(standupConfig) {
 			continue
 		}
-		
+
 		notificationStatus, err := GetNotificationStatus(channelID)
 		if err != nil {
 			logger.Error("A", err, nil)
@@ -731,7 +731,7 @@ func isStandupDay(standupConfig *standup.StandupConfig) bool {
 	logger.Debug("D", nil, nil)
 	today := time.Date(todayOtime.Year(), todayOtime.Month(), todayOtime.Day(), 0, 0, 0, 0, todayOtime.Location())
 	logger.Debug("E", nil, nil)
-	
+
 	oneMinBeforeToday := today.Add(-1 * time.Minute)
 	logger.Debug("F", nil, nil)
 	oneMinAfterToday := today.Add(24 * time.Hour).Add(1 * time.Minute)
@@ -739,14 +739,13 @@ func isStandupDay(standupConfig *standup.StandupConfig) bool {
 	logger.Debug(fmt.Sprintf("%v", standupConfig.RRule), nil, nil)
 	standupConfig.PreSave()
 	logger.Debug(fmt.Sprintf("%v", standupConfig.RRule), nil, nil)
-	
+
 	rruleDays := standupConfig.RRule.Between(oneMinBeforeToday, oneMinAfterToday, false)
 	logger.Debug("H", nil, nil)
 	logger.Info(fmt.Sprintf("Rrule days: %v", rruleDays), nil, nil)
 	logger.Debug("I", nil, nil)
 	logger.Info(fmt.Sprintf("Is rrule day: %t", len(rruleDays) > 0), nil, nil)
 	logger.Debug("J", nil, nil)
-	
-	
+
 	return len(rruleDays) > 0
 }

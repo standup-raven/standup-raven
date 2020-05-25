@@ -144,8 +144,7 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	} else {
 		fmt.Println(string(json))
 	}
-	
-	
+
 	conf, err = standup.SaveStandupConfig(conf)
 	if err != nil {
 		http.Error(w, "Error occurred while saving standup conf", http.StatusInternalServerError)
