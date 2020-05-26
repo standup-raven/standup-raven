@@ -20,7 +20,7 @@ import SentryBoundary from '../../SentryBoundary';
 import * as HttpStatus from 'http-status-codes';
 import ToggleSwitch from '../toggleSwitch';
 import Cookies from 'js-cookie';
-import RRule from '../RRule';
+import RRule from '../rRule';
 
 const configModalCloseTimeout = 1000;
 const timezones = require('../../../../timezones.json');
@@ -78,10 +78,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             timezone: '',
             scheduleEnabled: false,
             schedule: '',
-            recurrence: {
-                rrule: undefined,
-                startDate: undefined,
-            },
+            rruleString: '',
+            startDate: new Date().toISOString(),
         };
     };
 
@@ -136,9 +134,9 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         });
     };
 
-    handleRecurrenceChange = (rrule, startDate) => {
+    handleRecurrenceChange = (rruleString, startDate) => {
         this.setState({
-            rrule,
+            rruleString,
             startDate,
         });
     }
@@ -213,6 +211,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             windowCloseReminderEnabled: standupConfig.windowCloseReminderEnabled,
                             scheduleEnabled: standupConfig.scheduleEnabled,
                             schedule: standupConfig.schedule,
+                            rruleString: standupConfig.rruleString,
+                            startDate: standupConfig.startDate,
                         };
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
@@ -476,8 +476,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 </FormGroup>
                                 <FormGroup>
                                     <RRule
-                                        startDate={this.state.recurrence.startDate}
-                                        rrule={this.state.recurrence.rrule}
+                                        startDate={this.state.startDate}
+                                        rrule={this.state.rruleString}
                                         onChange={this.handleRecurrenceChange}
                                     />
                                 </FormGroup>

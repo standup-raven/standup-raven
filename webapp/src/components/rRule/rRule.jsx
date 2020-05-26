@@ -96,6 +96,7 @@ class RRule extends React.PureComponent {
                         config={{
                             hideStart: true,
                             hideEnd: true,
+                            frequency: ['Monthly', 'Weekly', 'Daily'],
                         }}
                         onChange={this.rruleChangeHandler}
                         value={this.state.rrule}

@@ -734,7 +734,7 @@ func isStandupDay(standupConfig *standup.StandupConfig) bool {
 
 	oneMinBeforeToday := today.Add(-1 * time.Minute)
 	logger.Debug("F", nil, nil)
-	oneMinAfterToday := today.Add(24 * time.Hour).Add(1 * time.Minute)
+	oneMinAfterToday := today.Add(24 * time.Hour)
 	logger.Debug("G", nil, nil)
 	logger.Debug(fmt.Sprintf("%v", standupConfig.RRule), nil, nil)
 	standupConfig.PreSave()
