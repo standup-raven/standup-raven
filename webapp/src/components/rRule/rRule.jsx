@@ -22,6 +22,10 @@ class RRule extends React.PureComponent {
         const y = style;
     }
 
+    get frequencies() {
+        return ['Monthly', 'Weekly'];
+    }
+
     static getInitialState = () => {
         return {
             rrule: 'RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR',
@@ -96,7 +100,7 @@ class RRule extends React.PureComponent {
                         config={{
                             hideStart: true,
                             hideEnd: true,
-                            frequency: ['Monthly', 'Weekly', 'Daily'],
+                            repeat: this.frequencies,
                         }}
                         onChange={this.rruleChangeHandler}
                         value={this.state.rrule}

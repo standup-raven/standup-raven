@@ -111,13 +111,18 @@ func (sc *StandupConfig) IsValid() error {
 	}
 
 	if duplicateSection, hasDuplicate := util.ContainsDuplicates(&sc.Sections); hasDuplicate {
-		return errors.New("duplicate sections are not allowed. Contains duplicate section '" + duplicateSection + "'")
+		return errors.New("Duplicate sections are not allowed. Contains duplicate section '" + duplicateSection + "'")
 	}
 
 	if duplicateMember, hasDuplicate := util.ContainsDuplicates(&sc.Members); hasDuplicate {
-		return errors.New("duplicate members are not allowed. Contains duplicate member '" + duplicateMember + "'")
+		return errors.New("Duplicate members are not allowed. Contains duplicate member '" + duplicateMember + "'")
 	}
-
+	
+	if sc.RRule.Freq == rrule.WEEKLY && (sc.RRule.OrigOptions.Byweekday == nil || len(sc.RRule.OrigOptions.Byweekday) == 0) {
+		return errors.New("At least one day must be selected for weekly standup.")
+	}
+	
+ 
 	return nil
 }
 
@@ -149,7 +154,7 @@ func (sc *StandupConfig) PreSave() error {
 	// parse rrule
 	rruleOptions, err := rrule.StrToROption(sc.RRuleString)
 	if err != nil {
-		logger.Error("unable to parse rrule string ini standup config pre-save", err, map[string]interface{}{
+		logger.Error("unable to parse rrule string in standup config pre-save", err, map[string]interface{}{
 			"rrule":     sc.RRuleString,
 			"channelID": sc.ChannelId,
 		})

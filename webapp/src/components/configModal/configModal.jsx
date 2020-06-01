@@ -263,7 +263,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             windowCloseReminderEnabled: this.state.windowCloseReminderEnabled,
             windowOpenReminderEnabled: this.state.windowOpenReminderEnabled,
             scheduleEnabled: this.state.scheduleEnabled,
-            rruleString: this.state.rrule,
+            rruleString: this.state.rruleString,
             startDate: this.state.startDate,
         };
     }
@@ -378,7 +378,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             >
                                 <FormGroup style={style.formGroup}>
                                     <ControlLabel style={style.controlLabel}>
-                                        {'Status:'}
+                                        {'Enabled:'}
                                     </ControlLabel>
                                     <ControlLabel/>
                                     <ToggleSwitch
