@@ -58,8 +58,6 @@ type Recurence struct {
 
 type Configuration struct {
 	TimeZone                string `json:"timeZone"`
-	WorkWeekStart           string `json:"workWeekStart"` // TODO remove this in favour of rrule
-	WorkWeekEnd             string `json:"workWeekEnd"`   // TODO remove this in favour of rrule
 	PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`
 	EnableErrorReporting    bool   `json:"enableErrorReporting"`
 	SentryServerDSN         string `json:"sentryServerDSN"`

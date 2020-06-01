@@ -43,12 +43,6 @@ func SendNotificationsAndReports() error {
 		return err
 	}
 
-	// TODO remove this after RRULE
-	//channels, err := channelsWorkDay(channelIDs)
-	//if err != nil {
-	//	return err
-	//}
-
 	a, b, c, err := filterChannelNotification(channelIDs)
 	if err != nil {
 		return err
@@ -80,26 +74,6 @@ func sendAllStandupReport(channelIDs []string) error {
 		}
 	}
 	return nil
-}
-
-//channelsWorkDay return channels that have working day today
-func channelsWorkDay(channels map[string]string) (map[string]string, error) {
-	channelIDs := map[string]string{}
-	for channelID := range channels {
-		standupConfig, err := standup.GetStandupConfig(channelID)
-		if err != nil {
-			return nil, err
-		}
-		if standupConfig == nil {
-			continue
-		}
-
-		// don't send notifications if it's not a work week.
-		if isWorkDay(standupConfig.Timezone) {
-			channelIDs[channelID] = channelID
-		}
-	}
-	return channelIDs, nil
 }
 
 // GetNotificationStatus gets the notification status for specified channel
@@ -629,20 +603,6 @@ func generateUserAggregatedStandupReport(
 	}, nil
 }
 
-func isWorkDay(timezone string) bool {
-	conf := config.GetConfig()
-	dayOfWeek := int(otime.Now(timezone).Time.Weekday())
-
-	workWeekStart, _ := strconv.Atoi(conf.WorkWeekStart)
-	workWeekEnd, _ := strconv.Atoi(conf.WorkWeekEnd)
-
-	if workWeekStart < workWeekEnd {
-		return workWeekStart <= dayOfWeek && dayOfWeek <= workWeekEnd
-	} else {
-		return dayOfWeek >= workWeekStart || dayOfWeek <= workWeekEnd
-	}
-}
-
 func getUserDisplayName(userID string) (string, error) {
 	user, appErr := config.Mattermost.GetUser(userID)
 	if appErr != nil {
@@ -726,26 +686,13 @@ func deleteReminderPosts(channelID string) error {
 }
 
 func isStandupDay(standupConfig *standup.StandupConfig) bool {
-	logger.Debug("C", nil, nil)
 	todayOtime := otime.Now(standupConfig.Timezone)
-	logger.Debug("D", nil, nil)
 	today := time.Date(todayOtime.Year(), todayOtime.Month(), todayOtime.Day(), 0, 0, 0, 0, todayOtime.Location())
-	logger.Debug("E", nil, nil)
-
+	
 	oneMinBeforeToday := today.Add(-1 * time.Minute)
-	logger.Debug("F", nil, nil)
 	oneMinAfterToday := today.Add(24 * time.Hour)
-	logger.Debug("G", nil, nil)
-	logger.Debug(fmt.Sprintf("%v", standupConfig.RRule), nil, nil)
 	standupConfig.PreSave()
-	logger.Debug(fmt.Sprintf("%v", standupConfig.RRule), nil, nil)
-
+	
 	rruleDays := standupConfig.RRule.Between(oneMinBeforeToday, oneMinAfterToday, false)
-	logger.Debug("H", nil, nil)
-	logger.Info(fmt.Sprintf("Rrule days: %v", rruleDays), nil, nil)
-	logger.Debug("I", nil, nil)
-	logger.Info(fmt.Sprintf("Is rrule day: %t", len(rruleDays) > 0), nil, nil)
-	logger.Debug("J", nil, nil)
-
 	return len(rruleDays) > 0
 }

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/teambition/rrule-go"
-	"strconv"
 	"strings"
 	"time"
 
@@ -177,15 +176,19 @@ func (sc *StandupConfig) PreSave() error {
 
 // GenerateScheduleString generates a user-friendly, string representation of standup schedule.
 func (sc *StandupConfig) GenerateScheduleString() string {
-	pluginConfig := config.GetConfig()
+	_ = config.GetConfig()
 
 	windowOpenTime := sc.WindowOpenTime.Format("15:04")
 	windowCloseTime := sc.WindowCloseTime.Format("15:04")
 
-	workWeekStartNumber, _ := strconv.Atoi(pluginConfig.WorkWeekStart)
-	workWeekEndNumber, _ := strconv.Atoi(pluginConfig.WorkWeekEnd)
-	workWeekStart := time.Weekday(workWeekStartNumber).String()
-	workWeekEnd := time.Weekday(workWeekEndNumber).String()
+	//workWeekStartNumber, _ := strconv.Atoi(pluginConfig.WorkWeekStart)
+	//workWeekEndNumber, _ := strconv.Atoi(pluginConfig.WorkWeekEnd)
+	//workWeekStart := time.Weekday(workWeekStartNumber).String()
+	//workWeekEnd := time.Weekday(workWeekEndNumber).String()
+
+	// TODO use values from rrule
+	workWeekStart := "TODO"
+	workWeekEnd := "TODO"
 
 	return fmt.Sprintf("**Standup Schedule**: %s to %s, %s to %s", workWeekStart, workWeekEnd, windowOpenTime, windowCloseTime)
 }
