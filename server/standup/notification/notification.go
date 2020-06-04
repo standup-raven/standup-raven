@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -688,10 +687,9 @@ func deleteReminderPosts(channelID string) error {
 func isStandupDay(standupConfig *standup.StandupConfig) bool {
 	todayOtime := otime.Now(standupConfig.Timezone)
 	today := time.Date(todayOtime.Year(), todayOtime.Month(), todayOtime.Day(), 0, 0, 0, 0, todayOtime.Location())
-	
+
 	oneMinBeforeToday := today.Add(-1 * time.Minute)
 	oneMinAfterToday := today.Add(24 * time.Hour)
-	standupConfig.PreSave()
 	
 	rruleDays := standupConfig.RRule.Between(oneMinBeforeToday, oneMinAfterToday, false)
 	return len(rruleDays) > 0

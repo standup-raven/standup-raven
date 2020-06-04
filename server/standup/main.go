@@ -116,12 +116,11 @@ func (sc *StandupConfig) IsValid() error {
 	if duplicateMember, hasDuplicate := util.ContainsDuplicates(&sc.Members); hasDuplicate {
 		return errors.New("Duplicate members are not allowed. Contains duplicate member '" + duplicateMember + "'")
 	}
-	
+
 	if sc.RRule.Freq == rrule.WEEKLY && (sc.RRule.OrigOptions.Byweekday == nil || len(sc.RRule.OrigOptions.Byweekday) == 0) {
 		return errors.New("At least one day must be selected for weekly standup.")
 	}
-	
- 
+
 	return nil
 }
 
@@ -131,7 +130,24 @@ func (sc *StandupConfig) ToJson() string {
 }
 
 func (sc *StandupConfig) PreSave() error {
-	// parse location
+	if err := sc.setStartDateLocation(); err != nil {
+		return err
+	}
+
+	if err := sc.initializeRRule(); err != nil {
+		return err
+	}
+
+	if err := sc.fixRRuleTimezone(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// setStartDateLocation sets timezone of start date to
+// be same as standup timezone.
+func (sc *StandupConfig) setStartDateLocation() error {
 	location, err := time.LoadLocation(sc.Timezone)
 	if err != nil {
 		logger.Error("Unable to parse standup location", err, map[string]interface{}{"location": sc.Timezone})
@@ -150,6 +166,11 @@ func (sc *StandupConfig) PreSave() error {
 		location,
 	)
 
+	return nil
+}
+
+// initializeRRule initialized RRULE by parsing the RRULE string.
+func (sc *StandupConfig) initializeRRule() error {
 	// parse rrule
 	rruleOptions, err := rrule.StrToROption(sc.RRuleString)
 	if err != nil {
@@ -170,6 +191,26 @@ func (sc *StandupConfig) PreSave() error {
 	}
 
 	sc.RRule.DTStart(sc.StartDate)
+
+	return nil
+}
+
+// fixRRuleTimezone fix issue in RRULE caused by countries having
+// different timezones in different points in history, specifically
+// in the year 0001.
+// Timezones are date dependent, for example India had the timezone (at least
+// in Go timezone database) +553 in the year 0001 as opposed +530 being followed now.
+// RRULE Timesets are internally used by RRULE library for extracting only the time component from date,
+// but since date and time are tied up, having the incorrect date causes incorrect time due to timezone
+// dependency on date.
+//
+// So here we bring all timesets to current date (no alterting of time) to
+// get the current timezone picked up.
+func (sc *StandupConfig) fixRRuleTimezone() error {
+	today := time.Now()
+	for i := range sc.RRule.Timeset {
+		sc.RRule.Timeset[i] = sc.RRule.Timeset[i].AddDate(today.Year()-1, int(today.Month())-1, today.Day()-1)
+	}
 
 	return nil
 }
@@ -382,7 +423,6 @@ func GetStandupConfig(channelID string) (*StandupConfig, error) {
 		}
 	}
 
-	logger.Debug(fmt.Sprintf("Standup config for channel: %s, %v", channelID, standupConfig), nil)
 	return standupConfig, nil
 }
 
