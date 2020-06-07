@@ -690,7 +690,7 @@ func isStandupDay(standupConfig *standup.StandupConfig) bool {
 
 	oneMinBeforeToday := today.Add(-1 * time.Minute)
 	oneMinAfterToday := today.Add(24 * time.Hour)
-	
+
 	rruleDays := standupConfig.RRule.Between(oneMinBeforeToday, oneMinAfterToday, false)
 	return len(rruleDays) > 0
 }

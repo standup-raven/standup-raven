@@ -20,7 +20,7 @@ import (
 const (
 	standupSectionsMinLength       = 1
 	channelHeaderScheduleSeparator = "|"
-	standupScheduleEndMarker = "** **"
+	standupScheduleEndMarker       = "** **"
 )
 
 var (
@@ -267,7 +267,7 @@ func (sc *StandupConfig) generateMonthlySchedule() string {
 		prefix = fmt.Sprintf("Every %d months", sc.RRule.Interval)
 	}
 
-	// this indicates "on date" mode, 
+	// this indicates "on date" mode,
 	// i.e. event occurs on specific day of month
 	if len(sc.RRule.Bymonthday) > 0 {
 		suffix = humanize.Ordinal(sc.RRule.Bymonthday[0])
