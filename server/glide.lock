@@ -1,5 +1,5 @@
-hash: 5d40b7ca0d7605ee292b80822f120e5f6b939d3d4ecdaf3398289201f3d124bc
-updated: 2020-05-21T06:48:59.930636+05:30
+hash: 2ba35cc288587662869cad08fbdd214cf762cff3cfa8a9a0cee4c5c6842c37e2
+updated: 2020-06-06T19:15:00.610895+05:30
 imports:
 - name: bou.ke/monkey
   version: c597d8a6b9a52e9f7521b7e8913453b4745820f7
@@ -11,6 +11,8 @@ imports:
   version: d8f796af33cc11cb798c1aaeb27a4ebc5099927d
   subpackages:
   - spew
+- name: github.com/dustin/go-humanize
+  version: 9f541cc9db5d55bce703bd99987c9d5cb8eea45e
 - name: github.com/dyatlov/go-opengraph
   version: 816b6608b3c8c1e871bc9cf777f390e2532081fe
   subpackages:
@@ -88,13 +90,13 @@ imports:
 - name: github.com/stretchr/objx
   version: 35313a95ee26395aa17d366c71a2ccf788fa69b6
 - name: github.com/stretchr/testify
-  version: 3ebf1ddaeb260c4b1ae502a01c7844fa8c1fa0e9
+  version: f654a9112bbeac49ca2cd45bfbe11533c4666cf8
   subpackages:
   - assert
   - mock
   - require
 - name: github.com/teambition/rrule-go
-  version: 8634ce7ec418f4e7cfbd4bf9df5ba3b4407b5ab0
+  version: a2ced8306e77531677287e8c0e91ec8a950cb4e9
   repo: git@github.com:standup-raven/rrule-go.git
 - name: github.com/thoas/go-funk
   version: 4dfafc7efb503e26f6d3233c0e519efcd1606959
@@ -231,4 +233,6 @@ imports:
   version: a96e63847dc3c67d17befa69c303767e2f84e54f
 - name: gopkg.in/yaml.v2
   version: 0b1645d91e851e735d3e23330303ce81f70adbe3
+- name: gopkg.in/yaml.v3
+  version: a5ece683394c3b88d90572e44d36c93aea492c2c
 testImports: []

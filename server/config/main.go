@@ -51,11 +51,6 @@ var (
 	ReportFormats = []string{ReportFormatUserAggregated, ReportFormatTypeAggregated}
 )
 
-type Recurence struct {
-	StartDate otime.OTime
-	RRule     string
-}
-
 type Configuration struct {
 	TimeZone                string `json:"timeZone"`
 	PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`

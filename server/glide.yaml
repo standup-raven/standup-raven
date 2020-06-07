@@ -17,5 +17,7 @@ import:
 - package: github.com/getsentry/sentry-go
   version: ~0.5.1
 - package: github.com/teambition/rrule-go
+  version: a2ced8306e77531677287e8c0e91ec8a950cb4e9
   repo: git@github.com:standup-raven/rrule-go.git
-  version: 8634ce7ec418f4e7cfbd4bf9df5ba3b4407b5ab0
+- package: github.com/dustin/go-humanize
+  version: ~1.0.0

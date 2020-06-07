@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/dustin/go-humanize"
 	"github.com/teambition/rrule-go"
+	"regexp"
 	"strings"
 	"time"
 
@@ -18,6 +20,11 @@ import (
 const (
 	standupSectionsMinLength       = 1
 	channelHeaderScheduleSeparator = "|"
+	standupScheduleEndMarker = "** **"
+)
+
+var (
+	standupScheduleRegex = regexp.MustCompile("^\\*\\*Standup Schedule\\*\\*: .+\\*\\* \\*\\*$")
 )
 
 type UserStandup struct {
@@ -222,16 +229,78 @@ func (sc *StandupConfig) GenerateScheduleString() string {
 	windowOpenTime := sc.WindowOpenTime.Format("15:04")
 	windowCloseTime := sc.WindowCloseTime.Format("15:04")
 
-	//workWeekStartNumber, _ := strconv.Atoi(pluginConfig.WorkWeekStart)
-	//workWeekEndNumber, _ := strconv.Atoi(pluginConfig.WorkWeekEnd)
-	//workWeekStart := time.Weekday(workWeekStartNumber).String()
-	//workWeekEnd := time.Weekday(workWeekEndNumber).String()
+	var frequencyString string
 
-	// TODO use values from rrule
-	workWeekStart := "TODO"
-	workWeekEnd := "TODO"
+	switch sc.RRule.Freq {
+	case rrule.WEEKLY:
+		frequencyString = sc.generateWeeklySchedule()
+	case rrule.MONTHLY:
+		frequencyString = sc.generateMonthlySchedule()
+	}
 
-	return fmt.Sprintf("**Standup Schedule**: %s to %s, %s to %s", workWeekStart, workWeekEnd, windowOpenTime, windowCloseTime)
+	return fmt.Sprintf("**Standup Schedule**: %s, %s to %s", frequencyString, windowOpenTime, windowCloseTime)
+}
+
+func (sc *StandupConfig) generateWeeklySchedule() string {
+	prefix := ""
+
+	if sc.RRule.Interval == 1 {
+		prefix = "Weekly"
+	} else {
+		prefix = fmt.Sprintf("Every %d weeks", sc.RRule.Interval)
+	}
+
+	daysOfWeek := make([]string, len(sc.RRule.Byweekday))
+	for i, day := range sc.RRule.Byweekday {
+		daysOfWeek[i] = strings.ToUpper(time.Weekday(day).String()[:2])
+	}
+
+	return fmt.Sprintf("%s on %s", prefix, strings.Join(daysOfWeek, ", "))
+}
+
+func (sc *StandupConfig) generateMonthlySchedule() string {
+	var prefix, suffix string
+
+	if sc.RRule.Interval == 1 {
+		prefix = "Monthly"
+	} else {
+		prefix = fmt.Sprintf("Every %d months", sc.RRule.Interval)
+	}
+
+	// this indicates "on date" mode, 
+	// i.e. event occurs on specific day of month
+	if len(sc.RRule.Bymonthday) > 0 {
+		suffix = humanize.Ordinal(sc.RRule.Bymonthday[0])
+	} else if len(sc.RRule.Bysetpos) > 0 {
+		var weekOrdinal string
+		switch sc.RRule.Bysetpos[0] {
+		case -1:
+			weekOrdinal = "last"
+		default:
+			weekOrdinal = humanize.Ordinal(sc.RRule.Bysetpos[0])
+		}
+
+		var dayOfWeek string
+		switch len(sc.RRule.Byweekday) {
+		case 1:
+			// single day
+			dayOfWeek = time.Weekday(sc.RRule.Byweekday[0] + 1).String()
+		case 2:
+			// weekend
+			dayOfWeek = "weekend"
+		case 5:
+			// weekday
+			dayOfWeek = "weekday"
+		case 7:
+			// any day
+			dayOfWeek = "day"
+		}
+
+		suffix = weekOrdinal + " " + dayOfWeek
+	}
+
+	return fmt.Sprintf("%s on the %s", prefix, suffix)
+
 }
 
 // AddStandupChannel adds the specified channel to the list of standup channels.
@@ -381,21 +450,28 @@ func updateChannelHeader(newConfig *StandupConfig) error {
 }
 
 func removeChannelHeaderSchedule(channelHeader string) string {
+	var userDefinedHeader string
+
 	components := strings.Split(channelHeader, channelHeaderScheduleSeparator)
-	if len(components) < 2 {
-		return channelHeader
+	if len(components) == 0 {
+		userDefinedHeader = channelHeader
+	} else {
+		if standupScheduleRegex.MatchString(strings.TrimSpace(components[0])) {
+			userDefinedHeader = strings.Join(components[1:], channelHeaderScheduleSeparator)
+		} else {
+			userDefinedHeader = channelHeader
+		}
 	}
 
-	updatedHeader := strings.TrimLeft(components[1], " ")
-	if len(components) > 2 {
-		updatedHeader = updatedHeader + "|" + strings.Join(components[2:], "|")
-	}
-
-	return updatedHeader
+	return userDefinedHeader
 }
 
 func addChannelHeaderSchedule(channelHeader string, schedule string) string {
-	return schedule + " | " + channelHeader
+	if channelHeader == "" {
+		return schedule + standupScheduleEndMarker
+	}
+
+	return schedule + standupScheduleEndMarker + " | " + channelHeader
 }
 
 // GetStandupConfig fetches standup config for the specified channel

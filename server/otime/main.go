@@ -19,6 +19,8 @@ const (
 
 var nilTime = (time.Time{}).UnixNano()
 
+// TODO will need to remove this and use channel-specific location
+// 	when adding per-channel timezone setting
 var DefaultLocation *time.Location
 
 func Parse(value string) (OTime, error) {

@@ -4558,7 +4558,7 @@ react-redux@5.0.7:
     loose-envify "^1.1.0"
     prop-types "^15.6.0"
 
-"react-rrule-generator@link:/Users/harshilsharma/codebase/personal/react-rrule-generator":
+"react-rrule-generator@link:../../../../../../personal/react-rrule-generator":
   version "0.0.0"
   uid ""
 

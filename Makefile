@@ -60,7 +60,7 @@ default: check-style test dist
 
 check-style: check-style-server check-style-webapp
 
-check-style-webapp: .npminstall
+check-style-webapp: .webinstall
 	@echo Checking for style guide compliance
 	cd webapp && yarn run lint
 
@@ -94,7 +94,7 @@ test: test-server
 cover: test-server
 	go tool cover -html=coverage.txt -o coverage.html
 
-.npminstall: webapp/package-lock.json
+.webinstall: webapp/yarn.lock
 	@echo Getting dependencies using npm
 
 	cd webapp && yarn install
@@ -152,10 +152,10 @@ postquickdist:
 	
 quickdist: prequickdist doquickdist postquickdist
 
-dist: vendor .npminstall quickdist
+dist: vendor .webinstall quickdist
 	@echo Building plugin
 
-run: .npminstall
+run: .webinstall
 	@echo Not yet implemented
 
 stop:
