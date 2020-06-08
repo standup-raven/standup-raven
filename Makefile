@@ -95,7 +95,7 @@ cover: test-server
 	go tool cover -html=coverage.txt -o coverage.html
 
 .webinstall: webapp/yarn.lock
-	@echo Getting dependencies using npm
+	@echo Getting webapp dependencies
 
 	cd webapp && yarn install
 

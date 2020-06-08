@@ -15,8 +15,8 @@ jobs:
           name: Restore glide dependencies cache
           key: dependency-cache-{{ checksum "./server/glide.lock" }}
       - restore_cache:
-          name: Restore NPM dependencies cache
-          key: dependency-cache-{{ checksum "./webapp/package-lock.json" }}
+          name: Restore webapp dependencies cache
+          key: dependency-cache-{{ checksum "./webapp/yarn.lock" }}
       - run: make test
       - codecov/upload:
           file: coverage.txt
@@ -28,8 +28,8 @@ jobs:
           paths:
             - ./server/vendor
       - save_cache:
-          name: Save NPM dependencies cache
-          key: dependency-cache-{{ checksum "./webapp/package-lock.json" }}
+          name: Save webapp dependencies cache
+          key: dependency-cache-{{ checksum "./webapp/yarn.lock" }}
           paths:
             - ./webapp/node_modules
       - store_artifacts:
