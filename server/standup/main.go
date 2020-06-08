@@ -178,8 +178,7 @@ func (sc *StandupConfig) setStartDateLocation() error {
 
 // initializeRRule initialized RRULE by parsing the RRULE string.
 func (sc *StandupConfig) initializeRRule() error {
-	// parse rrule
-	rruleOptions, err := rrule.StrToROption(sc.RRuleString)
+	rule, err := util.ParseRRuleFromString(sc.RRuleString, sc.StartDate)
 	if err != nil {
 		logger.Error("unable to parse rrule string in standup config pre-save", err, map[string]interface{}{
 			"rrule":     sc.RRuleString,
@@ -188,17 +187,7 @@ func (sc *StandupConfig) initializeRRule() error {
 		return err
 	}
 
-	sc.RRule, err = rrule.NewRRule(*rruleOptions)
-	if err != nil {
-		logger.Error("unable to create new rrule from options", err, map[string]interface{}{
-			"rrule":     sc.RRuleString,
-			"channelID": sc.ChannelId,
-		})
-		return err
-	}
-
-	sc.RRule.DTStart(sc.StartDate)
-
+	sc.RRule = rule
 	return nil
 }
 
