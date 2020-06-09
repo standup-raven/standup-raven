@@ -11,6 +11,7 @@ import (
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/util"
+	"github.com/teambition/rrule-go"
 	"net/http"
 	"testing"
 	"time"
@@ -199,6 +200,53 @@ func TestStandupConfig_ToJson(t *testing.T) {
 	}
 
 	standupConfig.ToJson()
+}
+
+func TestStandupConfig_PreSave(t *testing.T) {
+	istanbul, err := time.LoadLocation("Europe/Istanbul")
+	if err != nil {
+		t.Fatal("istanbul should have loaded successfully", err)
+		return
+	}
+	
+	startDate := time.Date(2020, time.July, 9, 5, 28, 0, 0, istanbul)
+	
+	standupConfig := StandupConfig{
+		Timezone: "Asia/Kolkata",
+		StartDate: startDate,
+		RRuleString: "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH;COUNT=4",
+	}
+	
+	assert.Nil(t, standupConfig.RRule)
+	
+	err = standupConfig.PreSave()
+	
+	assert.Nil(t, err)
+	assert.Equal(t, "Asia/Kolkata", standupConfig.StartDate.Location().String())
+	assert.NotNil(t, standupConfig.RRule)
+	assert.Equal(t, rrule.WEEKLY, standupConfig.RRule.Freq)
+	assert.Equal(t, 4, len(standupConfig.RRule.Byweekday))
+	assert.Equal(t, 1, standupConfig.RRule.Interval)
+	assert.Equal(t, 4, standupConfig.RRule.Count)
+	assert.Equal(t, 4, len(standupConfig.RRule.All()))
+	
+	now := time.Now()
+	for _, timeset := range standupConfig.RRule.Timeset {
+		assert.Equal(t, now.Year(), timeset.Year())
+		assert.Equal(t, now.Month(), timeset.Month())
+		assert.Equal(t, now.Day(), timeset.Day())
+	}
+	
+	// With invalid timezone
+	standupConfig.Timezone = "Invalid/Timezone"
+	assert.NotNil(t, standupConfig.PreSave())
+	standupConfig.Timezone = "Asia/Kolkata"
+	
+	// with invalid rrule
+	standupConfig.RRuleString = "invalid rrule string"
+	assert.NotNil(t, standupConfig.PreSave())
+	standupConfig.RRuleString = "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH;COUNT=4"
+	
 }
 
 func TestAddStandupChannel(t *testing.T) {
@@ -521,6 +569,8 @@ func TestGetStandupConfig(t *testing.T) {
 func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 	location, err := time.LoadLocation("Asia/Kolkata")
 	assert.Nil(t, err, "location should have loaded successfully")
+	
+	otime.DefaultLocation = location
 
 	conf := &config.Configuration{
 		TimeZone:                "Asia/Kolkata",
@@ -541,12 +591,6 @@ func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
-	if err != nil {
-		t.Fatal("Couldn't parse RRULE", err)
-		return
-	}
-
 	standupConfig := StandupConfig{
 		ChannelId:                  "",
 		WindowOpenTime:             windowOpenTime,
@@ -559,14 +603,247 @@ func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 		WindowOpenReminderEnabled:  false,
 		WindowCloseReminderEnabled: false,
 		ScheduleEnabled:            false,
-		RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:                      rule,
 	}
+
+	// weekly on all days
+	rruleString := "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10"
+	rule, err := util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
 
 	fmt.Println(config.GetConfig())
 
 	standupScheduleString := standupConfig.GenerateScheduleString()
-	assert.Equal(t, "**Standup Schedule**: Weekly on SU, MO, TU, WE, TH, FR, SA, 10:00 to 15:00", standupScheduleString)
+	assert.Equal(t, "**Standup Schedule**: Weekly on MO, TU, WE, TH, FR, SA, SU 10:00 to 15:00", standupScheduleString)
+	
+	// weekly, Monday to Friday
+	rruleString = "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR;COUNT=10"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Weekly on MO, TU, WE, TH, FR 10:00 to 15:00", standupScheduleString)
+	
+	// weekly, Monday to Friday every alternate week
+	rruleString = "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,TU,WE,TH,FR;COUNT=10"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Every 2 weeks on MO, TU, WE, TH, FR 10:00 to 15:00", standupScheduleString)
+	
+	// every month on the 1st
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=1;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the 1st 10:00 to 15:00", standupScheduleString)
+
+	// testing ordinals - nd
+	// every month on the 2nd
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=2;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the 2nd 10:00 to 15:00", standupScheduleString)
+
+	// testing ordinals - rd
+	// every month on the 3rd
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=3;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the 3rd 10:00 to 15:00", standupScheduleString)
+
+	// testing ordinals - th
+	// every month on the 4th
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=4;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the 4th 10:00 to 15:00", standupScheduleString)
+	
+	// every 3 months month on the 2nd
+	rruleString = "FREQ=MONTHLY;INTERVAL=3;BYMONTHDAY=2;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Every 3 months on the 2nd 10:00 to 15:00", standupScheduleString)
+	
+	// every month on the first Monday
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=1;BYDAY=MO;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the first Monday 10:00 to 15:00", standupScheduleString)
+
+	// every 3 months on the first Monday
+	rruleString = "FREQ=MONTHLY;INTERVAL=3;BYSETPOS=1;BYDAY=MO;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Every 3 months on the first Monday 10:00 to 15:00", standupScheduleString)
+
+	// every month on the first day
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the first day 10:00 to 15:00", standupScheduleString)
+
+	// every month on the first day
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=1;BYDAY=MO,TU,WE,TH,FR;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the first weekday 10:00 to 15:00", standupScheduleString)
+
+	// every month on the first weekend
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=1;BYDAY=SA,SU;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the first weekend 10:00 to 15:00", standupScheduleString)
+	
+	// every month on the last Monday
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=MO;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the last Monday 10:00 to 15:00", standupScheduleString)
+
+	// every 3 months on the last Monday
+	rruleString = "FREQ=MONTHLY;INTERVAL=3;BYSETPOS=-1;BYDAY=MO;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Every 3 months on the last Monday 10:00 to 15:00", standupScheduleString)
+
+	// every month on the last day
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the last day 10:00 to 15:00", standupScheduleString)
+
+	// every month on the last day
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=MO,TU,WE,TH,FR;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the last weekday 10:00 to 15:00", standupScheduleString)
+
+	// every month on the last weekend
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=SA,SU;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the last weekend 10:00 to 15:00", standupScheduleString)
 }
 
 func TestUpdateChannelHeader(t *testing.T) {

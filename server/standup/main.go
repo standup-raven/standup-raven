@@ -25,6 +25,13 @@ const (
 
 var (
 	standupScheduleRegex = regexp.MustCompile("^\\*\\*Standup Schedule\\*\\*: .+\\*\\* \\*\\*$")
+	weekRanks = map[int]string{
+		-1: "last",
+		1: "first",
+		2: "second",
+		3: "third",
+		4: "fourth",
+	}
 )
 
 type UserStandup struct {
@@ -227,7 +234,7 @@ func (sc *StandupConfig) GenerateScheduleString() string {
 		frequencyString = sc.generateMonthlySchedule()
 	}
 
-	return fmt.Sprintf("**Standup Schedule**: %s, %s to %s", frequencyString, windowOpenTime, windowCloseTime)
+	return fmt.Sprintf("**Standup Schedule**: %s %s to %s", frequencyString, windowOpenTime, windowCloseTime)
 }
 
 func (sc *StandupConfig) generateWeeklySchedule() string {
@@ -241,7 +248,7 @@ func (sc *StandupConfig) generateWeeklySchedule() string {
 
 	daysOfWeek := make([]string, len(sc.RRule.Byweekday))
 	for i, day := range sc.RRule.Byweekday {
-		daysOfWeek[i] = strings.ToUpper(time.Weekday(day).String()[:2])
+		daysOfWeek[i] = strings.ToUpper(time.Weekday((day+1)%7).String()[:2])
 	}
 
 	return fmt.Sprintf("%s on %s", prefix, strings.Join(daysOfWeek, ", "))
@@ -261,13 +268,7 @@ func (sc *StandupConfig) generateMonthlySchedule() string {
 	if len(sc.RRule.Bymonthday) > 0 {
 		suffix = humanize.Ordinal(sc.RRule.Bymonthday[0])
 	} else if len(sc.RRule.Bysetpos) > 0 {
-		var weekOrdinal string
-		switch sc.RRule.Bysetpos[0] {
-		case -1:
-			weekOrdinal = "last"
-		default:
-			weekOrdinal = humanize.Ordinal(sc.RRule.Bysetpos[0])
-		}
+		weekOrdinal := weekRanks[sc.RRule.Bysetpos[0]]
 
 		var dayOfWeek string
 		switch len(sc.RRule.Byweekday) {

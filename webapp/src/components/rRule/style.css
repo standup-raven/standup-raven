@@ -6,7 +6,8 @@
   font-size: 12px;
 }
 
-.standup-recurrence .col-sm-2.text-sm-right, .standup-recurrence .col-sm-1.offset-sm-2 {
+.standup-recurrence .col-sm-2.text-sm-right,
+.standup-recurrence .col-sm-1.offset-sm-2 {
   width: 180px;
 }
 
