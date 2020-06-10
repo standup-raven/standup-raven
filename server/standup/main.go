@@ -152,10 +152,7 @@ func (sc *StandupConfig) PreSave() error {
 		return err
 	}
 
-	if err := sc.fixRRuleTimezone(); err != nil {
-		return err
-	}
-
+	sc.fixRRuleTimezone()
 	return nil
 }
 
@@ -209,13 +206,11 @@ func (sc *StandupConfig) initializeRRule() error {
 //
 // So here we bring all timesets to current date (no alterting of time) to
 // get the current timezone picked up.
-func (sc *StandupConfig) fixRRuleTimezone() error {
+func (sc *StandupConfig) fixRRuleTimezone() {
 	today := time.Now()
 	for i := range sc.RRule.Timeset {
 		sc.RRule.Timeset[i] = sc.RRule.Timeset[i].AddDate(today.Year()-1, int(today.Month())-1, today.Day()-1)
 	}
-
-	return nil
 }
 
 // GenerateScheduleString generates a user-friendly, string representation of standup schedule.
@@ -443,14 +438,10 @@ func removeChannelHeaderSchedule(channelHeader string) string {
 	var userDefinedHeader string
 
 	components := strings.Split(channelHeader, channelHeaderScheduleSeparator)
-	if len(components) == 0 {
-		userDefinedHeader = channelHeader
+	if standupScheduleRegex.MatchString(strings.TrimSpace(components[0])) {
+		userDefinedHeader = strings.Join(components[1:], channelHeaderScheduleSeparator)
 	} else {
-		if standupScheduleRegex.MatchString(strings.TrimSpace(components[0])) {
-			userDefinedHeader = strings.Join(components[1:], channelHeaderScheduleSeparator)
-		} else {
-			userDefinedHeader = channelHeader
-		}
+		userDefinedHeader = channelHeader
 	}
 
 	return userDefinedHeader

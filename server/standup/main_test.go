@@ -937,6 +937,91 @@ func TestUpdateChannelHeader(t *testing.T) {
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 4)
+	
+	// no existing channel standup config
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
+		return nil, nil	
+	})
+
+	err = updateChannelHeader(&StandupConfig{
+		ChannelId:       "channel_id_1",
+		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
+	})
+
+	assert.Nil(t, err, "no error should have been produced")
+	
+	// no existing channel header
+	mockAPI = baseMock()
+	config.Mattermost = mockAPI
+	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
+	mockAPI.On("GetChannel", "channel_id_1").Return(&model.Channel{
+		Header: "",
+	}, nil)
+
+	err = updateChannelHeader(&StandupConfig{
+		ChannelId:       "channel_id_1",
+		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
+	})
+
+	assert.Nil(t, err, "no error should have been produced")
+
+	// existing standup schedule in header
+	mockAPI = baseMock()
+	config.Mattermost = mockAPI
+	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
+	mockAPI.On("GetChannel", "channel_id_1").Return(&model.Channel{
+		Header: "**Standup Schedule**: Weekly on MO 10:00 to 15:00** ** | user-defined header",
+	}, nil)
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
+		return &StandupConfig{
+			ScheduleEnabled: true,
+			WindowOpenTime:  windowOpenTime,
+			WindowCloseTime: windowCloseTime,
+			Timezone:        "Asia/Kolkata",
+			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:           rule,
+		}, nil
+	})
+
+	err = updateChannelHeader(&StandupConfig{
+		ChannelId:       "channel_id_1",
+		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
+	})
+
+	assert.Nil(t, err, "no error should have been produced")
+
+	// empty header
+	mockAPI = baseMock()
+	config.Mattermost = mockAPI
+	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
+	mockAPI.On("GetChannel", "channel_id_1").Return(&model.Channel{
+		Header: "",
+	}, nil)
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
+		return &StandupConfig{
+			ScheduleEnabled: true,
+			WindowOpenTime:  windowOpenTime,
+			WindowCloseTime: windowCloseTime,
+			Timezone:        "Asia/Kolkata",
+			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:           rule,
+		}, nil
+	})
+
+	err = updateChannelHeader(&StandupConfig{
+		ChannelId:       "channel_id_1",
+		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
+	})
+
+	assert.Nil(t, err, "no error should have been produced")
 }
 
 func TestUpdateChannelHeader_GetStandupConfig_Error(t *testing.T) {
