@@ -203,6 +203,10 @@ func TestStandupConfig_ToJson(t *testing.T) {
 }
 
 func TestStandupConfig_PreSave(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+	config.Mattermost = mockAPI
+	
 	istanbul, err := time.LoadLocation("Europe/Istanbul")
 	if err != nil {
 		t.Fatal("istanbul should have loaded successfully", err)
@@ -238,6 +242,7 @@ func TestStandupConfig_PreSave(t *testing.T) {
 	}
 	
 	// With invalid timezone
+	mockAPI.On("LogError", mock.AnythingOfType("string"), mock.AnythingOfType("string"))
 	standupConfig.Timezone = "Invalid/Timezone"
 	assert.NotNil(t, standupConfig.PreSave())
 	standupConfig.Timezone = "Asia/Kolkata"

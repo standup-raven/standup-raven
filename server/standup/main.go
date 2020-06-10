@@ -25,12 +25,12 @@ const (
 
 var (
 	standupScheduleRegex = regexp.MustCompile("^\\*\\*Standup Schedule\\*\\*: .+\\*\\* \\*\\*$")
-	weekRanks = map[int]string{
+	weekRanks            = map[int]string{
 		-1: "last",
-		1: "first",
-		2: "second",
-		3: "third",
-		4: "fourth",
+		1:  "first",
+		2:  "second",
+		3:  "third",
+		4:  "fourth",
 	}
 )
 
@@ -248,7 +248,7 @@ func (sc *StandupConfig) generateWeeklySchedule() string {
 
 	daysOfWeek := make([]string, len(sc.RRule.Byweekday))
 	for i, day := range sc.RRule.Byweekday {
-		daysOfWeek[i] = strings.ToUpper(time.Weekday((day+1)%7).String()[:2])
+		daysOfWeek[i] = strings.ToUpper(time.Weekday((day + 1) % 7).String()[:2])
 	}
 
 	return fmt.Sprintf("%s on %s", prefix, strings.Join(daysOfWeek, ", "))
