@@ -668,7 +668,12 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 		return nil, nil
 	})
 
-	assert.NotNil(t, SendNotificationsAndReports(), "error should have been produced")
+	err = SendNotificationsAndReports()
+	msg := ""
+	if err != nil {
+		msg = err.Error()
+	}
+	assert.NotNil(t, err, "error should have been produced: " + msg)
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
 	mockAPI.AssertNumberOfCalls(t, "KVGet", 0)
 	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
@@ -3606,4 +3611,19 @@ func TestSendNotificationsAndReports_WindowOpenReminderEnabled_Disabled(t *testi
 
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
+}
+
+func TestIsStandupDay(t *testing.T) {
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+	
+	standupConfig := &standup.StandupConfig{
+		Timezone: "Asia/Kolkata",
+		RRule: rule,
+	}
+	
+	isStandupDay(standupConfig)
 }
