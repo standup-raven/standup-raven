@@ -62,7 +62,8 @@ check-style: check-style-server check-style-webapp
 
 check-style-webapp: .webinstall
 	@echo Checking for style guide compliance
-	cd webapp && yarn run lint
+	cd webapp && yarn run lintjs
+	cd webapp && yarn run lintstyle
 
 check-style-server:
 	@echo Running GOFMT
@@ -83,7 +84,8 @@ check-style-server:
 	
 fix-style: check-style-server
 	@echo Checking for style guide compliance
-	cd webapp && yarn run fix
+	cd webapp && yarn run fixjs
+	cd webapp && yarn run fixstyle
 	
 test-server: vendor
 	@echo Running server tests

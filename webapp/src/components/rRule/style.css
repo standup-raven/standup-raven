@@ -19,11 +19,13 @@
   margin-bottom: 20px;
 }
 
-.month-selector, .week-of-month-selector {
+.month-selector,
+.week-of-month-selector {
   width: 26%;
 }
 
-.day-of-week-selector, .day-of-month-selector {
+.day-of-week-selector,
+.day-of-month-selector {
   width: 28%;
 }
 
@@ -35,6 +37,8 @@
 
 .individual-day-of-week-selector .btn.btn-primary input {
   box-shadow: none;
+  cursor: pointer;
+  margin-bottom: 10px;
 }
 
 label.btn.btn-primary.day.active {
@@ -54,11 +58,6 @@ label.btn.btn-primary.day.active {
 .individual-day-of-week-selector .btn.btn-primary:hover {
   background: var(--sidebar-bg) !important;
   color: var(--sidebar-text) !important;
-}
-
-.individual-day-of-week-selector .btn.btn-primary input {
-  cursor: pointer;
-  margin-bottom: 10px;
 }
 
 .standup-recurrence select {

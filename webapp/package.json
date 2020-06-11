@@ -4,8 +4,10 @@
   "main": "src/index.js",
   "scripts": {
     "build": "webpack --mode=development",
-    "lint": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx . --quiet",
-    "fix": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx . --quiet --fix"
+    "lintjs": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx . --quiet",
+    "fixjs": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js --ext .jsx . --quiet --fix",
+    "lintstyle": "stylelint \"./src/**/*.css\"",
+    "fixstyle": "stylelint \"./src/**/*.css\" --fix"
   },
   "author": "",
   "license": "",
@@ -27,6 +29,8 @@
     "prop-types": "latest",
     "properties-file": "^1.0.0",
     "style-loader": "^0.23.1",
+    "stylelint": "^13.6.0",
+    "stylelint-config-standard": "^20.0.0",
     "svg-inline-loader": "^0.8.0",
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2",
