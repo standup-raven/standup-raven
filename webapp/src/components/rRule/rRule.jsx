@@ -22,7 +22,7 @@ class RRule extends React.PureComponent {
         const y = style;
     }
 
-    get frequencies() {
+    static get frequencies() {
         return ['Monthly', 'Weekly'];
     }
 
@@ -100,7 +100,7 @@ class RRule extends React.PureComponent {
                         config={{
                             hideStart: true,
                             hideEnd: true,
-                            repeat: this.frequencies,
+                            repeat: RRule.frequencies,
                         }}
                         onChange={this.rruleChangeHandler}
                         value={this.state.rrule}
