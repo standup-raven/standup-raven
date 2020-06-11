@@ -168,6 +168,20 @@ func TestStandupConfig_IsValid(t *testing.T) {
 
 	standupConfig.Sections = []string{"section_1", "section_1"}
 	assert.NotNil(t, standupConfig.IsValid(), "should be invalid as duplicate sections are added")
+
+	standupConfig.Sections = []string{"section_1", "section_2"}
+	standupConfig.RRule.Freq = rrule.WEEKLY
+	standupConfig.RRule.OrigOptions.Byweekday = []rrule.Weekday{}
+	assert.NotNil(t, standupConfig.IsValid(), "should not be valid as no days are specified with weekly standup")
+	standupConfig.RRule = rule
+	
+	// testing invalid timezone
+	standupConfig.Timezone = "Invalid-timezone"
+	assert.NotNil(t, standupConfig.IsValid(), "should not be valid as specified timezone is invalid")
+	
+	// testing with  empty timezone
+	standupConfig.Timezone = ""
+	assert.NotNil(t, standupConfig.IsValid(), "should not be valid as specified timezone is empty")
 }
 
 func TestStandupConfig_ToJson(t *testing.T) {

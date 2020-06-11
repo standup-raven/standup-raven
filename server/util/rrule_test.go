@@ -31,7 +31,6 @@ func TestParseRRuleFromString(t *testing.T) {
 	// invalid rrule string
 	rruleString = "some-invalid-rrule-string"
 	rule, err = ParseRRuleFromString(rruleString, startDate)
-	
 	assert.NotNil(t, err)
 	assert.Nil(t, rule)
 }
