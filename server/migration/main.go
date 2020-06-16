@@ -22,6 +22,7 @@ var (
 
 var upgradeCompatibility = map[string][]string{
 	versionNone:  {},
+	version1_5_0: {version1_4_0},
 	version3_0_0: {version2_0_0, version1_5_0},
 }
 
