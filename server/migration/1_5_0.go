@@ -12,7 +12,7 @@ func upgradeDatabaseToVersion1_5_0(fromVersion, toVersion string) error {
 		if err != nil {
 			return err
 		}
-		
+
 		defaultTimezone := config.GetConfig().TimeZone
 		for channelID := range channelIDs {
 			standupConfig, err := standup.GetStandupConfig(channelID)

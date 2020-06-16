@@ -106,7 +106,7 @@ func (p *Plugin) OnConfigurationChange() error {
 			logger.Error("Error occurred during loading plugin configuration from Mattermost", err, nil)
 			return err
 		}
-		
+
 		// substring to remove "v" from "vX.Y.Z"
 		configuration.PluginVersion = PluginVersion[1:]
 
