@@ -57,6 +57,7 @@ type Configuration struct {
 	EnableErrorReporting    bool   `json:"enableErrorReporting"`
 	SentryServerDSN         string `json:"sentryServerDSN"`
 	SentryWebappDSN         string `json:"sentryWebappDSN"`
+	PluginVersion           string `json:"plugin_version"`
 
 	// derived attributes
 	BotUserID string         `json:"botUserId"`

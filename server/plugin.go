@@ -21,9 +21,7 @@ import (
 	"github.com/standup-raven/standup-raven/server/util"
 )
 
-var SentryEnabled string
-
-var SentryDSN string
+var PluginVersion string
 
 type Plugin struct {
 	plugin.MattermostPlugin
@@ -108,6 +106,9 @@ func (p *Plugin) OnConfigurationChange() error {
 			logger.Error("Error occurred during loading plugin configuration from Mattermost", err, nil)
 			return err
 		}
+		
+		// substring to remove "v" from "vX.Y.Z"
+		configuration.PluginVersion = PluginVersion[1:]
 
 		if err := configuration.ProcessConfiguration(); err != nil {
 			config.Mattermost.LogError(err.Error())
