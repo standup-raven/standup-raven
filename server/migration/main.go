@@ -43,6 +43,11 @@ func DatabaseMigration() error {
 	if appErr != nil {
 		return appErr
 	}
+	
+	if schemaVersion == pluginVersion {
+		// no migration required
+		return nil
+	}
 
 	if !isUpgradeCompatible(schemaVersion, pluginVersion) {
 		msg := fmt.Sprintf(

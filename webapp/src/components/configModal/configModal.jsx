@@ -9,7 +9,9 @@ import {
     InputGroup,
     MenuItem,
     Modal,
-    SplitButton, Tab, Tabs,
+    SplitButton,
+    Tab,
+    Tabs,
 } from 'react-bootstrap';
 import Constants from '../../constants';
 import TimePicker from '../timePicker';
@@ -139,7 +141,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             rruleString,
             startDate,
         });
-    }
+    };
 
     generateSections = (onChangeCallback) => {
         // eslint-disable-next-line no-shadow
@@ -278,8 +280,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             },
         });
 
-        console.log(this.state);
-
         request
             .post(`${this.props.siteURL}/${Constants.URL_STANDUP_CONFIG}`)
             .withCredentials()
@@ -319,7 +319,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 >
                     {timezone.display_name}
                 </MenuItem>
-            )
+            ),
         );
 
         let showStandupError = false;
@@ -389,6 +389,16 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 </FormGroup>
                                 <FormGroup style={style.formGroup}>
                                     <ControlLabel style={style.controlLabel}>
+                                        {'Standup Schedule:'}
+                                    </ControlLabel>
+                                    <ToggleSwitch
+                                        onChange={this.handleScheduleStatusChange}
+                                        checked={this.state.scheduleEnabled}
+                                        theme={this.props.theme}
+                                    />
+                                </FormGroup>
+                                <FormGroup style={style.formGroup}>
+                                    <ControlLabel style={style.controlLabel}>
                                         {'Standup Report Format:'}
                                     </ControlLabel>
                                     <SplitButton
@@ -429,16 +439,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                     <ToggleSwitch
                                         onChange={this.handleWindowCloseReminderChange}
                                         checked={this.state.windowCloseReminderEnabled}
-                                        theme={this.props.theme}
-                                    />
-                                </FormGroup>
-                                <FormGroup style={style.formGroup}>
-                                    <ControlLabel style={style.controlLabel}>
-                                        {'Standup Schedule:'}
-                                    </ControlLabel>
-                                    <ToggleSwitch
-                                        onChange={this.handleScheduleStatusChange}
-                                        checked={this.state.scheduleEnabled}
                                         theme={this.props.theme}
                                     />
                                 </FormGroup>

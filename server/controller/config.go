@@ -97,7 +97,6 @@ func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// TODO add migration for default values for start date and rrule
 func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	// get config data from body
 	decoder := json.NewDecoder(r.Body)
