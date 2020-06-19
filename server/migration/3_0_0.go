@@ -10,8 +10,7 @@ import (
 )
 
 func upgradeDatabaseToVersion3_0_0(fromVersion, toVersion string) error {
-	if fromVersion == version2_0_0 || toVersion == version3_0_0 {
-
+	if fromVersion == version2_0_0 && toVersion == version3_0_0 {
 		standupChannels, err := standup.GetStandupChannels()
 		if err != nil {
 			return err
@@ -41,11 +40,12 @@ func upgradeDatabaseToVersion3_0_0(fromVersion, toVersion string) error {
 				return err
 			}
 		}
+
+		if UpdateErr := updateSchemaVersion(version3_0_0); UpdateErr != nil {
+			return UpdateErr
+		}
 	}
 
-	if UpdateErr := updateSchemaVersion(version3_0_0); UpdateErr != nil {
-		return UpdateErr
-	}
 	return nil
 }
 
