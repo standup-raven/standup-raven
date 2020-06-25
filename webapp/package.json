@@ -53,7 +53,7 @@
     "react-datepicker": "^2.14.1",
     "react-dom": "^16.7.0",
     "react-redux": "5.0.7",
-    "react-rrule-generator": "https://github.com/standup-raven/react-rrule-generator.git#v1.0.0",
+    "react-rrule-generator": "link:/Users/harshilsharma/codebase/personal/react-rrule-generator",
     "react-switch": "^5.0.0",
     "redux": "4.0.0",
     "superagent": "^3.8.3"
