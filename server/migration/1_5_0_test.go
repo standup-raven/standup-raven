@@ -64,21 +64,7 @@ func TestUpgradeDatabaseToVersion1_5_0_GetStandupChannels_Error(t *testing.T) {
 	monkey.Patch(standup.GetStandupChannels, func () (map[string]string, error) {
 		return nil, errors.New("")
 	})
-
-	//monkey.Patch(config.GetConfig, func () *config.Configuration {
-	//	return &config.Configuration{
-	//		TimeZone: "Asia/Kolkata",
-	//	}
-	//})
-	//
-	//monkey.Patch(standup.GetStandupConfig, func (channelID string) (*standup.StandupConfig, error) {
-	//	return &standup.StandupConfig{}, nil
-	//})
-	//
-	//monkey.Patch(standup.SaveStandupConfig, func (standupConfig *standup.StandupConfig) (*standup.StandupConfig, error) {
-	//	return &standup.StandupConfig{}, nil
-	//})
-
+	
 	err := upgradeDatabaseToVersion1_5_0(version1_4_0, version1_5_0)
 	assert.NotNil(t, err)
 
