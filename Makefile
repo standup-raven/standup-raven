@@ -60,9 +60,10 @@ default: check-style test dist
 
 check-style: check-style-server check-style-webapp
 
-check-style-webapp: .npminstall
+check-style-webapp: .webinstall
 	@echo Checking for style guide compliance
-	cd webapp && npm run lint
+	cd webapp && yarn run lintjs
+	cd webapp && yarn run lintstyle
 
 check-style-server:
 	@echo Running GOFMT
@@ -83,7 +84,8 @@ check-style-server:
 	
 fix-style: check-style-server
 	@echo Checking for style guide compliance
-	cd webapp && npm run fix
+	cd webapp && yarn run fixjs
+	cd webapp && yarn run fixstyle
 	
 test-server: vendor
 	@echo Running server tests
@@ -94,10 +96,10 @@ test: test-server
 cover: test-server
 	go tool cover -html=coverage.txt -o coverage.html
 
-.npminstall: webapp/package-lock.json
-	@echo Getting dependencies using npm
+.webinstall: webapp/yarn.lock
+	@echo Getting webapp dependencies
 
-	cd webapp && npm install
+	cd webapp && yarn install
 
 vendor: server/glide.lock
 	cd server && go get github.com/Masterminds/glide
@@ -115,13 +117,13 @@ doquickdist:
 	@echo Quick building plugin
 
 	# Build and copy files from webapp
-	cd webapp && npm run build
+	cd webapp && yarn run build
 	mkdir -p dist/$(PLUGINNAME)/webapp
 	cp -r webapp/dist/* dist/$(PLUGINNAME)/webapp/
 
 	# Build files from server
 	 cd server && go get github.com/mitchellh/gox
-	 $(shell go env GOPATH)/bin/gox -ldflags="-X main.SentryEnabled=$(call GetFromPkg,sentry.enabled) -X main.SentryDSN=$(call GetFromPkg,sentry.dsn)" -osarch='darwin/amd64 linux/amd64 windows/amd64' -gcflags='all=-N -l' -output 'dist/intermediate/plugin_{{.OS}}_{{.Arch}}' ./server
+	 $(shell go env GOPATH)/bin/gox -ldflags="-X main.PluginVersion=$(PLUGINVERSION)" -osarch='darwin/amd64 linux/amd64 windows/amd64' -gcflags='all=-N -l' -output 'dist/intermediate/plugin_{{.OS}}_{{.Arch}}' ./server
 
 	# Copy plugin files
 	cp plugin.json dist/$(PLUGINNAME)/
@@ -152,10 +154,10 @@ postquickdist:
 	
 quickdist: prequickdist doquickdist postquickdist
 
-dist: vendor .npminstall quickdist
+dist: vendor .webinstall quickdist
 	@echo Building plugin
 
-run: .npminstall
+run: .webinstall
 	@echo Not yet implemented
 
 stop:

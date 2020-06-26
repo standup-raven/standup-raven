@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
+	"github.com/dustin/go-humanize"
+	"github.com/teambition/rrule-go"
+	"regexp"
 	"strings"
 	"time"
 
@@ -18,6 +20,18 @@ import (
 const (
 	standupSectionsMinLength       = 1
 	channelHeaderScheduleSeparator = "|"
+	standupScheduleEndMarker       = "** **"
+)
+
+var (
+	standupScheduleRegex = regexp.MustCompile("^\\*\\*Standup Schedule\\*\\*: .+\\*\\* \\*\\*$")
+	weekRanks            = map[int]string{
+		-1: "last",
+		1:  "first",
+		2:  "second",
+		3:  "third",
+		4:  "fourth",
+	}
 )
 
 type UserStandup struct {
@@ -52,17 +66,20 @@ func (us *UserStandup) IsValid() error {
 }
 
 type StandupConfig struct {
-	ChannelId                  string      `json:"channelId"`
-	WindowOpenTime             otime.OTime `json:"windowOpenTime"`
-	WindowCloseTime            otime.OTime `json:"windowCloseTime"`
-	ReportFormat               string      `json:"reportFormat"`
-	Members                    []string    `json:"members"`
-	Sections                   []string    `json:"sections"`
-	Enabled                    bool        `json:"enabled"`
-	Timezone                   string      `json:"timezone"`
-	WindowOpenReminderEnabled  bool        `json:"windowOpenReminderEnabled"`
-	WindowCloseReminderEnabled bool        `json:"windowCloseReminderEnabled"`
-	ScheduleEnabled            bool        `json:"scheduleEnabled"`
+	ChannelId                  string       `json:"channelId"`
+	WindowOpenTime             otime.OTime  `json:"windowOpenTime"`
+	WindowCloseTime            otime.OTime  `json:"windowCloseTime"`
+	ReportFormat               string       `json:"reportFormat"`
+	Members                    []string     `json:"members"`
+	Sections                   []string     `json:"sections"`
+	Enabled                    bool         `json:"enabled"`
+	Timezone                   string       `json:"timezone"`
+	WindowOpenReminderEnabled  bool         `json:"windowOpenReminderEnabled"`
+	WindowCloseReminderEnabled bool         `json:"windowCloseReminderEnabled"`
+	ScheduleEnabled            bool         `json:"scheduleEnabled"`
+	RRule                      *rrule.RRule `json:"rrule"`
+	RRuleString                string       `json:"rruleString"`
+	StartDate                  time.Time    `json:"startDate"`
 }
 
 func (sc *StandupConfig) IsValid() error {
@@ -107,11 +124,15 @@ func (sc *StandupConfig) IsValid() error {
 	}
 
 	if duplicateSection, hasDuplicate := util.ContainsDuplicates(&sc.Sections); hasDuplicate {
-		return errors.New("duplicate sections are not allowed. Contains duplicate section '" + duplicateSection + "'")
+		return errors.New("Duplicate sections are not allowed. Contains duplicate section '" + duplicateSection + "'")
 	}
 
 	if duplicateMember, hasDuplicate := util.ContainsDuplicates(&sc.Members); hasDuplicate {
-		return errors.New("duplicate members are not allowed. Contains duplicate member '" + duplicateMember + "'")
+		return errors.New("Duplicate members are not allowed. Contains duplicate member '" + duplicateMember + "'")
+	}
+
+	if sc.RRule.Freq == rrule.WEEKLY && (sc.RRule.OrigOptions.Byweekday == nil || len(sc.RRule.OrigOptions.Byweekday) == 0) {
+		return errors.New("At least one day must be selected for weekly standup.")
 	}
 
 	return nil
@@ -122,19 +143,149 @@ func (sc *StandupConfig) ToJson() string {
 	return string(b)
 }
 
+func (sc *StandupConfig) PreSave() error {
+	if err := sc.setStartDateLocation(); err != nil {
+		return err
+	}
+
+	if err := sc.initializeRRule(); err != nil {
+		return err
+	}
+
+	sc.fixRRuleTimezone()
+	return nil
+}
+
+// setStartDateLocation sets timezone of start date to
+// be same as standup timezone.
+func (sc *StandupConfig) setStartDateLocation() error {
+	location, err := time.LoadLocation(sc.Timezone)
+	if err != nil {
+		logger.Error("Unable to parse standup location", err, map[string]interface{}{"location": sc.Timezone})
+		return err
+	}
+
+	// remove time from start date
+	sc.StartDate = time.Date(
+		sc.StartDate.Year(),
+		sc.StartDate.Month(),
+		sc.StartDate.Day(),
+		0,
+		0,
+		0,
+		0,
+		location,
+	)
+
+	return nil
+}
+
+// initializeRRule initialized RRULE by parsing the RRULE string.
+func (sc *StandupConfig) initializeRRule() error {
+	rule, err := util.ParseRRuleFromString(sc.RRuleString, sc.StartDate)
+	if err != nil {
+		logger.Error("unable to parse rrule string in standup config pre-save", err, map[string]interface{}{
+			"rrule":     sc.RRuleString,
+			"channelID": sc.ChannelId,
+		})
+		return err
+	}
+
+	sc.RRule = rule
+	return nil
+}
+
+// fixRRuleTimezone fix issue in RRULE caused by countries having
+// different timezones in different points in history, specifically
+// in the year 0001.
+// Timezones are date dependent, for example India had the timezone (at least
+// in Go timezone database) +553 in the year 0001 as opposed +530 being followed now.
+// RRULE Timesets are internally used by RRULE library for extracting only the time component from date,
+// but since date and time are tied up, having the incorrect date causes incorrect time due to timezone
+// dependency on date.
+//
+// So here we bring all timesets to current date (no alterting of time) to
+// get the current timezone picked up.
+func (sc *StandupConfig) fixRRuleTimezone() {
+	today := time.Now()
+	for i := range sc.RRule.Timeset {
+		sc.RRule.Timeset[i] = sc.RRule.Timeset[i].AddDate(today.Year()-1, int(today.Month())-1, today.Day()-1)
+	}
+}
+
 // GenerateScheduleString generates a user-friendly, string representation of standup schedule.
 func (sc *StandupConfig) GenerateScheduleString() string {
-	pluginConfig := config.GetConfig()
+	_ = config.GetConfig()
 
 	windowOpenTime := sc.WindowOpenTime.Format("15:04")
 	windowCloseTime := sc.WindowCloseTime.Format("15:04")
 
-	workWeekStartNumber, _ := strconv.Atoi(pluginConfig.WorkWeekStart)
-	workWeekEndNumber, _ := strconv.Atoi(pluginConfig.WorkWeekEnd)
-	workWeekStart := time.Weekday(workWeekStartNumber).String()
-	workWeekEnd := time.Weekday(workWeekEndNumber).String()
+	var frequencyString string
 
-	return fmt.Sprintf("**Standup Schedule**: %s to %s, %s to %s", workWeekStart, workWeekEnd, windowOpenTime, windowCloseTime)
+	switch sc.RRule.Freq {
+	case rrule.WEEKLY:
+		frequencyString = sc.generateWeeklySchedule()
+	case rrule.MONTHLY:
+		frequencyString = sc.generateMonthlySchedule()
+	}
+
+	return fmt.Sprintf("**Standup Schedule**: %s %s to %s", frequencyString, windowOpenTime, windowCloseTime)
+}
+
+func (sc *StandupConfig) generateWeeklySchedule() string {
+	prefix := ""
+
+	if sc.RRule.Interval == 1 {
+		prefix = "Weekly"
+	} else {
+		prefix = fmt.Sprintf("Every %d weeks", sc.RRule.Interval)
+	}
+
+	daysOfWeek := make([]string, len(sc.RRule.Byweekday))
+	for i, day := range sc.RRule.Byweekday {
+		daysOfWeek[i] = strings.ToUpper(time.Weekday((day + 1) % 7).String()[:2])
+	}
+
+	return fmt.Sprintf("%s on %s", prefix, strings.Join(daysOfWeek, ", "))
+}
+
+func (sc *StandupConfig) generateMonthlySchedule() string {
+	var prefix, suffix string
+
+	if sc.RRule.Interval == 1 {
+		prefix = "Monthly"
+	} else {
+		prefix = fmt.Sprintf("Every %d months", sc.RRule.Interval)
+	}
+
+	// this indicates "on date" mode,
+	// i.e. event occurs on specific day of month
+	if len(sc.RRule.Bymonthday) > 0 {
+		suffix = humanize.Ordinal(sc.RRule.Bymonthday[0])
+	} else if len(sc.RRule.Bysetpos) > 0 {
+		weekOrdinal := weekRanks[sc.RRule.Bysetpos[0]]
+
+		var dayOfWeek string
+		switch len(sc.RRule.Byweekday) {
+		case 1:
+			// single day
+			dayOfWeek = time.Weekday(sc.RRule.Byweekday[0] + 1).String()
+		case 2:
+			// weekend
+			dayOfWeek = "weekend"
+		case 5:
+			// weekday
+			dayOfWeek = "weekday"
+		case 7:
+			// any day
+			dayOfWeek = "day"
+		}
+
+		suffix = weekOrdinal + " " + dayOfWeek
+	}
+
+	return fmt.Sprintf("%s on the %s", prefix, suffix)
+
 }
 
 // AddStandupChannel adds the specified channel to the list of standup channels.
@@ -284,21 +435,24 @@ func updateChannelHeader(newConfig *StandupConfig) error {
 }
 
 func removeChannelHeaderSchedule(channelHeader string) string {
+	var userDefinedHeader string
+
 	components := strings.Split(channelHeader, channelHeaderScheduleSeparator)
-	if len(components) < 2 {
-		return channelHeader
+	if standupScheduleRegex.MatchString(strings.TrimSpace(components[0])) {
+		userDefinedHeader = strings.Join(components[1:], channelHeaderScheduleSeparator)
+	} else {
+		userDefinedHeader = channelHeader
 	}
 
-	updatedHeader := strings.TrimLeft(components[1], " ")
-	if len(components) > 2 {
-		updatedHeader = updatedHeader + "|" + strings.Join(components[2:], "|")
-	}
-
-	return updatedHeader
+	return userDefinedHeader
 }
 
 func addChannelHeaderSchedule(channelHeader string, schedule string) string {
-	return schedule + " | " + channelHeader
+	if channelHeader == "" {
+		return schedule + standupScheduleEndMarker
+	}
+
+	return schedule + standupScheduleEndMarker + " | " + channelHeader
 }
 
 // GetStandupConfig fetches standup config for the specified channel
@@ -326,7 +480,6 @@ func GetStandupConfig(channelID string) (*StandupConfig, error) {
 		}
 	}
 
-	logger.Debug(fmt.Sprintf("Standup config for channel: %s, %v", channelID, standupConfig), nil)
 	return standupConfig, nil
 }
 

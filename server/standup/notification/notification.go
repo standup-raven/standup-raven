@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -43,12 +42,7 @@ func SendNotificationsAndReports() error {
 		return err
 	}
 
-	channels, err := channelsWorkDay(channelIDs)
-	if err != nil {
-		return err
-	}
-
-	a, b, c, err := filterChannelNotification(channels)
+	a, b, c, err := filterChannelNotification(channelIDs)
 	if err != nil {
 		return err
 	}
@@ -79,26 +73,6 @@ func sendAllStandupReport(channelIDs []string) error {
 		}
 	}
 	return nil
-}
-
-//channelsWorkDay return channels that have working day today
-func channelsWorkDay(channels map[string]string) (map[string]string, error) {
-	channelIDs := map[string]string{}
-	for channelID := range channels {
-		standupConfig, err := standup.GetStandupConfig(channelID)
-		if err != nil {
-			return nil, err
-		}
-		if standupConfig == nil {
-			continue
-		}
-
-		// don't send notifications if it's not a work week.
-		if isWorkDay(standupConfig.Timezone) {
-			channelIDs[channelID] = channelID
-		}
-	}
-	return channelIDs, nil
 }
 
 // GetNotificationStatus gets the notification status for specified channel
@@ -286,19 +260,16 @@ func SetNotificationStatus(channelID string, status *ChannelNotificationStatus) 
 //		3. channels requiring standup report
 func filterChannelNotification(channelIDs map[string]string) ([]string, []string, []string, error) {
 	logger.Debug("Filtering channels for sending notifications", nil)
+	logger.Debug(fmt.Sprintf("Channels to process: %d", len(channelIDs)), nil, nil)
 
 	var windowOpenNotificationChannels, windowCloseNotificationChannels, standupReportChannels []string
 
 	for channelID := range channelIDs {
 		logger.Debug(fmt.Sprintf("Processing channel: %s", channelID), nil)
 
-		notificationStatus, err := GetNotificationStatus(channelID)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-
 		standupConfig, err := standup.GetStandupConfig(channelID)
 		if err != nil {
+			logger.Error("B", err, nil)
 			return nil, nil, nil, err
 		}
 
@@ -309,6 +280,16 @@ func filterChannelNotification(channelIDs map[string]string) ([]string, []string
 
 		if !standupConfig.Enabled {
 			continue
+		}
+
+		if !isStandupDay(standupConfig) {
+			continue
+		}
+
+		notificationStatus, err := GetNotificationStatus(channelID)
+		if err != nil {
+			logger.Error("A", err, nil)
+			return nil, nil, nil, err
 		}
 
 		// we check in opposite order of time and check for just one notification to send.
@@ -621,20 +602,6 @@ func generateUserAggregatedStandupReport(
 	}, nil
 }
 
-func isWorkDay(timezone string) bool {
-	conf := config.GetConfig()
-	dayOfWeek := int(otime.Now(timezone).Time.Weekday())
-
-	workWeekStart, _ := strconv.Atoi(conf.WorkWeekStart)
-	workWeekEnd, _ := strconv.Atoi(conf.WorkWeekEnd)
-
-	if workWeekStart < workWeekEnd {
-		return workWeekStart <= dayOfWeek && dayOfWeek <= workWeekEnd
-	} else {
-		return dayOfWeek >= workWeekStart || dayOfWeek <= workWeekEnd
-	}
-}
-
 func getUserDisplayName(userID string) (string, error) {
 	user, appErr := config.Mattermost.GetUser(userID)
 	if appErr != nil {
@@ -715,4 +682,15 @@ func deleteReminderPosts(channelID string) error {
 	}
 
 	return nil
+}
+
+func isStandupDay(standupConfig *standup.StandupConfig) bool {
+	todayOtime := otime.Now(standupConfig.Timezone)
+	today := time.Date(todayOtime.Year(), todayOtime.Month(), todayOtime.Day(), 0, 0, 0, 0, todayOtime.Location())
+
+	oneMinBeforeToday := today.Add(-1 * time.Minute)
+	oneMinAfterToday := today.Add(24 * time.Hour)
+
+	rruleDays := standupConfig.RRule.Between(oneMinBeforeToday, oneMinAfterToday, false)
+	return len(rruleDays) > 0
 }

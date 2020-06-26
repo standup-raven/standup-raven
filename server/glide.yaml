@@ -16,3 +16,8 @@ import:
   version: ^1.0.1
 - package: github.com/getsentry/sentry-go
   version: ~0.5.1
+- package: github.com/teambition/c
+  version: v2.0.0
+  repo: git@github.com:standup-raven/rrule-go.git
+- package: github.com/dustin/go-humanize
+  version: ~1.0.0

@@ -2,6 +2,10 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
 	"github.com/standup-raven/standup-raven/server/config"
@@ -9,8 +13,6 @@ import (
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
-	"net/http"
-	"strings"
 )
 
 var getConfig = &Endpoint{
@@ -96,6 +98,7 @@ func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 }
 
 func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
+	// get config data from body
 	decoder := json.NewDecoder(r.Body)
 	conf := &standup.StandupConfig{}
 	if err := decoder.Decode(&conf); err != nil {
@@ -107,7 +110,8 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	userID := r.Header.Get(config.HeaderMattermostUserId)
 	channelID := conf.ChannelId
 
-	// verifying if user is an effective channel admin
+	// if permission schema is enabled,
+	// verify if user is an effective channel admin
 	if config.GetConfig().PermissionSchemaEnabled {
 		isAdmin, appErr := isEffectiveAdmin(userID, channelID)
 
@@ -123,12 +127,24 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
+	if err := conf.PreSave(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return err
+	}
+
 	if err := conf.IsValid(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return err
 	}
 
-	conf, err := standup.SaveStandupConfig(conf)
+	json, err := json.Marshal(conf)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(string(json))
+	}
+
+	conf, err = standup.SaveStandupConfig(conf)
 	if err != nil {
 		http.Error(w, "Error occurred while saving standup conf", http.StatusInternalServerError)
 		return err

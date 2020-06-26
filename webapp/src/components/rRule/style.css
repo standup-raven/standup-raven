@@ -1,0 +1,65 @@
+.react-datepicker__day-name,
+.react-datepicker__day,
+.react-datepicker__time-name {
+  width: 2.5rem;
+  line-height: 2.5rem;
+  font-size: 12px;
+}
+
+.standup-recurrence .col-sm-2.text-sm-right,
+.standup-recurrence .col-sm-1.offset-sm-2 {
+  width: 180px;
+}
+
+.standup-recurrence .px-0.pt-3.border.rounded {
+  padding-top: 0 !important;
+}
+
+.standup-recurrence .form-group.row {
+  margin-bottom: 20px;
+}
+
+.month-selector,
+.week-of-month-selector {
+  width: 26%;
+}
+
+.day-of-week-selector,
+.day-of-month-selector {
+  width: 28%;
+}
+
+.individual-day-of-week-selector .btn.btn-primary {
+  background: none !important;
+  border: none;
+  flex: 1;
+}
+
+.individual-day-of-week-selector .btn.btn-primary input {
+  box-shadow: none;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+label.btn.btn-primary.day.active {
+  box-shadow: none;
+}
+
+.individual-day-of-week-selector .btn-group {
+  display: flex;
+}
+
+.individual-day-of-week-selector {
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.individual-day-of-week-selector .btn.btn-primary:hover {
+  background: var(--sidebar-bg) !important;
+  color: var(--sidebar-text) !important;
+}
+
+.standup-recurrence select {
+  cursor: pointer;
+}

@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"github.com/getsentry/sentry-go"
 	"github.com/standup-raven/standup-raven/server/config"
 )
@@ -16,6 +17,7 @@ func Debug(msg string, err error, keyValuePairs ...interface{}) {
 	}
 }
 
+// TODO print err, message and extra data
 func Info(msg string, err error, keyValuePairs ...interface{}) {
 	if config.Mattermost != nil {
 		errMsg := msg
@@ -37,7 +39,11 @@ func Error(msg string, err error, extraData map[string]interface{}) {
 	if config.Mattermost != nil {
 		errMsg := msg
 		if err != nil {
-			errMsg = err.Error()
+			errMsg += " " + err.Error()
+		}
+
+		if extraData != nil {
+			errMsg += fmt.Sprintf("%v", extraData)
 		}
 
 		config.Mattermost.LogError(errMsg, msg)

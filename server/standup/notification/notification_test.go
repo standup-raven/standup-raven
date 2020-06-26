@@ -3,8 +3,8 @@ package notification
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/teambition/rrule-go"
 	"net/http"
-	"strconv"
 	"testing"
 	"time"
 
@@ -20,6 +20,19 @@ import (
 	"github.com/standup-raven/standup-raven/server/util"
 	"github.com/stretchr/testify/assert"
 )
+
+var rule *rrule.RRule
+
+const rruleString = "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10"
+
+func init() {
+	localRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		panic(err.Error())
+	}
+
+	rule = localRule
+}
 
 func setUp() *plugintest.API {
 	mockAPI := &plugintest.API{}
@@ -42,8 +55,8 @@ func baseMock(mockAPI *plugintest.API) {
 	monkey.Patch(logger.Error, func(msg string, err error, extraData map[string]interface{}) {})
 	monkey.Patch(logger.Info, func(msg string, err error, keyValuePairs ...interface{}) {})
 	monkey.Patch(logger.Warn, func(msg string, err error, keyValuePairs ...interface{}) {})
-	fakeTime := time.Date(2019, time.May, 19, 10, 2, 3, 4, time.UTC)
-	monkey.Patch(time.Now, func() time.Time { return fakeTime })
+	//fakeTime := time.Date(2019, time.May, 19, 10, 2, 3, 4, time.UTC)
+	//monkey.Patch(time.Now, func() time.Time { return fakeTime })
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -51,6 +64,7 @@ func baseMock(mockAPI *plugintest.API) {
 	}
 
 	config.SetConfig(mockConfig)
+	otime.DefaultLocation = location
 }
 
 func TearDown() {
@@ -66,9 +80,7 @@ func TestSendNotificationsAndReports(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -110,12 +122,18 @@ func TestSendNotificationsAndReports(t *testing.T) {
 		return nil, nil
 	})
 
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		if channelID == "channel_1" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
 
-			return &standup.StandupConfig{
+			standupConfig := &standup.StandupConfig{
 				ChannelId:                  "channel_1",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
@@ -126,7 +144,12 @@ func TestSendNotificationsAndReports(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
-			}, nil
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
+			}
+
+			return standupConfig, nil
+
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
@@ -142,6 +165,8 @@ func TestSendNotificationsAndReports(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -158,11 +183,13 @@ func TestSendNotificationsAndReports(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
+		} else {
+			t.Fatal("unknown argument encountered: " + channelID)
+			return nil, nil
 		}
-
-		t.Fatal("unknown argument encountered: " + channelID)
-		return nil, nil
 	})
 
 	monkey.Patch(SetNotificationStatus, func(channelID string, status *ChannelNotificationStatus) error {
@@ -210,9 +237,7 @@ func TestSendNotificationsAndReports_NoStandupChannels(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -230,9 +255,7 @@ func TestSendNotificationsAndReports_GetStandupChannels_Error(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -253,9 +276,7 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -297,6 +318,12 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 		return nil, nil
 	})
 
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		if channelID == "channel_1" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -313,6 +340,8 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -329,6 +358,8 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -345,6 +376,8 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		}
 
@@ -399,9 +432,7 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -422,6 +453,12 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 		return &ChannelNotificationStatus{}, nil
 	})
 
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		if channelID == "channel_1" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -438,6 +475,8 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -454,6 +493,8 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -470,6 +511,8 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		}
 
@@ -525,9 +568,7 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -569,6 +610,12 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 		return nil, nil
 	})
 
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-55 * time.Minute)}
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
@@ -584,6 +631,8 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 			Timezone:                   "Asia/Kolkata",
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: true,
+			RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:                      rule,
 		}, nil
 	})
 
@@ -619,7 +668,12 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 		return nil, nil
 	})
 
-	assert.NotNil(t, SendNotificationsAndReports(), "no error should have been produced")
+	err = SendNotificationsAndReports()
+	msg := ""
+	if err != nil {
+		msg = err.Error()
+	}
+	assert.NotNil(t, err, "error should have been produced: " + msg)
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
 	mockAPI.AssertNumberOfCalls(t, "KVGet", 0)
 	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
@@ -635,9 +689,7 @@ func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -731,9 +783,7 @@ func TestSendNotificationsAndReports_GetStandupConfig_Nil(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -824,9 +874,7 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -868,6 +916,12 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 		return nil, nil
 	})
 
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		if channelID == "channel_1" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -884,6 +938,8 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -900,6 +956,8 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -916,6 +974,8 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		}
 
@@ -966,9 +1026,7 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
+		Location: location,
 	}
 
 	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
@@ -976,6 +1034,12 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 			"channel_1": "channel_1",
 		}, nil
 	})
+
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-50*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
 
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -990,6 +1054,8 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 			ReportFormat:    config.ReportFormatUserAggregated,
 			Sections:        []string{"section 1", "section 2"},
 			Timezone:        "Asia/Kolkata",
+			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:           rule,
 		}, nil
 	})
 
@@ -1014,6 +1080,8 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 			Timezone:                   "Asia/Kolkata",
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: true,
+			RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:                      rule,
 		}, nil
 	})
 
@@ -1035,6 +1103,12 @@ func TestSendNotificationsAndReports_Integration(t *testing.T) {
 	)
 	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s_%s", config.CacheKeyPrefixNotificationStatus, "channel_1", util.GetCurrentDateString("Asia/Kolkata")))).Return(nil, nil)
 
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
 	windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 	windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
 	standupConfig, _ := json.Marshal(&standup.StandupConfig{
@@ -1048,14 +1122,14 @@ func TestSendNotificationsAndReports_Integration(t *testing.T) {
 		Timezone:                   "Asia/Kolkata",
 		WindowOpenReminderEnabled:  true,
 		WindowCloseReminderEnabled: true,
+		RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:                      rule,
 	})
 	mockAPI.On("KVGet", "UzFgbepiypG8qfVARBfHu154LDNiZOw7Mr6Ue4kNZrk=").Return(standupConfig, nil)
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -1073,9 +1147,7 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -1098,6 +1170,12 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 		}, nil
 	})
 
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
@@ -1113,6 +1191,8 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 			Timezone:                   "Asia/Kolkata",
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: true,
+			RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:                      rule,
 		}, nil
 	})
 
@@ -1137,9 +1217,7 @@ func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -1177,6 +1255,8 @@ func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing
 			Timezone:                   "Asia/Kolkata",
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: true,
+			RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:                      rule,
 		}, nil
 	})
 
@@ -1192,7 +1272,11 @@ func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing
 		return nil, errors.New("")
 	})
 
-	assert.NotNil(t, SendNotificationsAndReports())
+	err := SendNotificationsAndReports()
+	if err != nil {
+		assert.NotNil(t, err, err.Error())
+	}
+
 }
 
 func TestSendNotificationsAndReports_Standup_Disabled(t *testing.T) {
@@ -1204,9 +1288,7 @@ func TestSendNotificationsAndReports_Standup_Disabled(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -1255,9 +1337,7 @@ func TestSendNotificationsAndReports_StandupReport_Sent(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -1295,6 +1375,8 @@ func TestSendNotificationsAndReports_StandupReport_Sent(t *testing.T) {
 			Timezone:                   "Asia/Kolkata",
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: true,
+			RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:                      rule,
 		}, nil
 	})
 
@@ -1310,9 +1392,7 @@ func TestSendNotificationsAndReports_SendWindowOpenNotification_CreatePost_Error
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -1350,6 +1430,8 @@ func TestSendNotificationsAndReports_SendWindowOpenNotification_CreatePost_Error
 			Timezone:                   "Asia/Kolkata",
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: true,
+			RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=50",
+			RRule:                      rule,
 		}, nil
 	})
 
@@ -1372,9 +1454,7 @@ func TestSendNotificationsAndReports_ShouldSendWindowOpenNotification_NotYet(t *
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -1408,6 +1488,8 @@ func TestSendNotificationsAndReports_ShouldSendWindowOpenNotification_NotYet(t *
 			Timezone:                   "Asia/Kolkata",
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: true,
+			RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:                      rule,
 		}, nil
 	})
 
@@ -1424,9 +1506,7 @@ func TestSendNotificationsAndReports_WindowCloseNotification(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -1464,6 +1544,8 @@ func TestSendNotificationsAndReports_WindowCloseNotification(t *testing.T) {
 			Timezone:                   "Asia/Kolkata",
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: true,
+			RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:                      rule,
 		}, nil
 	})
 
@@ -1505,9 +1587,7 @@ func TestGetNotificationStatus(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -1532,9 +1612,7 @@ func TestGetNotificationStatus_KVGet_Error(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -1558,9 +1636,7 @@ func TestGetNotificationStatus_Json_Error(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -1585,9 +1661,7 @@ func TestGetNotificationStatus_KVSet_Error(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -2036,7 +2110,7 @@ func TestSendStandupReport_GetReminderPosts_Data(t *testing.T) {
 	mockAPI := setUp()
 	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return([]byte("[\"post-id-1\"]"), nil)
 	baseMock(mockAPI)
-	
+
 	mockAPI.On("DeletePost", "post-id-1").Return(nil)
 
 	mockAPI.On("GetUser", "user_id_1").Return(
@@ -2930,9 +3004,7 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -2986,6 +3058,8 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -3002,6 +3076,8 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -3018,6 +3094,8 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                rruleString,
+				RRule:                      rule,
 			}, nil
 		}
 
@@ -3058,9 +3136,7 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -3114,6 +3190,8 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                rruleString,
+				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_2" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -3130,6 +3208,8 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                rruleString,
+				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_3" {
 			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
@@ -3146,6 +3226,8 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 				Timezone:                   "Asia/Kolkata",
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
+				RRuleString:                rruleString,
+				RRule:                      rule,
 			}, nil
 		}
 
@@ -3204,22 +3286,12 @@ func TestSendNotificationsAndReports_StandupConfig_Error(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
 
 	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
-		return map[string]string{
-			"channel_1": "channel_1",
-			"channel_2": "channel_2",
-			"channel_3": "channel_3",
-		}, nil
-	})
-
-	monkey.Patch(channelsWorkDay, func(channels map[string]string) (map[string]string, error) {
 		return map[string]string{
 			"channel_1": "channel_1",
 			"channel_2": "channel_2",
@@ -3309,22 +3381,12 @@ func TestSendNotificationsAndReports_StandupConfig_Nil(t *testing.T) {
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
 
 	monkey.Patch(standup.GetStandupChannels, func() (map[string]string, error) {
-		return map[string]string{
-			"channel_1": "channel_1",
-			"channel_2": "channel_2",
-			"channel_3": "channel_3",
-		}, nil
-	})
-
-	monkey.Patch(channelsWorkDay, func(channels map[string]string) (map[string]string, error) {
 		return map[string]string{
 			"channel_1": "channel_1",
 			"channel_2": "channel_2",
@@ -3414,9 +3476,7 @@ func TestSendNotificationsAndReports_WindowCloseReminderEnabled_Disabled(t *test
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -3454,6 +3514,8 @@ func TestSendNotificationsAndReports_WindowCloseReminderEnabled_Disabled(t *test
 			Timezone:                   "Asia/Kolkata",
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: false,
+			RRuleString:                rruleString,
+			RRule:                      rule,
 		}, nil
 	})
 
@@ -3487,9 +3549,7 @@ func TestSendNotificationsAndReports_WindowOpenReminderEnabled_Disabled(t *testi
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
-		Location:      location,
-		WorkWeekStart: strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) - 1),
-		WorkWeekEnd:   strconv.Itoa(int(otime.Now("Asia/Kolkata").Time.Weekday()) + 1),
+		Location: location,
 	}
 
 	config.SetConfig(mockConfig)
@@ -3527,6 +3587,8 @@ func TestSendNotificationsAndReports_WindowOpenReminderEnabled_Disabled(t *testi
 			Timezone:                   "Asia/Kolkata",
 			WindowOpenReminderEnabled:  false,
 			WindowCloseReminderEnabled: true,
+			RRuleString:                rruleString,
+			RRule:                      rule,
 		}, nil
 	})
 
@@ -3549,4 +3611,19 @@ func TestSendNotificationsAndReports_WindowOpenReminderEnabled_Disabled(t *testi
 
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
+}
+
+func TestIsStandupDay(t *testing.T) {
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+	
+	standupConfig := &standup.StandupConfig{
+		Timezone: "Asia/Kolkata",
+		RRule: rule,
+	}
+	
+	isStandupDay(standupConfig)
 }

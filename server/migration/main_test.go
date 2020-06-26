@@ -26,6 +26,7 @@ func baseMock() *plugintest.API {
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
 		Location: location,
+		PluginVersion: version3_0_0,
 	}
 	config.SetConfig(mockConfig)
 	return mockAPI
@@ -35,35 +36,13 @@ func TearDown() {
 	monkey.UnpatchAll()
 }
 
-func TestDatebaseMigration(t *testing.T) {
+func TestDatebaseMigration_getCurrentSchemaVersion_Error(t *testing.T) {
 	defer TearDown()
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return nil
+	baseMock()
+	monkey.Patch(getCurrentSchemaVersion, func() (string, error) {
+		return "", errors.New("")
 	})
-	monkey.Patch(upgrade, func() error {
-		return nil
-	})
-	err := DatabaseMigration()
-	assert.Nil(t, err)
-}
-
-func TestDatebaseMigration_EnsureSchemaVersion_Error(t *testing.T) {
-	defer TearDown()
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return errors.New("")
-	})
-	err := DatabaseMigration()
-	assert.NotNil(t, err)
-}
-
-func TestDatebaseMigration_Upgrade_Error(t *testing.T) {
-	defer TearDown()
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return nil
-	})
-	monkey.Patch(upgrade, func() error {
-		return errors.New("")
-	})
+	
 	err := DatabaseMigration()
 	assert.NotNil(t, err)
 }
@@ -72,9 +51,6 @@ func TestDatabaseMigration_KVGet_error(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
 	mockAPI.On("KVGet","mS93mHcYcKvlwjnt1DvUXsRwcIuoOO+mKsCRNZl/Ht4=", mock.Anything).Return(nil, model.NewAppError("", "", nil, "", 0))
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return nil
-	})
 	err := DatabaseMigration()
 	assert.NotNil(t, err)
 }
@@ -112,9 +88,6 @@ func TestDatabaseMigration_JsonUnmarshal_Error(t *testing.T) {
 	mockAPI := baseMock()
 	mockAPI.On("KVGet","mS93mHcYcKvlwjnt1DvUXsRwcIuoOO+mKsCRNZl/Ht4=", mock.Anything).Return([]byte("1.4.0"), nil)
 	mockAPI.On("KVSet", mock.Anything, mock.Anything).Return(nil)
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return nil
-	})
 	monkey.Patch(json.Unmarshal, func(data []byte, v interface{}) error{
 		return errors.New("")
 	})
@@ -127,9 +100,7 @@ func TestDatabaseMigration_GetStandupChannels_Error(t *testing.T) {
 	mockAPI := baseMock()
 	mockAPI.On("KVGet","mS93mHcYcKvlwjnt1DvUXsRwcIuoOO+mKsCRNZl/Ht4=", mock.Anything).Return([]byte("1.4.0"), nil)
 	mockAPI.On("KVSet", mock.Anything, mock.Anything).Return(nil)
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return nil
-	})
+	
 	monkey.Patch(getCurrentSchemaVersion, func() (string, error) {
 		return "1.4.0", nil
 	})
@@ -145,9 +116,7 @@ func TestDatabaseMigration_GetStandupConfig_Error(t *testing.T) {
 	mockAPI := baseMock()
 	mockAPI.On("KVGet","mS93mHcYcKvlwjnt1DvUXsRwcIuoOO+mKsCRNZl/Ht4=", mock.Anything).Return([]byte("1.4.0"), nil)
 	mockAPI.On("KVSet", mock.Anything, mock.Anything).Return(nil)
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return nil
-	})
+	
 	monkey.Patch(getCurrentSchemaVersion, func() (string, error) {
 		return "1.4.0", nil
 	})
@@ -167,9 +136,11 @@ func TestDatabaseMigration_GetStandupConfig_Nil(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
 	mockAPI.On("KVSet", mock.Anything, mock.Anything).Return(nil)
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return nil
-	})
+	
+	conf := config.GetConfig()
+	conf.PluginVersion = version1_5_0
+	config.SetConfig(conf)
+	
 	monkey.Patch(getCurrentSchemaVersion, func() (string, error) {
 		return "1.4.0", nil
 	})
@@ -188,9 +159,7 @@ func TestDatabaseMigration_GetStandupConfig_Nil(t *testing.T) {
 func TestDatabaseMigration_SaveStandupConfig_Error(t *testing.T) {
 	defer TearDown()
 	baseMock()
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return nil
-	})
+	
 	monkey.Patch(getCurrentSchemaVersion, func() (string, error) {
 		return "1.4.0", nil
 	})
@@ -227,9 +196,11 @@ func TestDatabaseMigration_(t *testing.T) {
 	mockAPI := baseMock()
 	mockAPI.On("KVGet","mS93mHcYcKvlwjnt1DvUXsRwcIuoOO+mKsCRNZl/Ht4=", mock.Anything).Return([]byte("1.4.0"), nil)
 	mockAPI.On("KVSet", mock.Anything, mock.Anything).Return(nil)
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return nil
-	})
+
+	conf := config.GetConfig()
+	conf.PluginVersion = version1_5_0
+	config.SetConfig(conf)
+	
 	monkey.Patch(getCurrentSchemaVersion, func() (string, error) {
 		return "1.4.0", nil
 	})
@@ -248,9 +219,7 @@ func TestDatabaseMigration_(t *testing.T) {
 func TestDatabaseMigration_updateSchemaVersion_Error(t *testing.T) {
 	defer TearDown()
 	baseMock()
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return nil
-	})
+	
 	monkey.Patch(getCurrentSchemaVersion, func() (string, error) {
 		return "1.4.0", nil
 	})
@@ -273,9 +242,7 @@ func TestDatabaseMigration_updateSchemaVersion_KVSet_Error(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
 	mockAPI.On("KVSet", mock.Anything, mock.Anything).Return( model.NewAppError("", "", nil, "", 0))
-	monkey.Patch(ensureSchemaVersion, func() error {
-		return nil
-	})
+	
 	monkey.Patch(getCurrentSchemaVersion, func() (string, error) {
 		return "1.4.0", nil
 	})
@@ -287,6 +254,22 @@ func TestDatabaseMigration_updateSchemaVersion_KVSet_Error(t *testing.T) {
 	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
 		return nil,nil
 	})
+	err := DatabaseMigration()
+	assert.NotNil(t, err)
+}
+
+func TestDatabaseMigration_getSChemaVersion_Error(t *testing.T) {
+	defer TearDown()
+	baseMock()
+	
+	monkey.Patch(getCurrentSchemaVersion, func () (string, error) {
+		return "", errors.New("")
+	})
+
+	conf := config.GetConfig()
+	conf.PluginVersion = version1_5_0
+	config.SetConfig(conf)
+	
 	err := DatabaseMigration()
 	assert.NotNil(t, err)
 }

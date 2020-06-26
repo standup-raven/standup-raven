@@ -2,7 +2,6 @@ package otime
 
 import (
 	"fmt"
-	"github.com/standup-raven/standup-raven/server/config"
 	"strings"
 	"time"
 )
@@ -20,6 +19,10 @@ const (
 
 var nilTime = (time.Time{}).UnixNano()
 
+// TODO will need to remove this and use channel-specific location
+// 	when adding per-channel timezone setting
+var DefaultLocation *time.Location
+
 func Parse(value string) (OTime, error) {
 	argTime, err := time.Parse(layoutTime, value)
 	if err != nil {
@@ -27,7 +30,7 @@ func Parse(value string) (OTime, error) {
 	}
 
 	now := time.Now()
-	argTime = time.Date(now.Year(), now.Month(), now.Day(), argTime.Hour(), argTime.Minute(), 0, 0, config.GetConfig().Location)
+	argTime = time.Date(now.Year(), now.Month(), now.Day(), argTime.Hour(), argTime.Minute(), 0, 0, DefaultLocation)
 	return OTime{argTime}, nil
 }
 

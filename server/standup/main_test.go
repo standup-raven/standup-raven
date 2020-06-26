@@ -1,8 +1,8 @@
 package standup
 
 import (
-	"encoding/json"
 	"bou.ke/monkey"
+	"encoding/json"
 	"fmt"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
@@ -11,6 +11,7 @@ import (
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/util"
+	"github.com/teambition/rrule-go"
 	"net/http"
 	"testing"
 	"time"
@@ -33,6 +34,7 @@ func baseMock() *plugintest.API {
 	}
 
 	config.SetConfig(mockConfig)
+	otime.DefaultLocation = location
 
 	return mockAPI
 }
@@ -97,6 +99,8 @@ func TestStandupConfig_IsValid(t *testing.T) {
 		Location: location,
 	}
 
+	otime.DefaultLocation = location
+
 	config.SetConfig(mockConfig)
 
 	windowOpenTime, _ := otime.Parse("13:05")
@@ -110,8 +114,17 @@ func TestStandupConfig_IsValid(t *testing.T) {
 		Members:         []string{"user_id_1", "user_id_2"},
 		ReportFormat:    config.ReportFormatUserAggregated,
 		Sections:        []string{"section 1", "section 2"},
-		Timezone:         "Asia/Kolkata",
+		Timezone:        "Asia/Kolkata",
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
 	}
+
+	rule, err := util.ParseRRuleFromString(standupConfig.RRuleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRule = rule
 
 	assert.Nil(t, standupConfig.IsValid(), "should be valid")
 
@@ -155,6 +168,20 @@ func TestStandupConfig_IsValid(t *testing.T) {
 
 	standupConfig.Sections = []string{"section_1", "section_1"}
 	assert.NotNil(t, standupConfig.IsValid(), "should be invalid as duplicate sections are added")
+
+	standupConfig.Sections = []string{"section_1", "section_2"}
+	standupConfig.RRule.Freq = rrule.WEEKLY
+	standupConfig.RRule.OrigOptions.Byweekday = []rrule.Weekday{}
+	assert.NotNil(t, standupConfig.IsValid(), "should not be valid as no days are specified with weekly standup")
+	standupConfig.RRule = rule
+	
+	// testing invalid timezone
+	standupConfig.Timezone = "Invalid-timezone"
+	assert.NotNil(t, standupConfig.IsValid(), "should not be valid as specified timezone is invalid")
+	
+	// testing with  empty timezone
+	standupConfig.Timezone = ""
+	assert.NotNil(t, standupConfig.IsValid(), "should not be valid as specified timezone is empty")
 }
 
 func TestStandupConfig_ToJson(t *testing.T) {
@@ -189,6 +216,58 @@ func TestStandupConfig_ToJson(t *testing.T) {
 	standupConfig.ToJson()
 }
 
+func TestStandupConfig_PreSave(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+	config.Mattermost = mockAPI
+	
+	istanbul, err := time.LoadLocation("Europe/Istanbul")
+	if err != nil {
+		t.Fatal("istanbul should have loaded successfully", err)
+		return
+	}
+	
+	startDate := time.Date(2020, time.July, 9, 5, 28, 0, 0, istanbul)
+	
+	standupConfig := StandupConfig{
+		Timezone: "Asia/Kolkata",
+		StartDate: startDate,
+		RRuleString: "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH;COUNT=4",
+	}
+	
+	assert.Nil(t, standupConfig.RRule)
+	
+	err = standupConfig.PreSave()
+	
+	assert.Nil(t, err)
+	assert.Equal(t, "Asia/Kolkata", standupConfig.StartDate.Location().String())
+	assert.NotNil(t, standupConfig.RRule)
+	assert.Equal(t, rrule.WEEKLY, standupConfig.RRule.Freq)
+	assert.Equal(t, 4, len(standupConfig.RRule.Byweekday))
+	assert.Equal(t, 1, standupConfig.RRule.Interval)
+	assert.Equal(t, 4, standupConfig.RRule.Count)
+	assert.Equal(t, 4, len(standupConfig.RRule.All()))
+	
+	now := time.Now()
+	for _, timeset := range standupConfig.RRule.Timeset {
+		assert.Equal(t, now.Year(), timeset.Year())
+		assert.Equal(t, now.Month(), timeset.Month())
+		assert.Equal(t, now.Day(), timeset.Day())
+	}
+	
+	// With invalid timezone
+	mockAPI.On("LogError", mock.AnythingOfType("string"), mock.AnythingOfType("string"))
+	standupConfig.Timezone = "Invalid/Timezone"
+	assert.NotNil(t, standupConfig.PreSave())
+	standupConfig.Timezone = "Asia/Kolkata"
+	
+	// with invalid rrule
+	standupConfig.RRuleString = "invalid rrule string"
+	assert.NotNil(t, standupConfig.PreSave())
+	standupConfig.RRuleString = "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH;COUNT=4"
+	
+}
+
 func TestAddStandupChannel(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
@@ -200,35 +279,35 @@ func TestAddStandupChannel(t *testing.T) {
 		return map[string]string{
 			"channel_1": "channel_1",
 		}, nil
-	}, )
+	})
 	defer monkey.Unpatch(GetStandupChannels)
 
 	monkey.Patch(setStandupChannels, func(channels map[string]string) error {
 		return nil
-	}, )
+	})
 	defer monkey.Unpatch(setStandupChannels)
 
 	assert.Nil(t, AddStandupChannel("channel_2"), "should not produce error")
 
 	monkey.Patch(setStandupChannels, func(channels map[string]string) error {
 		return errors.New("")
-	}, )
+	})
 	assert.NotNil(t, AddStandupChannel("channel_2"), "should produce error as couldn't save standup channels")
 
 	monkey.Patch(GetStandupChannels, func() (map[string]string, error) {
 		return nil, errors.New("")
-	}, )
+	})
 	assert.NotNil(t, AddStandupChannel("channel_2"), "should produce error as couldn't fetch existing standup channels")
 
 	monkey.Patch(GetStandupChannels, func() (map[string]string, error) {
 		return map[string]string{
 			"channel_1": "channel_1",
 		}, nil
-	}, )
+	})
 
 	monkey.Patch(setStandupChannels, func(channels map[string]string) error {
 		return nil
-	}, )
+	})
 	assert.Nil(t, AddStandupChannel("channel_1"), "shouldn't fail if adding a channel which was already a standup channel")
 }
 
@@ -312,7 +391,7 @@ func TestSaveUserStandup(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
-	
+
 	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
 		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-55 * time.Minute)}
 		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
@@ -325,14 +404,14 @@ func TestSaveUserStandup(t *testing.T) {
 			Members:         []string{"user_id_1", "user_id_2"},
 			ReportFormat:    config.ReportFormatUserAggregated,
 			Sections:        []string{"section 1", "section 2"},
-			Timezone:		 "Asia/Kolkata",
+			Timezone:        "Asia/Kolkata",
 		}, nil
 	})
 
 	userStandup := &UserStandup{
-		UserID: "user_id",
+		UserID:    "user_id",
 		ChannelID: "channel_id",
-		Standup: map[string]*[]string {
+		Standup: map[string]*[]string{
 			"section_1": {
 				"task_1",
 				"task_2",
@@ -353,9 +432,9 @@ func TestGetUserStandup(t *testing.T) {
 	mockAPI := baseMock()
 
 	userStandupBytes, _ := json.Marshal(&UserStandup{
-		UserID: "user_id",
+		UserID:    "user_id",
 		ChannelID: "channel_id",
-		Standup: map[string]*[]string {
+		Standup: map[string]*[]string{
 			"section_1": {
 				"task_1",
 				"task_2",
@@ -367,9 +446,9 @@ func TestGetUserStandup(t *testing.T) {
 	userStandup, err := GetUserStandup("user_id", "channel_id", otime.Now("Asia/Kolkata"))
 	assert.Nil(t, err, "no error should have been produced")
 	assert.Equal(t, &UserStandup{
-		UserID: "user_id",
+		UserID:    "user_id",
 		ChannelID: "channel_id",
-		Standup: map[string]*[]string {
+		Standup: map[string]*[]string{
 			"section_1": {
 				"task_1",
 				"task_2",
@@ -401,15 +480,24 @@ func TestSaveStandupConfig(t *testing.T) {
 	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
 
 	standupConfig := &StandupConfig{
-		ChannelId: "channel_id",
-		 Members: []string{"user_id_1"},
-		 WindowOpenTime: otime.Now("Asia/Kolkata"),
-		 WindowCloseTime: otime.Now("Asia/Kolkata"),
-		 Sections: []string{"section 1"},
-		 ReportFormat: config.ReportFormatUserAggregated,
-		 Enabled: true,
-		 ScheduleEnabled: true,
+		ChannelId:       "channel_id",
+		Members:         []string{"user_id_1"},
+		WindowOpenTime:  otime.Now("Asia/Kolkata"),
+		WindowCloseTime: otime.Now("Asia/Kolkata"),
+		Sections:        []string{"section 1"},
+		ReportFormat:    config.ReportFormatUserAggregated,
+		Enabled:         true,
+		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
 	}
+
+	rule, err := util.ParseRRuleFromString(standupConfig.RRuleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRule = rule
 
 	savedStandupConfig, err := SaveStandupConfig(standupConfig)
 	assert.Nil(t, err, "no error should have been produced")
@@ -425,7 +513,6 @@ func TestSaveStandupConfig(t *testing.T) {
 	assert.Error(t, err, "error should have been produced as KVSet failed")
 	assert.Nil(t, savedStandupConfig, "no standup config should have been returned")
 
-
 }
 
 func TestSaveStandupConfig_DuplicateMembers(t *testing.T) {
@@ -435,29 +522,29 @@ func TestSaveStandupConfig_DuplicateMembers(t *testing.T) {
 	mockAPI.On("GetChannel", "channel_id").Return(&model.Channel{}, nil)
 	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
-	
+
 	now := otime.Now("Asia/Kolkata")
 
 	standupConfig := &StandupConfig{
-		ChannelId: "channel_id",
-		Members: []string{"user_id_1", "user_id_1"},
-		WindowOpenTime: now,
+		ChannelId:       "channel_id",
+		Members:         []string{"user_id_1", "user_id_1"},
+		WindowOpenTime:  now,
 		WindowCloseTime: now,
-		Sections: []string{"section 1"},
-		ReportFormat: config.ReportFormatUserAggregated,
-		Enabled: true,
+		Sections:        []string{"section 1"},
+		ReportFormat:    config.ReportFormatUserAggregated,
+		Enabled:         true,
 	}
 
 	savedStandupConfig, err := SaveStandupConfig(standupConfig)
 	assert.Nil(t, err, "no error should have been produced")
 	assert.Equal(t, &StandupConfig{
-		ChannelId: "channel_id",
-		Members: []string{"user_id_1"},
-		WindowOpenTime: now,
+		ChannelId:       "channel_id",
+		Members:         []string{"user_id_1"},
+		WindowOpenTime:  now,
 		WindowCloseTime: now,
-		Sections: []string{"section 1"},
-		ReportFormat: config.ReportFormatUserAggregated,
-		Enabled: true,
+		Sections:        []string{"section 1"},
+		ReportFormat:    config.ReportFormatUserAggregated,
+		Enabled:         true,
 	}, savedStandupConfig, "both standup config should be identical")
 }
 
@@ -466,13 +553,13 @@ func TestGetStandupConfig(t *testing.T) {
 	mockAPI := baseMock()
 
 	standupConfigBytes, _ := json.Marshal(&StandupConfig{
-		ChannelId: "channel_id",
-		Members: []string{"user_id_1"},
-		WindowOpenTime: otime.Now("Asia/Kolkata"),
+		ChannelId:       "channel_id",
+		Members:         []string{"user_id_1"},
+		WindowOpenTime:  otime.Now("Asia/Kolkata"),
 		WindowCloseTime: otime.Now("Asia/Kolkata"),
-		Sections: []string{"section 1"},
-		ReportFormat: config.ReportFormatUserAggregated,
-		Enabled: true,
+		Sections:        []string{"section 1"},
+		ReportFormat:    config.ReportFormatUserAggregated,
+		Enabled:         true,
 	})
 	mockAPI.On("KVGet", mock.AnythingOfType("string")).Return(standupConfigBytes, nil)
 
@@ -502,27 +589,27 @@ func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 	location, err := time.LoadLocation("Asia/Kolkata")
 	assert.Nil(t, err, "location should have loaded successfully")
 	
+	otime.DefaultLocation = location
+
 	conf := &config.Configuration{
 		TimeZone:                "Asia/Kolkata",
-		WorkWeekStart:           "1",
-		WorkWeekEnd:             "5",
 		PermissionSchemaEnabled: false,
 		BotUserID:               "",
 		Location:                location,
 	}
 
 	config.SetConfig(conf)
-	
+
 	windowOpenTime, err := otime.Parse("10:00")
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	windowCloseTime, err := otime.Parse("15:00")
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	standupConfig := StandupConfig{
 		ChannelId:                  "",
 		WindowOpenTime:             windowOpenTime,
@@ -536,18 +623,252 @@ func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 		WindowCloseReminderEnabled: false,
 		ScheduleEnabled:            false,
 	}
-	
-	
+
+	// weekly on all days
+	rruleString := "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10"
+	rule, err := util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+
 	fmt.Println(config.GetConfig())
-	
+
 	standupScheduleString := standupConfig.GenerateScheduleString()
-	assert.Equal(t, "**Standup Schedule**: Monday to Friday, 10:00 to 15:00", standupScheduleString)
+	assert.Equal(t, "**Standup Schedule**: Weekly on MO, TU, WE, TH, FR, SA, SU 10:00 to 15:00", standupScheduleString)
+	
+	// weekly, Monday to Friday
+	rruleString = "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR;COUNT=10"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Weekly on MO, TU, WE, TH, FR 10:00 to 15:00", standupScheduleString)
+	
+	// weekly, Monday to Friday every alternate week
+	rruleString = "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,TU,WE,TH,FR;COUNT=10"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Every 2 weeks on MO, TU, WE, TH, FR 10:00 to 15:00", standupScheduleString)
+	
+	// every month on the 1st
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=1;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the 1st 10:00 to 15:00", standupScheduleString)
+
+	// testing ordinals - nd
+	// every month on the 2nd
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=2;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the 2nd 10:00 to 15:00", standupScheduleString)
+
+	// testing ordinals - rd
+	// every month on the 3rd
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=3;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the 3rd 10:00 to 15:00", standupScheduleString)
+
+	// testing ordinals - th
+	// every month on the 4th
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=4;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the 4th 10:00 to 15:00", standupScheduleString)
+	
+	// every 3 months month on the 2nd
+	rruleString = "FREQ=MONTHLY;INTERVAL=3;BYMONTHDAY=2;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Every 3 months on the 2nd 10:00 to 15:00", standupScheduleString)
+	
+	// every month on the first Monday
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=1;BYDAY=MO;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the first Monday 10:00 to 15:00", standupScheduleString)
+
+	// every 3 months on the first Monday
+	rruleString = "FREQ=MONTHLY;INTERVAL=3;BYSETPOS=1;BYDAY=MO;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Every 3 months on the first Monday 10:00 to 15:00", standupScheduleString)
+
+	// every month on the first day
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the first day 10:00 to 15:00", standupScheduleString)
+
+	// every month on the first day
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=1;BYDAY=MO,TU,WE,TH,FR;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the first weekday 10:00 to 15:00", standupScheduleString)
+
+	// every month on the first weekend
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=1;BYDAY=SA,SU;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the first weekend 10:00 to 15:00", standupScheduleString)
+	
+	// every month on the last Monday
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=MO;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the last Monday 10:00 to 15:00", standupScheduleString)
+
+	// every 3 months on the last Monday
+	rruleString = "FREQ=MONTHLY;INTERVAL=3;BYSETPOS=-1;BYDAY=MO;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Every 3 months on the last Monday 10:00 to 15:00", standupScheduleString)
+
+	// every month on the last day
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the last day 10:00 to 15:00", standupScheduleString)
+
+	// every month on the last day
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=MO,TU,WE,TH,FR;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the last weekday 10:00 to 15:00", standupScheduleString)
+
+	// every month on the last weekend
+	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=SA,SU;COUNT=5"
+	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	standupConfig.RRuleString = rruleString
+	standupConfig.RRule = rule
+	standupScheduleString = standupConfig.GenerateScheduleString()
+	assert.Equal(t, "**Standup Schedule**: Monthly on the last weekend 10:00 to 15:00", standupScheduleString)
 }
 
 func TestUpdateChannelHeader(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
-	
+
 	mockAPI.On("GetChannel", "channel_id_1").Return(&model.Channel{
 		Header: "old header",
 	}, nil)
@@ -563,62 +884,164 @@ func TestUpdateChannelHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	
-	monkey.Patch(GetStandupConfig, func (channelID string) (*StandupConfig, error) {
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
+
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
 		return &StandupConfig{
 			ScheduleEnabled: true,
-			WindowOpenTime: windowOpenTime,
+			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
-			Timezone: "Asia/Kolkata",
+			Timezone:        "Asia/Kolkata",
+			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:           rule,
 		}, nil
 	})
-	
+
 	err = updateChannelHeader(&StandupConfig{
-		ChannelId: "channel_id_1",
+		ChannelId:       "channel_id_1",
 		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
 	})
-	
+
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 1)
 
 	err = updateChannelHeader(&StandupConfig{
-		ChannelId: "channel_id_1",
+		ChannelId:       "channel_id_1",
 		ScheduleEnabled: false,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 2)
 
-	monkey.Patch(GetStandupConfig, func (channelID string) (*StandupConfig, error) {
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
 		return &StandupConfig{
 			ScheduleEnabled: false,
-			WindowOpenTime: windowOpenTime,
+			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
-			Timezone: "Asia/Kolkata",
+			Timezone:        "Asia/Kolkata",
+			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:           rule,
 		}, nil
 	})
 
 	err = updateChannelHeader(&StandupConfig{
-		ChannelId: "channel_id_1",
+		ChannelId:       "channel_id_1",
 		ScheduleEnabled: false,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 3)
 
 	err = updateChannelHeader(&StandupConfig{
-		ChannelId: "channel_id_1",
+		ChannelId:       "channel_id_1",
 		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 4)
+	
+	// no existing channel standup config
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
+		return nil, nil	
+	})
+
+	err = updateChannelHeader(&StandupConfig{
+		ChannelId:       "channel_id_1",
+		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
+	})
+
+	assert.Nil(t, err, "no error should have been produced")
+	
+	// no existing channel header
+	mockAPI = baseMock()
+	config.Mattermost = mockAPI
+	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
+	mockAPI.On("GetChannel", "channel_id_1").Return(&model.Channel{
+		Header: "",
+	}, nil)
+
+	err = updateChannelHeader(&StandupConfig{
+		ChannelId:       "channel_id_1",
+		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
+	})
+
+	assert.Nil(t, err, "no error should have been produced")
+
+	// existing standup schedule in header
+	mockAPI = baseMock()
+	config.Mattermost = mockAPI
+	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
+	mockAPI.On("GetChannel", "channel_id_1").Return(&model.Channel{
+		Header: "**Standup Schedule**: Weekly on MO 10:00 to 15:00** ** | user-defined header",
+	}, nil)
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
+		return &StandupConfig{
+			ScheduleEnabled: true,
+			WindowOpenTime:  windowOpenTime,
+			WindowCloseTime: windowCloseTime,
+			Timezone:        "Asia/Kolkata",
+			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:           rule,
+		}, nil
+	})
+
+	err = updateChannelHeader(&StandupConfig{
+		ChannelId:       "channel_id_1",
+		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
+	})
+
+	assert.Nil(t, err, "no error should have been produced")
+
+	// empty header
+	mockAPI = baseMock()
+	config.Mattermost = mockAPI
+	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
+	mockAPI.On("GetChannel", "channel_id_1").Return(&model.Channel{
+		Header: "",
+	}, nil)
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
+		return &StandupConfig{
+			ScheduleEnabled: true,
+			WindowOpenTime:  windowOpenTime,
+			WindowCloseTime: windowCloseTime,
+			Timezone:        "Asia/Kolkata",
+			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:           rule,
+		}, nil
+	})
+
+	err = updateChannelHeader(&StandupConfig{
+		ChannelId:       "channel_id_1",
+		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
+	})
+
+	assert.Nil(t, err, "no error should have been produced")
 }
 
 func TestUpdateChannelHeader_GetStandupConfig_Error(t *testing.T) {
 	defer TearDown()
 	//mockAPI := baseMock()
-	monkey.Patch(GetStandupConfig, func (channelID string) (*StandupConfig, error) {
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
 		return nil, errors.New("error")
 	})
 
@@ -649,17 +1072,17 @@ func TestUpdateChannelHeader_GetChannel_Error(t *testing.T) {
 	//location, err := time.LoadLocation("Asia/Kolkata")
 	//assert.Nil(t, err, "location should have loaded successfully")
 
-	monkey.Patch(GetStandupConfig, func (channelID string) (*StandupConfig, error) {
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
 		return &StandupConfig{
 			ScheduleEnabled: true,
-			WindowOpenTime: windowOpenTime,
+			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
-			Timezone: "Asia/Kolkata",
+			Timezone:        "Asia/Kolkata",
 		}, nil
 	})
 
 	err = updateChannelHeader(&StandupConfig{
-		ChannelId: "channel_id_1",
+		ChannelId:       "channel_id_1",
 		ScheduleEnabled: true,
 	})
 
@@ -686,19 +1109,28 @@ func TestUpdateChannelHeader_UpdateChannel_Error(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
 
-	monkey.Patch(GetStandupConfig, func (channelID string) (*StandupConfig, error) {
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
 		return &StandupConfig{
 			ScheduleEnabled: true,
-			WindowOpenTime: windowOpenTime,
+			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
-			Timezone: "Asia/Kolkata",
+			Timezone:        "Asia/Kolkata",
+			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:           rule,
 		}, nil
 	})
 
 	err = updateChannelHeader(&StandupConfig{
-		ChannelId: "channel_id_1",
+		ChannelId:       "channel_id_1",
 		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
 	})
 
 	assert.NotNil(t, err, "error should have been produced as UpdateChannel failed")
@@ -724,52 +1156,67 @@ func TestUpdateChannelHeader_ExistingPipeInHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	if err != nil {
+		t.Fatal("Couldn't parse RRULE", err)
+		return
+	}
 
-	monkey.Patch(GetStandupConfig, func (channelID string) (*StandupConfig, error) {
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
 		return &StandupConfig{
 			ScheduleEnabled: true,
-			WindowOpenTime: windowOpenTime,
+			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
-			Timezone: "Asia/Kolkata",
+			Timezone:        "Asia/Kolkata",
+			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+			RRule:           rule,
 		}, nil
 	})
 
 	err = updateChannelHeader(&StandupConfig{
-		ChannelId: "channel_id_1",
+		ChannelId:       "channel_id_1",
 		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 1)
 
 	err = updateChannelHeader(&StandupConfig{
-		ChannelId: "channel_id_1",
+		ChannelId:       "channel_id_1",
 		ScheduleEnabled: false,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 2)
 
-	monkey.Patch(GetStandupConfig, func (channelID string) (*StandupConfig, error) {
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
 		return &StandupConfig{
 			ScheduleEnabled: false,
-			WindowOpenTime: windowOpenTime,
+			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
-			Timezone: "Asia/Kolkata",
+			Timezone:        "Asia/Kolkata",
 		}, nil
 	})
 
 	err = updateChannelHeader(&StandupConfig{
-		ChannelId: "channel_id_1",
+		ChannelId:       "channel_id_1",
 		ScheduleEnabled: false,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 3)
 
 	err = updateChannelHeader(&StandupConfig{
-		ChannelId: "channel_id_1",
+		ChannelId:       "channel_id_1",
 		ScheduleEnabled: true,
+		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+		RRule:           rule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")

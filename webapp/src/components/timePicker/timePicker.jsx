@@ -125,6 +125,7 @@ class TimePicker extends (SentryBoundary, React.PureComponent) {
                 className={'time-picker'}
                 style={{display: 'inline-block'}}
             >
+                {/*TODO what's going on in onSelect?*/}
                 <SplitButton
                     bsStyle={this.state.bsStyle}
                     className={'hours'}

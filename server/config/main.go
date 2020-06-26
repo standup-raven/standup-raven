@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/standup-raven/standup-raven/server/otime"
 	"go.uber.org/atomic"
 	"strings"
 	"time"
@@ -52,12 +53,11 @@ var (
 
 type Configuration struct {
 	TimeZone                string `json:"timeZone"`
-	WorkWeekStart           string `json:"workWeekStart"`
-	WorkWeekEnd             string `json:"workWeekEnd"`
 	PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`
 	EnableErrorReporting    bool   `json:"enableErrorReporting"`
 	SentryServerDSN         string `json:"sentryServerDSN"`
 	SentryWebappDSN         string `json:"sentryWebappDSN"`
+	PluginVersion           string `json:"plugin_version"`
 
 	// derived attributes
 	BotUserID string         `json:"botUserId"`
@@ -94,6 +94,7 @@ func (c *Configuration) ProcessConfiguration() error {
 	}
 
 	c.Location = location
+	otime.DefaultLocation = location
 	return nil
 }
 

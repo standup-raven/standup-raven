@@ -10,6 +10,8 @@ import {
     MenuItem,
     Modal,
     SplitButton,
+    Tab,
+    Tabs,
 } from 'react-bootstrap';
 import Constants from '../../constants';
 import TimePicker from '../timePicker';
@@ -20,6 +22,7 @@ import SentryBoundary from '../../SentryBoundary';
 import * as HttpStatus from 'http-status-codes';
 import ToggleSwitch from '../toggleSwitch';
 import Cookies from 'js-cookie';
+import RRule from '../rRule';
 
 const configModalCloseTimeout = 1000;
 const timezones = require('../../../../timezones.json');
@@ -77,6 +80,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             timezone: '',
             scheduleEnabled: false,
             schedule: '',
+            rruleString: '',
+            startDate: new Date().toISOString(),
         };
     };
 
@@ -128,6 +133,13 @@ class ConfigModal extends (SentryBoundary, React.Component) {
     handleScheduleStatusChange = () => {
         this.setState({
             scheduleEnabled: !this.state.scheduleEnabled,
+        });
+    };
+
+    handleRecurrenceChange = (rruleString, startDate) => {
+        this.setState({
+            rruleString,
+            startDate,
         });
     };
 
@@ -201,6 +213,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             windowCloseReminderEnabled: standupConfig.windowCloseReminderEnabled,
                             scheduleEnabled: standupConfig.scheduleEnabled,
                             schedule: standupConfig.schedule,
+                            rruleString: standupConfig.rruleString,
+                            startDate: standupConfig.startDate,
                         };
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
@@ -251,6 +265,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             windowCloseReminderEnabled: this.state.windowCloseReminderEnabled,
             windowOpenReminderEnabled: this.state.windowOpenReminderEnabled,
             scheduleEnabled: this.state.scheduleEnabled,
+            rruleString: this.state.rruleString,
+            startDate: this.state.startDate,
         };
     }
 
@@ -303,7 +319,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 >
                     {timezone.display_name}
                 </MenuItem>
-            )
+            ),
         );
 
         let showStandupError = false;
@@ -355,95 +371,118 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                     </span>
 
                     <div hidden={this.state.showSpinner || !this.state.hasPermission || showStandupError}>
-                        <FormGroup style={style.formGroup}>
-                            <ControlLabel style={style.controlLabel}>
-                                {'Status:'}
-                            </ControlLabel>
-                            <ToggleSwitch
-                                onChange={this.handleStatusChange}
-                                checked={this.state.enabled}
-                                theme={this.props.theme}
-                            />
-                        </FormGroup>
-
-                        <FormGroup style={style.formGroup}>
-                            <ControlLabel style={style.controlLabel}>
-                                {'Window Time:'}
-                            </ControlLabel>
-                            <TimePicker
-                                time={this.state.windowOpenTime}
-                                onChange={this.handleWindowOpenTimeChange}
-                                bsStyle={'link'}
-                            />
-                            <span style={style.controlLabelX}>{'to'}</span>
-                            <TimePicker
-                                time={this.state.windowCloseTime}
-                                onChange={this.handleWindowCloseTimeChange}
-                                bsStyle={'link'}
-                            />
-                        </FormGroup>
-
-                        <FormGroup style={style.formGroup}>
-                            <ControlLabel style={style.controlLabel}>
-                                {'Standup Report Format:'}
-                            </ControlLabel>
-                            <SplitButton
-                                title={ConfigModal.REPORT_DISPLAY_NAMES[this.state.reportFormat]}
-                                onSelect={this.handleReportTypeChange}
-                                bsStyle={'link'}
+                        <Tabs id={'standup-config-tabs'}>
+                            <Tab
+                                eventKey={1}
+                                title={'General'}
                             >
-                                <MenuItem eventKey={'user_aggregated'}>{'User Aggregated'}</MenuItem>
-                                <MenuItem eventKey={'type_aggregated'}>{'Type Aggregated'}</MenuItem>
-                            </SplitButton>
-                        </FormGroup>
-                        <FormGroup style={style.formGroup}>
-                            <ControlLabel style={style.controlLabel}>
-                                {'Timezone:'}
-                            </ControlLabel>
-                            <SplitButton
-                                title={ConfigModal.TIMEZONE_DISPLAY_NAMES[this.state.timezone]}
-                                onSelect={this.handleTimezoneChange}
-                                bsStyle={'link'}
-                            >{data}
-                            </SplitButton>
-                        </FormGroup>
-                        <FormGroup style={style.formGroup}>
-                            <ControlLabel style={style.controlLabel}>
-                                {'Window Open Reminder:'}
-                            </ControlLabel>
-                            <ToggleSwitch
-                                onChange={this.handleWindowOpenReminderChange}
-                                checked={this.state.windowOpenReminderEnabled}
-                                theme={this.props.theme}
-                            />
-                        </FormGroup>
-                        <FormGroup style={style.formGroup}>
-                            <ControlLabel style={style.controlLabel}>
-                                {'Window Close Reminder:'}
-                            </ControlLabel>
-                            <ToggleSwitch
-                                onChange={this.handleWindowCloseReminderChange}
-                                checked={this.state.windowCloseReminderEnabled}
-                                theme={this.props.theme}
-                            />
-                        </FormGroup>
-                        <FormGroup style={style.formGroup}>
-                            <ControlLabel style={style.controlLabel}>
-                                {'Standup Schedule:'}
-                            </ControlLabel>
-                            <ToggleSwitch
-                                onChange={this.handleScheduleStatusChange}
-                                checked={this.state.scheduleEnabled}
-                                theme={this.props.theme}
-                            />
-                        </FormGroup>
-                        <FormGroup style={{...style.formGroup, ...style.formGroupNoMarginBottom}}>
-                            <ControlLabel style={style.controlLabel}>{'Sections:'}</ControlLabel>
-                        </FormGroup>
+                                <FormGroup style={style.formGroup}>
+                                    <ControlLabel style={style.controlLabel}>
+                                        {'Enabled:'}
+                                    </ControlLabel>
+                                    <ControlLabel/>
+                                    <ToggleSwitch
+                                        onChange={this.handleStatusChange}
+                                        checked={this.state.enabled}
+                                        theme={this.props.theme}
+                                    />
+                                </FormGroup>
+                                <FormGroup style={style.formGroup}>
+                                    <ControlLabel style={style.controlLabel}>
+                                        {'Standup Schedule:'}
+                                    </ControlLabel>
+                                    <ToggleSwitch
+                                        onChange={this.handleScheduleStatusChange}
+                                        checked={this.state.scheduleEnabled}
+                                        theme={this.props.theme}
+                                    />
+                                </FormGroup>
+                                <FormGroup style={style.formGroup}>
+                                    <ControlLabel style={style.controlLabel}>
+                                        {'Standup Report Format:'}
+                                    </ControlLabel>
+                                    <SplitButton
+                                        title={ConfigModal.REPORT_DISPLAY_NAMES[this.state.reportFormat]}
+                                        onSelect={this.handleReportTypeChange}
+                                        bsStyle={'link'}
+                                    >
+                                        <MenuItem eventKey={'user_aggregated'}>{'User Aggregated'}</MenuItem>
+                                        <MenuItem eventKey={'type_aggregated'}>{'Type Aggregated'}</MenuItem>
+                                    </SplitButton>
+                                </FormGroup>
+                                <FormGroup style={{...style.formGroup, ...style.formGroupNoMarginBottom}}>
+                                    <ControlLabel style={style.controlLabel}>{'Sections:'}</ControlLabel>
+                                </FormGroup>
 
-                        <div style={style.sectionGroup}>
-                            {this.generateSections(this.handleSectionChange)}
-                        </div>
+                                <div style={style.sectionGroup}>
+                                    {this.generateSections(this.handleSectionChange)}
+                                </div>
+                            </Tab>
+                            <Tab
+                                eventKey={2}
+                                title={'Notifications'}
+                            >
+                                <FormGroup style={style.formGroup}>
+                                    <ControlLabel style={style.controlLabel}>
+                                        {'Window Open Reminder:'}
+                                    </ControlLabel>
+                                    <ToggleSwitch
+                                        onChange={this.handleWindowOpenReminderChange}
+                                        checked={this.state.windowOpenReminderEnabled}
+                                        theme={this.props.theme}
+                                    />
+                                </FormGroup>
+                                <FormGroup style={style.formGroup}>
+                                    <ControlLabel style={style.controlLabel}>
+                                        {'Window Close Reminder:'}
+                                    </ControlLabel>
+                                    <ToggleSwitch
+                                        onChange={this.handleWindowCloseReminderChange}
+                                        checked={this.state.windowCloseReminderEnabled}
+                                        theme={this.props.theme}
+                                    />
+                                </FormGroup>
+                            </Tab>
+                            <Tab
+                                eventKey={3}
+                                title={'Schedule'}
+                            >
+                                <FormGroup style={style.formGroup}>
+                                    <ControlLabel style={style.controlLabel}>
+                                        {'Window Time:'}
+                                    </ControlLabel>
+                                    <TimePicker
+                                        time={this.state.windowOpenTime}
+                                        onChange={this.handleWindowOpenTimeChange}
+                                        bsStyle={'link'}
+                                    />
+                                    <span style={style.controlLabelX}>{'to'}</span>
+                                    <TimePicker
+                                        time={this.state.windowCloseTime}
+                                        onChange={this.handleWindowCloseTimeChange}
+                                        bsStyle={'link'}
+                                    />
+                                </FormGroup>
+                                <FormGroup style={style.formGroup}>
+                                    <ControlLabel style={style.controlLabel}>
+                                        {'Timezone:'}
+                                    </ControlLabel>
+                                    <SplitButton
+                                        title={ConfigModal.TIMEZONE_DISPLAY_NAMES[this.state.timezone]}
+                                        onSelect={this.handleTimezoneChange}
+                                        bsStyle={'link'}
+                                    >{data}
+                                    </SplitButton>
+                                </FormGroup>
+                                <FormGroup>
+                                    <RRule
+                                        startDate={this.state.startDate}
+                                        rrule={this.state.rruleString}
+                                        onChange={this.handleRecurrenceChange}
+                                    />
+                                </FormGroup>
+                            </Tab>
+                        </Tabs>
                     </div>
                 </Modal.Body>
 
