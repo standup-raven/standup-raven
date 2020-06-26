@@ -43,6 +43,7 @@
 
 label.btn.btn-primary.day.active {
   box-shadow: none;
+  background-color: var(--sidebar-text-active-border) !important;
 }
 
 .individual-day-of-week-selector .btn-group {
@@ -69,11 +70,6 @@ label.btn.btn-primary.day.active {
   left: -100vw;
 }
 
-
 label.btn.btn-primary.day {
   border: 1px solid var(--link-color);
-}
-
-label.btn.btn-primary.day.active {
-  background-color: var(--sidebar-text-active-border) !important;
 }
