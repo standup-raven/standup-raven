@@ -20,6 +20,10 @@ const URL_PLUGIN_CONFIG = `${PLUGIN_BASE_URL}/plugin-config`;
 
 const MATTERMOST_CSRF_COOKIE = 'MMCSRF';
 
+const COMMAND_PREFIX = 'standup';
+
+const COMMAND_CONFIG = 'config';
+
 const ACTIONS = {
     OPEN_STANDUP_MODAL: `${PLUGIN_NAME}_open_standup_modal`,
     CLOSE_STANDUP_MODAL: `${PLUGIN_NAME}_close_standup_modal`,
@@ -40,4 +44,6 @@ export default {
     URL_GET_TIMEZONE,
     URL_ACTIVE_CHANNELS,
     URL_PLUGIN_CONFIG,
+    COMMAND_PREFIX,
+    COMMAND_CONFIG,
 };

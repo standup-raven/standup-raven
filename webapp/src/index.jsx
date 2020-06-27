@@ -55,6 +55,18 @@ class StandupRavenPlugin {
             },
         );
 
+        registry.registerSlashCommandWillBePostedHook((message, args) => {
+            if (message.trim() === `/${Constants.COMMAND_PREFIX} ${Constants.COMMAND_CONFIG}`) {
+                store.dispatch(Actions.openConfigModal());
+                return {};
+            } else if (message.trim() === `/${Constants.COMMAND_PREFIX}`) {
+                store.dispatch(Actions.openStandupModal());
+                return {};
+            }
+
+            return {message, args};
+        });
+
         registry.registerReducer(reducer);
     }
 }
