@@ -5501,9 +5501,9 @@ react-redux@5.0.7:
     loose-envify "^1.1.0"
     prop-types "^15.6.0"
 
-"react-rrule-generator@https://github.com/standup-raven/react-rrule-generator.git#v1.0.0":
+"react-rrule-generator@https://github.com/standup-raven/react-rrule-generator.git#react-bootstrap":
   version "1.2.0"
-  resolved "https://github.com/standup-raven/react-rrule-generator.git#6e4d04d03f23544f9ea3b75b3a83a39cbdb62022"
+  resolved "https://github.com/standup-raven/react-rrule-generator.git#835e564b712f50ec5fd47ee03cb6bc305652ef9f"
   dependencies:
     react-bootstrap "^0.32.4"
 
