@@ -5503,7 +5503,7 @@ react-redux@5.0.7:
 
 "react-rrule-generator@https://github.com/standup-raven/react-rrule-generator.git#react-bootstrap":
   version "1.2.0"
-  resolved "https://github.com/standup-raven/react-rrule-generator.git#835e564b712f50ec5fd47ee03cb6bc305652ef9f"
+  resolved "https://github.com/standup-raven/react-rrule-generator.git#598bf64942a9f1cef37671e756b107348d6b5309"
   dependencies:
     react-bootstrap "^0.32.4"
 
