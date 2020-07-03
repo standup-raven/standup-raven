@@ -24,7 +24,6 @@ func (c *Config) Syntax() string {
 
 var commands = map[string]*Config{
 	commandViewConfig().Command.Trigger:    commandViewConfig(),
-	commandConfig().Command.Trigger:        commandConfig(),
 	commandAddMembers().Command.Trigger:    commandAddMembers(),
 	commandRemoveMembers().Command.Trigger: commandRemoveMembers(),
 	commandStandup().Command.Trigger:       commandStandup(),
