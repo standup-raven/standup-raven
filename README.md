@@ -23,7 +23,7 @@ A Mattermost plugin for communicating daily standups across team
 
 * Automatic window open reminders
 
-    ![](docs/assets/images/first-reminder.png =380px)
+    ![](docs/assets/images/first-reminder.png | width=380)
     
 * Automatic window close reminders
 
