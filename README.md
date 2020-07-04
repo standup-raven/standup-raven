@@ -1,13 +1,14 @@
 <div align="center">
 
 <img src="docs/assets/images/banner.png?raw=true" width="70%" max-width="1500px"></img>
+
+A Mattermost plugin for communicating daily standups across team
+
 #
 [![CircleCI](https://circleci.com/gh/standup-raven/standup-raven/tree/master.svg?style=svg)](https://circleci.com/gh/standup-raven/standup-raven/tree/master)
 [![codecov](https://codecov.io/gh/standup-raven/standup-raven/branch/master/graph/badge.svg)](https://codecov.io/gh/standup-raven/standup-raven)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/934cb67ed24e42978273489ae17bddef)](https://www.codacy.com/app/harshilsharma/standup-raven?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=standup-raven/standup-raven&amp;utm_campaign=Badge_Grade)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2940/badge)](https://bestpractices.coreinfrastructure.org/projects/2940)
-
-A Mattermost plugin for communicating daily standups across team
 
 <div align="center">
 <a href="https://www.buymeacoffee.com/harshilsharma63" target="_blank">
