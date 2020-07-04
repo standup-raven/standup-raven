@@ -9,7 +9,11 @@
 
 A Mattermost plugin for communicating daily standups across team
 
-<a href="https://www.buymeacoffee.com/harshilsharma63" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 31px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/harshilsharma63" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" width="217px" ></a>
+<a href='https://ko-fi.com/W7W11SK6R' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi1.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+<a href="https://opencollective.com/webpack/donate" target="_blank">
+  <img src="https://opencollective.com/webpack/donate/button@2x.png?color=blue" width=300 />
+</a>
 
 </div>
 
