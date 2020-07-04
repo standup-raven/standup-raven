@@ -20,8 +20,8 @@ A Mattermost plugin for communicating daily standups across team
     <img src="docs/assets/images/open-collective.svg?raw=true" width="220px"></img>
 </a>
 </div>
-
-
+<br>
+<br>
 </div>
 
 <div align="center">
