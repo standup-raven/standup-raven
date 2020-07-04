@@ -23,29 +23,33 @@ A Mattermost plugin for communicating daily standups across team
 
 * Automatic window open reminders
 
-    ![](docs/assets/images/window_open_notification.png)
+    ![](docs/assets/images/first-reminder.png)
     
 * Automatic window close reminders
 
-    ![](docs/assets/images/window_close_notification.png)
+    ![](docs/assets/images/second-reminder.png)
     
 * Per-channel customizable
 
-    ![](docs/assets/images/standup_config.png)
+    ![](docs/assets/images/config-general.png)
+    
+    ![](docs/assets/images/config-notifications.png)
+    
+    ![](docs/assets/images/config-schedule.png)
     
 * Automatic standup reports
     
-    ![](docs/assets/images/user_aggregated_report.png)
+    ![](docs/assets/images/report-user-aggregated.png)
 
 * Multiple standup report formats -
 
   * User Aggregated - tasks aggregated by individual users
 
-    ![](docs/assets/images/user_aggregated_report.png)
+    ![](docs/assets/images/report-user-aggregated.png)
      
   * Type Aggregated - tasks aggregated by type
 
-    ![](docs/assets/images/type_aggregated_report.png)
+    ![](docs/assets/images/report-type-aggregated.png)
 
 * Ability to preview standup report without publishing it in channel
 * Ability to manually generate standup reports for any arbitrary date
