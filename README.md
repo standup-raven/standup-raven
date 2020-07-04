@@ -27,29 +27,29 @@ A Mattermost plugin for communicating daily standups across team
     
 * Automatic window close reminders
 
-    <img src="docs/assets/images/second-reminder.png?raw=true" width="380px"></img>
+    <img src="docs/assets/images/second-reminder.png?raw=true" width="600px"></img>
     
 * Per-channel customizable
 
-    <img src="docs/assets/images/config-general.png?raw=true" width="380px"></img>
+    <img src="docs/assets/images/config-general.png?raw=true" width="650px"></img>
     
-    <img src="docs/assets/images/config-notifications.png?raw=true" width="380px"></img>
+    <img src="docs/assets/images/config-notifications.png?raw=true" width="650px"></img>
     
-    <img src="docs/assets/images/config-schedule.png?raw=true" width="380px"></img>
+    <img src="docs/assets/images/config-schedule.png?raw=true" width="650px"></img>
     
 * Automatic standup reports
     
-    <img src="docs/assets/images/report-user-aggregated.png?raw=true" width="380px"></img>
+    <img src="docs/assets/images/report-user-aggregated.png?raw=true" width="500px"></img>
 
 * Multiple standup report formats -
 
   * User Aggregated - tasks aggregated by individual users
 
-    <img src="docs/assets/images/report-user-aggregated.png?raw=true" width="380px"></img>
+    <img src="docs/assets/images/report-user-aggregated.png?raw=true" width="500px"></img>
      
   * Type Aggregated - tasks aggregated by type
 
-    <img src="docs/assets/images/report-type-aggregated.png?raw=true" width="380px"></img>
+    <img src="docs/assets/images/report-type-aggregated.png?raw=true" width="500px"></img>
 
 * Ability to preview standup report without publishing it in channel
 * Ability to manually generate standup reports for any arbitrary date
