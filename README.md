@@ -9,7 +9,7 @@
 
 A Mattermost plugin for communicating daily standups across team
 
-<a href="https://www.buymeacoffee.com/harshilsharma63" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+<a href="https://www.buymeacoffee.com/harshilsharma63" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 31px !important;width: 217px !important;" ></a>
 
 </div>
 
