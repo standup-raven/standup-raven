@@ -9,8 +9,6 @@
 
 A Mattermost plugin for communicating daily standups across team
 
-<a href="https://www.buymeacoffee.com/harshilsharma63" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
-
 </div>
 
 <div align="center">
@@ -23,29 +21,33 @@ A Mattermost plugin for communicating daily standups across team
 
 * Automatic window open reminders
 
-    ![](docs/assets/images/window_open_notification.png)
+    <img src="docs/assets/images/first-reminder.png?raw=true" width="380px"></img>
     
 * Automatic window close reminders
 
-    ![](docs/assets/images/window_close_notification.png)
+    <img src="docs/assets/images/second-reminder.png?raw=true" width="600px"></img>
     
 * Per-channel customizable
 
-    ![](docs/assets/images/standup_config.png)
+    <img src="docs/assets/images/config-general.png?raw=true" width="650px"></img>
+    
+    <img src="docs/assets/images/config-notifications.png?raw=true" width="650px"></img>
+    
+    <img src="docs/assets/images/config-schedule.png?raw=true" width="650px"></img>
     
 * Automatic standup reports
     
-    ![](docs/assets/images/user_aggregated_report.png)
+    <img src="docs/assets/images/report-user-aggregated.png?raw=true" width="500px"></img>
 
 * Multiple standup report formats -
 
   * User Aggregated - tasks aggregated by individual users
 
-    ![](docs/assets/images/user_aggregated_report.png)
+    <img src="docs/assets/images/report-user-aggregated.png?raw=true" width="500px"></img>
      
   * Type Aggregated - tasks aggregated by type
 
-    ![](docs/assets/images/type_aggregated_report.png)
+    <img src="docs/assets/images/report-type-aggregated.png?raw=true" width="500px"></img>
 
 * Ability to preview standup report without publishing it in channel
 * Ability to manually generate standup reports for any arbitrary date
