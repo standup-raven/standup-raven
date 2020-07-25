@@ -81,13 +81,16 @@ func getCurrentSchemaVersion() (string, error) {
 		logger.Error("Couldn't fetch database schema version from KV store", err, nil)
 		return "", err
 	}
-	var version string
-	appErr := json.Unmarshal(key, &version)
-	if appErr != nil {
-		logger.Error("Couldn't marshal database schema version", appErr, nil)
-		return "", appErr
+	if key != nil {
+		var version string
+		appErr := json.Unmarshal(key, &version)
+		if appErr != nil {
+			logger.Error("Couldn't marshal database schema version", appErr, nil)
+			return "", appErr
+		}
+		return version, nil
 	}
-	return version, nil
+	return versionNone, nil
 }
 
 func updateSchemaVersion(version string) error {
