@@ -73,3 +73,11 @@ label.btn.btn-primary.day.active {
 label.btn.btn-primary.day {
   border: 1px solid var(--link-color);
 }
+
+#standup-config-tabs .control-label {
+  width: 180px;
+}
+
+#standup-config-tabs .form-group {
+  margin-bottom: 20px;
+}

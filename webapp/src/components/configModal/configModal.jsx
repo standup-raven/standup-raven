@@ -380,7 +380,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                     <ControlLabel style={style.controlLabel}>
                                         {'Enabled:'}
                                     </ControlLabel>
-                                    <ControlLabel/>
                                     <ToggleSwitch
                                         onChange={this.handleStatusChange}
                                         checked={this.state.enabled}
