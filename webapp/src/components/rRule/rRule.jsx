@@ -88,7 +88,6 @@ class RRule extends React.PureComponent {
                             value={this.state.startDate}
                             onChange={this.startDateChangeHandler}
                             showClearButton={false}
-                            style={{width: '60%'}}
                         />
                     </div>
                 </FormGroup>

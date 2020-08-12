@@ -470,6 +470,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                         title={ConfigModal.TIMEZONE_DISPLAY_NAMES[this.state.timezone]}
                                         onSelect={this.handleTimezoneChange}
                                         bsStyle={'link'}
+                                        style={{width: '300px'}}
                                     >{data}
                                     </SplitButton>
                                 </FormGroup>
