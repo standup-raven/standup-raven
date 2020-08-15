@@ -32,9 +32,15 @@
   margin-bottom: 10px;
 }
 
+label.btn.btn-primary.day {
+  border: 1px solid var(--link-color);
+  color: var(--link-color);
+}
+
 label.btn.btn-primary.day.active {
   box-shadow: none;
   background-color: var(--sidebar-text-active-border) !important;
+  color: var(--center-channel-color);
 }
 
 .individual-day-of-week-selector .btn-group {

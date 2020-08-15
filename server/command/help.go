@@ -24,7 +24,6 @@ func validateCommandHelp(args []string, context Context) (*model.CommandResponse
 
 func executeCommandHelp(args []string, context Context) (*model.CommandResponse, *model.AppError) {
 	helpText := generateHelpText([]*Config{
-		commandConfig(),
 		commandAddMembers(),
 		commandViewConfig(),
 		commandRemoveMembers(),

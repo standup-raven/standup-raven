@@ -62,21 +62,6 @@ func executeCommandMaster(args []string, context Context) (*model.CommandRespons
 		subCommand := context.Props["subCommand"].(*Config)
 		subCommandArgs := context.Props["subCommandArgs"].([]string)
 		response, appErr = subCommand.Execute(subCommandArgs, context)
-	} else {
-		config.Mattermost.PublishWebSocketEvent(
-			"open_standup_modal",
-			map[string]interface{}{
-				"channel_id": context.CommandArgs.ChannelId,
-			},
-			&model.WebsocketBroadcast{
-				UserId: context.CommandArgs.UserId,
-			},
-		)
-
-		response, appErr = &model.CommandResponse{
-			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-			Text:         "Submit your standup from the open modal!",
-		}, nil
 	}
 
 	return response, appErr

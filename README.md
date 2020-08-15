@@ -1,16 +1,29 @@
 <div align="center">
 
 <img src="docs/assets/images/banner.png?raw=true" width="70%" max-width="1500px"></img>
+
 #
+A Mattermost plugin for communicating daily standups across team
+
+
 [![CircleCI](https://circleci.com/gh/standup-raven/standup-raven/tree/master.svg?style=svg)](https://circleci.com/gh/standup-raven/standup-raven/tree/master)
 [![codecov](https://codecov.io/gh/standup-raven/standup-raven/branch/master/graph/badge.svg)](https://codecov.io/gh/standup-raven/standup-raven)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/934cb67ed24e42978273489ae17bddef)](https://www.codacy.com/app/harshilsharma/standup-raven?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=standup-raven/standup-raven&amp;utm_campaign=Badge_Grade)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2940/badge)](https://bestpractices.coreinfrastructure.org/projects/2940)
 
-A Mattermost plugin for communicating daily standups across team
-
-<a href="https://www.buymeacoffee.com/harshilsharma63" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
-
+<div align="center">
+<a href="https://www.buymeacoffee.com/harshilsharma63" target="_blank">
+    <img src="docs/assets/images/buy-me-a-coffee.svg?raw=true" width="200px"></img>
+</a>
+<a href="https://ko-fi.com/W7W11SK6R" target="_blank">
+    <img src="docs/assets/images/ko-fi.svg?raw=true" width="270px"></img>
+</a>
+<a href="https://opencollective.com/webpack/donate" target="_blank">
+    <img src="docs/assets/images/open-collective.svg?raw=true" width="220px"></img>
+</a>
+</div>
+<br>
+<br>
 </div>
 
 <div align="center">
@@ -23,29 +36,33 @@ A Mattermost plugin for communicating daily standups across team
 
 * Automatic window open reminders
 
-    ![](docs/assets/images/window_open_notification.png)
+    <img src="docs/assets/images/first-reminder.png?raw=true" width="380px"></img>
     
 * Automatic window close reminders
 
-    ![](docs/assets/images/window_close_notification.png)
+    <img src="docs/assets/images/second-reminder.png?raw=true" width="600px"></img>
     
 * Per-channel customizable
 
-    ![](docs/assets/images/standup_config.png)
+    <img src="docs/assets/images/config-general.png?raw=true" width="650px"></img>
+    
+    <img src="docs/assets/images/config-notifications.png?raw=true" width="650px"></img>
+    
+    <img src="docs/assets/images/config-schedule.png?raw=true" width="650px"></img>
     
 * Automatic standup reports
     
-    ![](docs/assets/images/user_aggregated_report.png)
+    <img src="docs/assets/images/report-user-aggregated.png?raw=true" width="500px"></img>
 
 * Multiple standup report formats -
 
   * User Aggregated - tasks aggregated by individual users
 
-    ![](docs/assets/images/user_aggregated_report.png)
+    <img src="docs/assets/images/report-user-aggregated.png?raw=true" width="500px"></img>
      
   * Type Aggregated - tasks aggregated by type
 
-    ![](docs/assets/images/type_aggregated_report.png)
+    <img src="docs/assets/images/report-type-aggregated.png?raw=true" width="500px"></img>
 
 * Ability to preview standup report without publishing it in channel
 * Ability to manually generate standup reports for any arbitrary date
