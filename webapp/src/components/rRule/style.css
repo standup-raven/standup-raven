@@ -86,3 +86,13 @@ label.btn.btn-primary.day {
 .day-of-week-selector {
   margin-left: 35px;
 }
+
+.dropup .btn.btn-link {
+  border-color: var(--link-color);
+}
+
+#standup-config-tabs .dropdown-menu {
+  width: 100%;
+  max-width: 100%;
+  min-width: unset;
+}

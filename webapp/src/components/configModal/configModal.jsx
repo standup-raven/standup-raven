@@ -451,12 +451,14 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                         {'Window Time:'}
                                     </ControlLabel>
                                     <TimePicker
+                                        id={'window-start-time'}
                                         time={this.state.windowOpenTime}
                                         onChange={this.handleWindowOpenTimeChange}
                                         bsStyle={'link'}
                                     />
                                     <span style={style.controlLabelX}>{'to'}</span>
                                     <TimePicker
+                                        id={'window-end-time'}
                                         time={this.state.windowCloseTime}
                                         onChange={this.handleWindowCloseTimeChange}
                                         bsStyle={'link'}
