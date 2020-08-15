@@ -69,14 +69,14 @@ func generateRRuleStringByWorkWeek() (string, error) {
 
 	workWeekStart, err := strconv.Atoi(oldConf.WorkWeekStart)
 	if err != nil {
-		logger.Error("Couldn't parse integer in old config work week start", err, nil)
-		return "", err
+		logger.Error("Couldn't parse integer in old config work week start, defaulting to using 1 (Monday)", err, nil)
+		workWeekStart = 1
 	}
 
 	workWeekEnd, err := strconv.Atoi(oldConf.WorkWeekEnd)
 	if err != nil {
-		logger.Error("Couldn't parse integer in old config work week end", err, nil)
-		return "", err
+		logger.Error("Couldn't parse integer in old config work week end, defaulting to using 5 (Friday)", err, nil)
+		workWeekEnd = 5
 	}
 
 	weekdays := getStandupWeekDays(workWeekStart, workWeekEnd)
