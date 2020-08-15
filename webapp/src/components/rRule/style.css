@@ -67,10 +67,6 @@ label.btn.btn-primary.day.active {
   left: -100vw;
 }
 
-label.btn.btn-primary.day {
-  border: 1px solid var(--link-color);
-}
-
 #standup-config-tabs .control-label {
   width: 180px;
 }
