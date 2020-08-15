@@ -125,8 +125,8 @@ class TimePicker extends (SentryBoundary, React.PureComponent) {
                 className={'time-picker'}
                 style={{display: 'inline-block'}}
             >
-                {/*TODO what's going on in onSelect?*/}
                 <SplitButton
+                    id={`${this.props.id}-hours`}
                     bsStyle={this.state.bsStyle}
                     className={'hours'}
                     title={this.state.hours}
@@ -144,6 +144,7 @@ class TimePicker extends (SentryBoundary, React.PureComponent) {
                     style={style.timeSeparator}
                 >{':'}</span>
                 <SplitButton
+                    id={`${this.props.id}-minutes`}
                     bsStyle={this.state.bsStyle}
                     className={'minutes'}
                     title={this.state.minutes}
@@ -171,6 +172,7 @@ function getStyle() {
 }
 
 TimePicker.propTypes = {
+    id: PropTypes.string.isRequired,
     time: PropTypes.string,
     onChange: PropTypes.func,
     bsStyle: PropTypes.string,

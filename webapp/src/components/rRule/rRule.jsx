@@ -88,7 +88,6 @@ class RRule extends React.PureComponent {
                             value={this.state.startDate}
                             onChange={this.startDateChangeHandler}
                             showClearButton={false}
-                            style={{width: '60%'}}
                         />
                     </div>
                 </FormGroup>
@@ -105,6 +104,11 @@ class RRule extends React.PureComponent {
                         onChange={this.rruleChangeHandler}
                         value={this.state.rrule}
                         customCalendar={DatePicker}
+                        repeatDropdownStyle={{width: '300px'}}
+                        weeklyFrequencyInputStyle={{width: '60px', textAlign: 'center'}}
+                        monthlyFrequencyInputStyle={{width: '60px', textAlign: 'center'}}
+                        monthlyOnDayDropdownStyle={{width: '300px'}}
+                        monthlyOnTheDayDropdownStyle={{width: '120px'}}
                     />
                 </FormGroup>
             </div>

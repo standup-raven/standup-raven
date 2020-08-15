@@ -9,6 +9,7 @@
 .standup-recurrence .col-sm-2.text-sm-right,
 .standup-recurrence .col-sm-1.offset-sm-2 {
   width: 180px;
+  padding: 0;
 }
 
 .standup-recurrence .px-0.pt-3.border.rounded {
@@ -17,16 +18,6 @@
 
 .standup-recurrence .form-group.row {
   margin-bottom: 20px;
-}
-
-.month-selector,
-.week-of-month-selector {
-  width: 26%;
-}
-
-.day-of-week-selector,
-.day-of-month-selector {
-  width: 28%;
 }
 
 .individual-day-of-week-selector .btn.btn-primary {
@@ -74,4 +65,36 @@ label.btn.btn-primary.day.active {
 .standup-recurrence input[type="checkbox"] {
   position: absolute;
   left: -100vw;
+}
+
+#standup-config-tabs .control-label {
+  width: 180px;
+}
+
+#standup-config-tabs .form-group {
+  margin-bottom: 20px;
+}
+
+#standup-config-tabs .combo-label {
+  width: 180px;
+  padding: 0;
+}
+
+#standup-config-tabs .day-of-month-selector {
+  padding: 0;
+  width: calc(100% - 180px);
+}
+
+.day-of-week-selector {
+  margin-left: 35px;
+}
+
+.dropup .btn.btn-link {
+  border-color: var(--link-color);
+}
+
+#standup-config-tabs .dropdown-menu {
+  width: 100%;
+  max-width: 100%;
+  min-width: unset;
 }

@@ -380,7 +380,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                     <ControlLabel style={style.controlLabel}>
                                         {'Enabled:'}
                                     </ControlLabel>
-                                    <ControlLabel/>
                                     <ToggleSwitch
                                         onChange={this.handleStatusChange}
                                         checked={this.state.enabled}
@@ -452,12 +451,14 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                         {'Window Time:'}
                                     </ControlLabel>
                                     <TimePicker
+                                        id={'window-start-time'}
                                         time={this.state.windowOpenTime}
                                         onChange={this.handleWindowOpenTimeChange}
                                         bsStyle={'link'}
                                     />
                                     <span style={style.controlLabelX}>{'to'}</span>
                                     <TimePicker
+                                        id={'window-end-time'}
                                         time={this.state.windowCloseTime}
                                         onChange={this.handleWindowCloseTimeChange}
                                         bsStyle={'link'}
@@ -471,6 +472,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                         title={ConfigModal.TIMEZONE_DISPLAY_NAMES[this.state.timezone]}
                                         onSelect={this.handleTimezoneChange}
                                         bsStyle={'link'}
+                                        style={{width: '300px'}}
                                     >{data}
                                     </SplitButton>
                                 </FormGroup>

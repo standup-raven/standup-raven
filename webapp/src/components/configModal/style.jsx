@@ -8,6 +8,9 @@ function getStyle() {
             paddingRight: '10px',
             paddingLeft: '10px',
         },
+        formField: {
+            width: 'calc(100% - 180px)', // 180px is the width of control label
+        },
         formGroup: {
             marginBottom: '20px',
             minHeight: '35px',
