@@ -1222,3 +1222,23 @@ func TestUpdateChannelHeader_ExistingPipeInHeader(t *testing.T) {
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 4)
 }
+
+func TestUpdateChannelHeader_ArchivedChannel(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+
+	mockAPI.On("GetChannel", "channel_id_1").Return(&model.Channel{
+		DeleteAt: time.Now().Unix(),
+	}, nil)
+
+	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
+		return nil, nil
+	})
+
+	err := updateChannelHeader(&StandupConfig{
+		ChannelId:       "channel_id_1",
+	})
+	
+	assert.Nil(t, err)
+	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 0)
+}
