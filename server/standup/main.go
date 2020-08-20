@@ -417,6 +417,12 @@ func updateChannelHeader(newConfig *StandupConfig) error {
 		return errors.New(appErr.Error())
 	}
 
+	// Updating an archived channel causes error.
+	// Skip if channel is archived.
+	if channel.DeleteAt != 0 {
+		return nil
+	}
+
 	if oldConfig.ScheduleEnabled && !newConfig.ScheduleEnabled {
 		channel.Header = removeChannelHeaderSchedule(channel.Header)
 	} else if !oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled {
