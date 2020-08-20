@@ -416,7 +416,7 @@ func updateChannelHeader(newConfig *StandupConfig) error {
 	if appErr != nil {
 		return errors.New(appErr.Error())
 	}
-	
+
 	// Updating an archived channel causes error.
 	// Skip if channel is archived.
 	if channel.DeleteAt != 0 {
