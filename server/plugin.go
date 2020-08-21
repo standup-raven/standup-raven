@@ -21,7 +21,10 @@ import (
 	"github.com/standup-raven/standup-raven/server/util"
 )
 
+// ldflag variables
 var PluginVersion string
+var SentryServerDSN string
+var SentryWebappDSN string
 
 type Plugin struct {
 	plugin.MattermostPlugin
@@ -107,8 +110,7 @@ func (p *Plugin) OnConfigurationChange() error {
 			return err
 		}
 
-		// substring to remove "v" from "vX.Y.Z"
-		configuration.PluginVersion = PluginVersion[1:]
+		p.setInjectedVars(&configuration)
 
 		if err := configuration.ProcessConfiguration(); err != nil {
 			config.Mattermost.LogError(err.Error())
@@ -121,6 +123,13 @@ func (p *Plugin) OnConfigurationChange() error {
 		}
 	}
 	return nil
+}
+
+func (p *Plugin) setInjectedVars(configuration *config.Configuration) {
+	// substring to remove "v" from "vX.Y.Z"
+	configuration.PluginVersion = PluginVersion[1:]
+	configuration.SentryWebappDSN = SentryWebappDSN
+	configuration.SentryServerDSN = SentryServerDSN
 }
 
 func (p *Plugin) RegisterCommands() error {

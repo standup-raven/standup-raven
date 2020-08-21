@@ -33,19 +33,8 @@
         "key": "enableErrorReporting",
         "display_name": "Enable Error Reporting",
         "type": "bool",
+        "default": true,
         "help_text": "Help Standup Raven by automatically sending error reports."
-      },
-      {
-        "key": "sentryServerDSN",
-        "display_name": "Sentry Server DSN",
-        "type": "text",
-        "help_text": "Sentry DSN to record server errors."
-      },
-      {
-        "key": "sentryWebappDSN",
-        "display_name": "Sentry Webapp DSN",
-        "type": "text",
-        "help_text": "Sentry DSN to record webapp errors."
       }
     ]
   }
