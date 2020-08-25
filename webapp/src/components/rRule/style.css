@@ -97,4 +97,6 @@ label.btn.btn-primary.day.active {
   width: 100%;
   max-width: 100%;
   min-width: unset;
+  max-height: 160px;
+  overflow-y: auto;
 }
