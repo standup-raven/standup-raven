@@ -20,7 +20,7 @@ func TestUpgradeDatabaseToVersion1_5_0(t *testing.T) {
 		return nil
 	})
 	
-	err := upgradeDatabaseToVersion1_5_0(version2_0_0, version3_0_0)
+	err := upgradeDatabaseToVersion1_5_0(version2_0_0)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, updateSchemaVersionCount)
 
@@ -46,7 +46,7 @@ func TestUpgradeDatabaseToVersion1_5_0(t *testing.T) {
 		return &standup.StandupConfig{}, nil
 	})
 	
-	err = upgradeDatabaseToVersion1_5_0(version1_4_0, version1_5_0)
+	err = upgradeDatabaseToVersion1_5_0(version1_4_0)
 	assert.Nil(t, err)
 }
 
@@ -65,7 +65,7 @@ func TestUpgradeDatabaseToVersion1_5_0_GetStandupChannels_Error(t *testing.T) {
 		return nil, errors.New("")
 	})
 	
-	err := upgradeDatabaseToVersion1_5_0(version1_4_0, version1_5_0)
+	err := upgradeDatabaseToVersion1_5_0(version1_4_0)
 	assert.NotNil(t, err)
 
 }
@@ -97,7 +97,7 @@ func TestUpgradeDatabaseToVersion1_5_0_GetStandupConfig_Error(t *testing.T) {
 		return nil, errors.New("")
 	})
 
-	err := upgradeDatabaseToVersion1_5_0(version1_4_0, version1_5_0)
+	err := upgradeDatabaseToVersion1_5_0(version1_4_0)
 	assert.NotNil(t, err)
 }
 
@@ -132,7 +132,7 @@ func TestUpgradeDatabaseToVersion1_5_0_SaveStandupConfig_Error(t *testing.T) {
 		return nil, errors.New("")
 	})
 
-	err := upgradeDatabaseToVersion1_5_0(version1_4_0, version1_5_0)
+	err := upgradeDatabaseToVersion1_5_0(version1_4_0)
 	assert.NotNil(t, err)
 }
 
@@ -167,6 +167,6 @@ func TestUpgradeDatabaseToVersion1_5_0_updateSchemaVersion_Error(t *testing.T) {
 		return &standup.StandupConfig{}, nil
 	})
 
-	err := upgradeDatabaseToVersion1_5_0(version1_4_0, version1_5_0)
+	err := upgradeDatabaseToVersion1_5_0(version1_4_0)
 	assert.NotNil(t, err)
 }
