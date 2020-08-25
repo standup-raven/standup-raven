@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-func upgradeDatabaseToVersion3_0_0(fromVersion, toVersion string) error {
-	if fromVersion == version2_0_0 && toVersion == version3_0_0 {
+func upgradeDatabaseToVersion3_0_0(fromVersion string) error {
+	if fromVersion == version2_0_0 {
 		standupChannels, err := standup.GetStandupChannels()
 		if err != nil {
 			return err
