@@ -18,20 +18,34 @@ var (
 	version1_5_0          = "1.5.0"
 	version2_0_0          = "2.0.0"
 	version3_0_0          = "3.0.0"
+	version3_0_1          = "3.0.1"
+	version3_0_2          = "3.0.2"
 )
 
+// indicates from what all versions can the plugin
+// be upgraded to a specific version.
+//
+// Key is the destination version.
+// Value is an array of compatible source functions.
+//
+// To upgrade from to a version specified by a key, the user needs
+// to be on one of the versions in the corresponding array.
 var upgradeCompatibility = map[string][]string{
 	versionNone:  {},
 	version1_5_0: {version1_4_0},
 	version3_0_0: {version2_0_0, version1_5_0},
+	version3_0_1: {version3_0_0, version2_0_0, version1_5_0},
+	version3_0_2: {version3_0_1, version3_0_0, version2_0_0, version1_5_0},
 }
 
-type Migratioon func(fromVersion, toVersion string) error
+type Migration func(fromVersion string) error
 
-var migrations = []Migratioon{
+var migrations = []Migration{
 	upgradeDatabaseToVersion1_5_0,
 	upgradeDatabaseToVersion2_0_0,
 	upgradeDatabaseToVersion3_0_0,
+	upgradeDatabaseToVersion3_0_1,
+	upgradeDatabaseToVersion3_0_2,
 }
 
 //DatabaseMigration gets the current database schema version and performs
@@ -62,12 +76,15 @@ func DatabaseMigration() error {
 	}
 
 	for _, migration := range migrations {
+		// fetching schema version in loop because each migration
+		// will alter it. So we need the current latest schema version
+		// to be passed to migration function.
 		schemaVersion, err := getCurrentSchemaVersion()
 		if err != nil {
 			return err
 		}
 
-		if err := migration(schemaVersion, pluginVersion); err != nil {
+		if err := migration(schemaVersion); err != nil {
 			return err
 		}
 	}

@@ -6,8 +6,8 @@ import (
 	"github.com/standup-raven/standup-raven/server/standup"
 )
 
-func upgradeDatabaseToVersion1_5_0(fromVersion, toVersion string) error {
-	if fromVersion == version1_4_0 && toVersion == version1_5_0 {
+func upgradeDatabaseToVersion1_5_0(fromVersion string) error {
+	if fromVersion == version1_4_0 {
 		channelIDs, err := standup.GetStandupChannels()
 		if err != nil {
 			return err
