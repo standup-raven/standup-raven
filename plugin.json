@@ -34,7 +34,7 @@
         "display_name": "Enable Error Reporting",
         "type": "bool",
         "default": true,
-        "help_text": "Help Standup Raven by automatically sending error reports."
+        "help_text": "Help improve Standup Raven by sending error reports and diagnostic information. No messages or personal data is stored."
       }
     ]
   }
