@@ -1,8 +1,3 @@
 .app__body .modal .dropdown .btn {
   border: 1px solid;
 }
-
-.dropdown-menu {
-  max-height: 160px;
-  overflow-y: auto;
-}
