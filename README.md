@@ -18,9 +18,6 @@ A Mattermost plugin for communicating daily standups across team
 <a href="https://ko-fi.com/W7W11SK6R" target="_blank">
     <img src="docs/assets/images/ko-fi.svg?raw=true" width="270px"></img>
 </a>
-<a href="https://opencollective.com/webpack/donate" target="_blank">
-    <img src="docs/assets/images/open-collective.svg?raw=true" width="220px"></img>
-</a>
 </div>
 <br>
 <br>
