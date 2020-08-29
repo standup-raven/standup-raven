@@ -89,7 +89,7 @@ fix-style: check-style-server
 	
 test-server: vendor
 	@echo Running server tests
-	go test -v -coverprofile=coverage.txt ./...
+	go test -v -coverprofile=coverage.txt -json ./... > test.json
 
 test: test-server
 
