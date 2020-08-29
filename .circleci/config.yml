@@ -20,6 +20,8 @@ jobs:
       - run: make test
       - codecov/upload:
           file: coverage.txt
+      - store_test_results:
+          path: coverage.txt
       - run: make check-style
       - run: make dist
       - save_cache:
