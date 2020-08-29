@@ -7,3 +7,4 @@ coverage.txt
 coverage.html
 build_properties.json
 webapp/sentry.properties
+test.json

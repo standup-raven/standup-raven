@@ -19,9 +19,9 @@ jobs:
           key: dependency-cache-{{ checksum "./webapp/yarn.lock" }}
       - run: make test
       - codecov/upload:
-          file: test.json
+          file: coverage.txt
       - store_test_results:
-          path: coverage.txt
+          path: test.json
       - run: make check-style
       - run: make dist
       - save_cache:
