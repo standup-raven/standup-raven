@@ -17,11 +17,20 @@ jobs:
       - restore_cache:
           name: Restore webapp dependencies cache
           key: dependency-cache-{{ checksum "./webapp/yarn.lock" }}
-      - run: make test
+      - run: mkdir -p /tmp/test-results
+      - run:
+          name: Run unit tests
+          command: |
+            cd server
+            PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
+            gotestsum --junitfile /tmp/test-results/gotestsum-report.xml -- $PACKAGE_NAMES
+      - store_artifacts: # upload test summary for display in Artifacts
+          path: /tmp/test-results
+          destination: raw-test-output
       - codecov/upload:
           file: coverage.txt
       - store_test_results:
-          path: test.json
+          path: /tmp/test-results
       - run: make check-style
       - run: make dist
       - save_cache:
