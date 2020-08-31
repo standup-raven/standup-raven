@@ -110,7 +110,7 @@ The generated standup contains names of members who have yet not filled their st
 Due to the sensitive nature of such vulnerabilities, please refrain from posting them publically
 over GitHub issues or any other medium.
 
-Be responsible and report them to raven@joshtechnologygroup.com .
+Be responsible and report them to hello@standupraven.com .
 
 ## 🌟 Attribution
 
