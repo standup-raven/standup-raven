@@ -3,7 +3,7 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"go.uber.org/atomic"
 	"strings"

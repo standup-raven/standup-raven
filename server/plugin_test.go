@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"bou.ke/monkey"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/stretchr/testify/assert"
 )

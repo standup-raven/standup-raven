@@ -101,9 +101,9 @@ cover: test-server
 
 	cd webapp && yarn install
 
-vendor: server/glide.lock
-	cd server && go get github.com/Masterminds/glide
-	cd server && $(shell go env GOPATH)/bin/glide install
+vendor: go.sum
+	@echo "Downloading server dependencies"
+	go mod download
 
 prequickdist: .distclean plugin.json
 	@echo Updating plugin.json with timezones
