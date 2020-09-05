@@ -4,8 +4,8 @@ import (
 	"bou.ke/monkey"
 	"encoding/json"
 	"fmt"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/pkg/errors"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
@@ -17,7 +17,7 @@ import (
 	"time"
 )
 import "github.com/stretchr/testify/assert"
-import "github.com/mattermost/mattermost-server/plugin/plugintest"
+import "github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 
 func baseMock() *plugintest.API {
 	mockAPI := &plugintest.API{}

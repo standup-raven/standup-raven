@@ -3,7 +3,7 @@ package util
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"log"

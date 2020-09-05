@@ -7,13 +7,13 @@ orbs:
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.12-node
+      - image: circleci/golang:1.14-node
     working_directory: /go/src/github.com/standup-raven/standup-raven
     steps:
       - checkout
       - restore_cache:
-          name: Restore glide dependencies cache
-          key: dependency-cache-{{ checksum "./server/glide.lock" }}
+          name: Restore Go dependencies cache
+          key: dependency-cache-{{ checksum "./go.sum" }}
       - restore_cache:
           name: Restore webapp dependencies cache
           key: dependency-cache-{{ checksum "./webapp/yarn.lock" }}
@@ -35,7 +35,7 @@ jobs:
       - run: make dist
       - save_cache:
           name: Save Golang dependencies cache
-          key: dependency-cache-{{ checksum "./server/glide.lock" }}
+          key: dependency-cache-{{ checksum "./go.sum" }}
           paths:
             - ./server/vendor
       - save_cache:
