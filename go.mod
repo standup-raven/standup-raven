@@ -1,6 +1,6 @@
 module github.com/standup-raven/standup-raven
 
-go 1.14
+go 1.15
 
 require (
 	bou.ke/monkey v1.0.2
@@ -16,4 +16,3 @@ require (
 )
 
 replace github.com/teambition/rrule-go => github.com/standup-raven/rrule-go v1.5.1-0.20200606021409-a2ced8306e77
-	
