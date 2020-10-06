@@ -2,7 +2,7 @@ package command
 
 import (
 	"bou.ke/monkey"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/standup-raven/standup-raven/server/util"
 	"github.com/stretchr/testify/assert"
 	"testing"

@@ -1,12 +1,12 @@
 {
   "id": "standup-raven",
-  "version": "3.0.2",
+  "version": "3.1.1",
   "name": "Standup Raven",
   "description": "A Mattermost plugin for communicating daily standups across teams",
-  "homepage_url": "https://standup-raven.github.io/",
+  "homepage_url": "https://standupraven.com/",
   "support_url": "https://github.com/standup-raven/standup-raven/issues",
   "icon_path": "webapp/static/logo.svg",
-  "min_server_version": "5.12.0",
+  "min_server_version": "5.25.0",
   "webapp": {
     "bundle_path": "webapp/main.js"
   },
