@@ -58,6 +58,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
+      - run: make dist
       - run: make release
 
 workflows:
