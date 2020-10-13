@@ -56,17 +56,15 @@ func SplitArgs(s string) ([]string, error) {
 func Min(a, b int) int {
 	if a < b {
 		return a
-	} else {
-		return b
 	}
+	return b
 }
 
 func Max(a, b int) int {
 	if a > b {
 		return a
-	} else {
-		return b
 	}
+	return b
 }
 
 func SendEphemeralText(msg string) (*model.CommandResponse, *model.AppError) {

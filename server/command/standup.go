@@ -44,7 +44,7 @@ func validateCommandStandup(args []string, context Context) (*model.CommandRespo
 	if len(args) == 0 {
 		args = []string{otime.Now(standupConfig.Timezone).Format(dateLayout), notification.ReportVisibilityPrivate}
 	} else if len(args) == 1 {
-		lastArg := strings.ToLower(args[len(args)-1])
+		lastArg := strings.ToLower(args[0])
 
 		if lastArg != notification.ReportVisibilityPublic && lastArg != notification.ReportVisibilityPrivate {
 			args = append(args, notification.ReportVisibilityPrivate)
@@ -56,7 +56,7 @@ func validateCommandStandup(args []string, context Context) (*model.CommandRespo
 	context.Props["visibility"] = strings.ToLower(args[len(args)-1])
 
 	// processing dates to generate report for
-	context.Props["dates"] = make([]otime.OTime, len(args))
+	dates := make([]otime.OTime, len(args)-1)
 	count := 0
 
 	for _, arg := range args[0 : len(args)-1] {
@@ -65,12 +65,11 @@ func validateCommandStandup(args []string, context Context) (*model.CommandRespo
 			return util.SendEphemeralText(fmt.Sprintf("Error parsing this date: %s. Please specify date in format: DD-MM-YYYY", arg))
 		}
 
-		context.Props["dates"].([]otime.OTime)[count] = otime.OTime{t}
+		dates[count] = otime.OTime{Time: t}
 		count++
 	}
 
-	context.Props["dates"] = context.Props["dates"].([]otime.OTime)[0:count]
-
+	context.Props["dates"] = dates[0:count]
 	return nil, nil
 }
 

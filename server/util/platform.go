@@ -6,5 +6,5 @@ import (
 )
 
 func UserIcon(userId string) string {
-	return fmt.Sprintf("![]("+config.UserIconURL+" "+config.UserIconSize+")", userId)
+	return fmt.Sprintf("![User Avatar]("+config.UserIconURL+" "+config.UserIconSize+")", userId)
 }

@@ -62,21 +62,4 @@ func TestCommandMaster_Execution(t *testing.T) {
 	response, err := command.Execute([]string{}, context)
 	assert.Nil(t, err)
 	assert.Nil(t, response)
-
-	//dummyCommand = &Config{
-	//	Validate: func([]string, Context) (*model.CommandResponse, *model.AppError) {
-	//		return util.SendEphemeralText("error")	
-	//	},
-	//}
-	//context = Context{
-	//	Props: map[string]interface{}{
-	//		"subCommand":     dummyCommand,
-	//		"subCommandArgs": []string{"some-command"},
-	//	},
-	//}
-	//
-	//response, err = command.Execute([]string{}, context)
-	//assert.Nil(t, err)
-	//assert.NotNil(t, response)
-	//assert.Equal(t, "error", response.Text)
 }

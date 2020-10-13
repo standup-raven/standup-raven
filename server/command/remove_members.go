@@ -4,7 +4,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 	"github.com/standup-raven/standup-raven/server/config"
-	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
 	"strings"
@@ -35,60 +34,53 @@ func validateRemoveMembers(args []string, context Context) (*model.CommandRespon
 	// We do allow it. Pretty cool!
 	usernamesNotFound := []string{}
 	userIDs := []string{}
+	usernamesByUserID := map[string]string{}
 
-	for _, arg := range args {
-		argToUse := arg
-		if arg[0] == '@' {
-			argToUse = arg[1:]
-		}
-
-		user, err := config.Mattermost.GetUserByUsername(argToUse)
+	for _, username := range args {
+		usernameToUse := strings.TrimPrefix(username, "@")
+		user, err := config.Mattermost.GetUserByUsername(usernameToUse)
 		if err != nil {
-			usernamesNotFound = append(usernamesNotFound, argToUse)
+			usernamesNotFound = append(usernamesNotFound, usernameToUse)
 		} else {
 			userIDs = append(userIDs, user.Id)
+			usernamesByUserID[user.Id] = user.Username
 		}
 	}
 
 	// saving formatted usernames to context for later use
 	context.Props["usernamesNotFound"] = usernamesNotFound
 	context.Props["userIDs"] = userIDs
+	context.Props["usernamesByUserID"] = usernamesByUserID
 	return nil, nil
 }
 
 func executeRemoveMembers(args []string, context Context) (*model.CommandResponse, *model.AppError) {
 	userIDs := context.Props["userIDs"].([]string)
-	usersNotInStandup, usersRemoved, err := removeMembersFromStandup(userIDs, context.CommandArgs.ChannelId)
+	userIDsNotInStandup, removedUserIDs, err := removeMembersFromStandup(userIDs, context.CommandArgs.ChannelId)
 	if err != nil {
 		return util.SendEphemeralText("An error occurred while removing members from standup")
 	}
 
-	for i := range usersRemoved {
-		user, err := config.Mattermost.GetUser(usersRemoved[i])
-		if err != nil {
-			logger.Error("User not found", err, nil)
-		} else {
-			usersRemoved[i] = user.Username
-		}
+	usernamesByUserID := context.Props["usernamesByUserID"].(map[string]string)
+	
+	removedUsernames := make([]string, len(removedUserIDs))
+	for i, userID := range removedUserIDs {
+		removedUsernames[i] = usernamesByUserID[userID] 
 	}
 
-	for i := range usersNotInStandup {
-		user, err := config.Mattermost.GetUser(usersNotInStandup[i])
-		if err != nil {
-			logger.Error("User not found", err, nil)
-		} else {
-			usersNotInStandup[i] = user.Username
-		}
+	notInStandupUsernames := make([]string, len(userIDsNotInStandup))
+	for i, userID := range userIDsNotInStandup {
+		notInStandupUsernames[i] = usernamesByUserID[userID]
 	}
 
 	text := ""
 
-	if len(usersRemoved) > 0 {
-		text += "Removed users from standup: " + strings.Join(usersRemoved, ", ")
+	if len(removedUserIDs) > 0 {
+		text += "Removed users from standup: " + strings.Join(removedUsernames, ", ")
 	}
 
-	if len(usersNotInStandup) > 0 {
-		text += "\nUsers not in standup: " + strings.Join(usersNotInStandup, ", ")
+	if len(userIDsNotInStandup) > 0 {
+		text += "\nUsers not in standup: " + strings.Join(notInStandupUsernames, ", ")
 	}
 
 	if len(context.Props["usernamesNotFound"].([]string)) > 0 {
@@ -112,9 +104,12 @@ func removeMembersFromStandup(userIDs []string, channelID string) ([]string, []s
 	}
 
 	membersNotInStandup := util.Difference(userIDs, standupConfig.Members)
-	membersRemovedFromStandup := util.Difference(standupConfig.Members, util.Difference(standupConfig.Members, userIDs))
-
+	
+	originalMembers := standupConfig.Members
 	standupConfig.Members = util.Difference(standupConfig.Members, userIDs)
+	
+	membersRemovedFromStandup := util.Difference(originalMembers, standupConfig.Members)
+	
 
 	_, err = standup.SaveStandupConfig(standupConfig)
 	if err != nil {

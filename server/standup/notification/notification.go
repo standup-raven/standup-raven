@@ -42,16 +42,20 @@ func SendNotificationsAndReports() error {
 		return err
 	}
 
-	a, b, c, err := filterChannelNotification(channelIDs)
+	pendingWindowOpenNotificationChannelIDs,
+	pendingWindowCloseNotificationChannelIDs,
+	pendingStandupReportChannelIDs,
+	err := filterChannelNotification(channelIDs)
+
 	if err != nil {
 		return err
 	}
 
-	sendWindowOpenNotification(a)
-	if err := sendWindowCloseNotification(b); err != nil {
+	sendWindowOpenNotification(pendingWindowOpenNotificationChannelIDs)
+	if err := sendWindowCloseNotification(pendingWindowCloseNotificationChannelIDs); err != nil {
 		return err
 	}
-	if err := sendAllStandupReport(c); err != nil {
+	if err := sendAllStandupReport(pendingStandupReportChannelIDs); err != nil {
 		return err
 	}
 
@@ -150,16 +154,13 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 			return err
 		}
 
-		var post *model.Post
-
-		if standupConfig.ReportFormat == config.ReportFormatTypeAggregated {
-			post, err = generateTypeAggregatedStandupReport(standupConfig, members, membersNoStandup, channelID, date)
-		} else if standupConfig.ReportFormat == config.ReportFormatUserAggregated {
-			post, err = generateUserAggregatedStandupReport(standupConfig, members, membersNoStandup, channelID, date)
-		} else {
-			err = errors.New("Unknown report format encountered for channel: " + channelID + ", report format: " + standupConfig.ReportFormat)
-			logger.Error("Unknown report format encountered for channel", err, nil)
-		}
+		post, err := generateReport(
+			standupConfig,
+			members,
+			membersNoStandup,
+			channelID,
+			date,
+		)
 
 		if err != nil {
 			return err
@@ -196,11 +197,42 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 	return nil
 }
 
+func generateReport(
+	standupConfig *standup.StandupConfig,
+	members []*standup.UserStandup,
+	membersNoStandup []string,
+	channelID string,
+	date otime.OTime,
+) (*model.Post, error) {
+	var post *model.Post
+	var err error
+
+	switch standupConfig.ReportFormat {
+	case config.ReportFormatTypeAggregated:
+		post, err = generateTypeAggregatedStandupReport(standupConfig, members, membersNoStandup, channelID, date)
+	case config.ReportFormatUserAggregated:
+		post, err = generateUserAggregatedStandupReport(standupConfig, members, membersNoStandup, channelID, date)
+	default:
+		err = errors.New("Unknown report format encountered for channel: " + channelID + ", report format: " + standupConfig.ReportFormat)
+		logger.Error("Unknown report format encountered for channel", err, nil)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return post, err
+}
+
 func sortUserStandups(userStandups []*standup.UserStandup) ([]*standup.UserStandup, error) {
 	// sorts user standups alphabetically by user's display name
 
 	// get all user display names
 	userStandupMapping := make(map[string]*standup.UserStandup, len(userStandups))
+
+	// extract keys, which are the user display names
+	keys := make([]string, 0)
+	
 	for _, userStandup := range userStandups {
 		userDisplayName, err := getUserDisplayName(userStandup.UserID)
 		if err != nil {
@@ -208,12 +240,7 @@ func sortUserStandups(userStandups []*standup.UserStandup) ([]*standup.UserStand
 		}
 
 		userStandupMapping[userDisplayName] = userStandup
-	}
-
-	// extract keys, which are the user display names
-	keys := make([]string, 0)
-	for key := range userStandupMapping {
-		keys = append(keys, key)
+		keys = append(keys, userDisplayName)
 	}
 
 	// case insensitive sort of user display names
@@ -331,9 +358,9 @@ func shouldSendWindowOpenNotification(notificationStatus *ChannelNotificationSta
 		return ChannelNotificationStatusSent
 	} else if otime.Now(standupConfig.Timezone).GetTimeWithSeconds(standupConfig.Timezone).After(standupConfig.WindowOpenTime.GetTimeWithSeconds(standupConfig.Timezone).Time) {
 		return ChannelNotificationStatusSend
-	} else {
-		return ChannelNotificationStatusNotYet
 	}
+
+	return ChannelNotificationStatusNotYet
 }
 
 // shouldSendWindowCloseNotification checks if window close notification should
@@ -350,9 +377,9 @@ func shouldSendWindowCloseNotification(notificationStatus *ChannelNotificationSt
 	// now we just need to check if current time is targetDuration seconds after window open time
 	if otime.Now(standupConfig.Timezone).GetTimeWithSeconds(standupConfig.Timezone).After(standupConfig.WindowOpenTime.GetTimeWithSeconds(standupConfig.Timezone).Add(targetDuration)) {
 		return ChannelNotificationStatusSend
-	} else {
-		return ChannelNotificationStatusNotYet
 	}
+
+	return ChannelNotificationStatusNotYet
 }
 
 // shouldSendStandupReport checks if standup report should
@@ -362,9 +389,9 @@ func shouldSendStandupReport(notificationStatus *ChannelNotificationStatus, stan
 		return ChannelNotificationStatusSent
 	} else if otime.Now(standupConfig.Timezone).GetTimeWithSeconds(standupConfig.Timezone).After(standupConfig.WindowCloseTime.GetTimeWithSeconds(standupConfig.Timezone).Time) {
 		return ChannelNotificationStatusSend
-	} else {
-		return ChannelNotificationStatusNotYet
 	}
+
+	return ChannelNotificationStatusNotYet
 }
 
 // sendWindowOpenNotification sends window open notification to the specified channels
