@@ -356,7 +356,12 @@ func filterChannelNotification(channelIDs map[string]string) ([]string, []string
 func shouldSendWindowOpenNotification(notificationStatus *ChannelNotificationStatus, standupConfig *standup.StandupConfig) string {
 	if notificationStatus.WindowOpenNotificationSent {
 		return ChannelNotificationStatusSent
-	} else if otime.Now(standupConfig.Timezone).GetTimeWithSeconds(standupConfig.Timezone).After(standupConfig.WindowOpenTime.GetTimeWithSeconds(standupConfig.Timezone).Time) {
+	}
+
+	now := otime.Now(standupConfig.Timezone).GetTimeWithSeconds(standupConfig.Timezone)
+	next := standupConfig.WindowOpenTime.GetTimeWithSeconds(standupConfig.Timezone).Time
+
+	if now.After(next) {
 		return ChannelNotificationStatusSend
 	}
 
@@ -408,12 +413,12 @@ func sendWindowOpenNotification(channelIDs []string) {
 		if appErr != nil {
 			logger.Error("Error sending window open notification for channel", appErr, map[string]interface{}{"channelID": channelID})
 			continue
-		} else {
-			appErr := addReminderPost(post.Id, channelID)
-			if appErr != nil {
-				logger.Error("Couldn't add standup reminder posts", appErr, nil)
-				continue
-			}
+		}
+
+		err := addReminderPost(post.Id, channelID)
+		if err != nil {
+			logger.Error("Couldn't add standup reminder posts", err, nil)
+			continue
 		}
 
 		notificationStatus, err := GetNotificationStatus(channelID)
@@ -451,20 +456,14 @@ func sendWindowCloseNotification(channelIDs []string) error {
 			}
 
 			if userStandup == nil {
-				usersPendingStandup = append(usersPendingStandup, userId)
+				user, err := config.Mattermost.GetUser(userId)
+				if err != nil {
+					logger.Error("Couldn't find user with user ID", err, map[string]interface{}{"userID": userId})
+					return err
+				}
+
+				usersPendingStandup = append(usersPendingStandup, user.Username)
 			}
-		}
-
-		logger.Debug("Fetching usernames for users with pending standup", nil)
-
-		for i := range usersPendingStandup {
-			user, err := config.Mattermost.GetUser(usersPendingStandup[i])
-			if err != nil {
-				logger.Error("Couldn't find user with user ID", err, map[string]interface{}{"userID": usersPendingStandup[i]})
-				return err
-			}
-
-			usersPendingStandup[i] = user.Username
 		}
 
 		// no need to send reminder if everyone has filled their standup
@@ -473,13 +472,9 @@ func sendWindowCloseNotification(channelIDs []string) error {
 			return nil
 		}
 
-		var message string
-		if len(usersPendingStandup) > 0 {
-			message = fmt.Sprintf("@%s - a gentle reminder to fill your standup.", strings.Join(usersPendingStandup, ", @"))
-		} else {
-			message = "A gentle reminder to fill your standup."
-		}
-
+		// if everyone didn't fill their standups, there are
+		// some users who are yet to fill it.
+		message := fmt.Sprintf("@%s - a gentle reminder to fill your standup.", strings.Join(usersPendingStandup, ", @"))
 		post := &model.Post{
 			ChannelId: channelID,
 			UserId:    config.GetConfig().BotUserID,
@@ -491,12 +486,12 @@ func sendWindowCloseNotification(channelIDs []string) error {
 		if appErr != nil {
 			logger.Error("Error sending window open notification for channel", appErr, map[string]interface{}{"channelID": channelID})
 			continue
-		} else {
-			appErr := addReminderPost(post.Id, channelID)
-			if appErr != nil {
-				logger.Error("Couldn't add standup reminder posts", appErr, nil)
-				return errors.New(appErr.Error())
-			}
+		}
+
+		err = addReminderPost(post.Id, channelID)
+		if err != nil {
+			logger.Error("Couldn't add standup reminder posts", err, nil)
+			return errors.New(err.Error())
 		}
 
 		notificationStatus, err := GetNotificationStatus(channelID)

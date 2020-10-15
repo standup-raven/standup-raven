@@ -180,7 +180,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
     };
 
     componentDidUpdate(prevProp) {
-        if (this.props.visible !== prevProp.visible && this.props.visible) {
+        if (this.props.visible && !prevProp.visible) {
             this.getStandupConfig()
                 .then(this.getUserStandup)
                 .then(() => {
