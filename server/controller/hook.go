@@ -21,10 +21,6 @@ var hook = &Endpoint{
 
 func executeHook(w http.ResponseWriter, r *http.Request) error {
 	logger.Debug(fmt.Sprintf("Fetching notification status for channel: %s", otime.Now(config.GetConfig().TimeZone).String()), nil)
-	err := notification.SendNotificationsAndReports()
-	if err != nil {
-		return err
-	}
-
+	notification.SendNotificationsAndReports()
 	return nil
 }

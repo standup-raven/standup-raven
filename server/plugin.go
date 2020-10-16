@@ -1,14 +1,14 @@
 package main
 
 import (
-	"io/ioutil"
-	"net/http"
-	"time"
-
+	"fmt"
 	"github.com/getsentry/sentry-go"
+	"github.com/mattermost/mattermost-plugin-api/cluster"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/migration"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
+	"io/ioutil"
+	"net/http"
 
 	"os"
 	"path/filepath"
@@ -30,6 +30,7 @@ type Plugin struct {
 	plugin.MattermostPlugin
 	handler http.Handler
 	running bool
+	job     *cluster.Job
 }
 
 func (p *Plugin) OnActivate() error {
@@ -204,24 +205,27 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	}
 }
 
-func (p *Plugin) Run() {
-	if !p.running {
-		p.running = true
-		p.runner()
+func (p *Plugin) Run() error {
+	if p.job != nil {
+		if err := p.job.Close(); err != nil {
+			return err
+		}
 	}
-}
 
-func (p *Plugin) runner() {
-	go func() {
-		<-time.NewTimer(config.RunnerInterval).C
-		if err := notification.SendNotificationsAndReports(); err != nil {
-			logger.Error("", err, nil)
-		}
-		if !p.running {
-			return
-		}
-		p.runner()
-	}()
+	job, err := cluster.Schedule(
+		config.Mattermost,
+		"StandupRavenReportScheduler",
+		cluster.MakeWaitForInterval(config.RunnerInterval),
+		notification.SendNotificationsAndReports,
+	)
+	
+	if err != nil {
+		p.API.LogError(fmt.Sprintf("Unable to schedule job for standup reports. Error: {%s}", err.Error()))
+		return err
+	}
+
+	p.job = job
+	return nil
 }
 
 func (p *Plugin) initSentry() error {
@@ -242,8 +246,6 @@ func (p *Plugin) initSentry() error {
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetTag("pluginComponent", "server")
 	})
-
-	//raven.SetTagsContext()
 
 	return err
 }
