@@ -43,9 +43,9 @@ func SendNotificationsAndReports() error {
 	}
 
 	pendingWindowOpenNotificationChannelIDs,
-	pendingWindowCloseNotificationChannelIDs,
-	pendingStandupReportChannelIDs,
-	err := filterChannelNotification(channelIDs)
+		pendingWindowCloseNotificationChannelIDs,
+		pendingStandupReportChannelIDs,
+		err := filterChannelNotification(channelIDs)
 
 	if err != nil {
 		return err
@@ -232,7 +232,7 @@ func sortUserStandups(userStandups []*standup.UserStandup) ([]*standup.UserStand
 
 	// extract keys, which are the user display names
 	keys := make([]string, 0)
-	
+
 	for _, userStandup := range userStandups {
 		userDisplayName, err := getUserDisplayName(userStandup.UserID)
 		if err != nil {

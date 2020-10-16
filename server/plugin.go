@@ -220,11 +220,11 @@ func (p *Plugin) Run() error {
 		cluster.MakeWaitForInterval(config.RunnerInterval),
 		func() {
 			if err := notification.SendNotificationsAndReports(); err != nil {
-				logger.Error("Failed to send notification/report. Error: " + err.Error(), err, nil)
+				logger.Error("Failed to send notification/report. Error: "+err.Error(), err, nil)
 			}
 		},
 	)
-	
+
 	if err != nil {
 		p.API.LogError(fmt.Sprintf("Unable to schedule job for standup reports. Error: {%s}", err.Error()))
 		return err

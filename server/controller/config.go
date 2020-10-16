@@ -151,9 +151,9 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// if `SaveStandupConfig` succeed and this failed-
-	// 	1. Standup Raven channel header button won't show up ever in 
+	// 	1. Standup Raven channel header button won't show up ever in
 	//			this channel, even if standup is configured in the channel.
-	// 	2. Scheduled standup reports won't work for this channel. 
+	// 	2. Scheduled standup reports won't work for this channel.
 	if err := standup.AddStandupChannel(conf.ChannelId); err != nil {
 		http.Error(w, "Error occurred while saving standup conf", http.StatusInternalServerError)
 		return err

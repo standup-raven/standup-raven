@@ -62,10 +62,10 @@ func executeRemoveMembers(args []string, context Context) (*model.CommandRespons
 	}
 
 	usernamesByUserID := context.Props["usernamesByUserID"].(map[string]string)
-	
+
 	removedUsernames := make([]string, len(removedUserIDs))
 	for i, userID := range removedUserIDs {
-		removedUsernames[i] = usernamesByUserID[userID] 
+		removedUsernames[i] = usernamesByUserID[userID]
 	}
 
 	notInStandupUsernames := make([]string, len(userIDsNotInStandup))
@@ -104,12 +104,11 @@ func removeMembersFromStandup(userIDs []string, channelID string) ([]string, []s
 	}
 
 	membersNotInStandup := util.Difference(userIDs, standupConfig.Members)
-	
+
 	originalMembers := standupConfig.Members
 	standupConfig.Members = util.Difference(standupConfig.Members, userIDs)
-	
+
 	membersRemovedFromStandup := util.Difference(originalMembers, standupConfig.Members)
-	
 
 	_, err = standup.SaveStandupConfig(standupConfig)
 	if err != nil {
