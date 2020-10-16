@@ -7,7 +7,7 @@ orbs:
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.14-node
+      - image: circleci/golang:1.15-node
     working_directory: /go/src/github.com/standup-raven/standup-raven
     steps:
       - checkout
