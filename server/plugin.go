@@ -53,7 +53,9 @@ func (p *Plugin) OnActivate() error {
 		return err
 	}
 
-	p.Run()
+	if err := p.Run(); err != nil {
+		return err
+	}
 
 	return nil
 }

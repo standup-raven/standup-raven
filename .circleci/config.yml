@@ -3,53 +3,9 @@ version: 2.1
 
 orbs:
   codecov: codecov/codecov@1.1.0
+  plugin-ci: mattermost/plugin-ci@0.1.0
 
 jobs:
-  build:
-    docker:
-      - image: circleci/golang:1.14-node
-    working_directory: /go/src/github.com/standup-raven/standup-raven
-    steps:
-      - checkout
-      - restore_cache:
-          name: Restore Go dependencies cache
-          key: dependency-cache-{{ checksum "./go.sum" }}
-      - restore_cache:
-          name: Restore webapp dependencies cache
-          key: dependency-cache-{{ checksum "./webapp/yarn.lock" }}
-      - run: mkdir -p /tmp/test-results
-      - run:
-          name: Run unit tests
-          command: |
-            cd server
-            PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
-            gotestsum --junitfile /tmp/test-results/gotestsum-report.xml -- $PACKAGE_NAMES
-      - store_artifacts: # upload test summary for display in Artifacts
-          path: /tmp/test-results
-          destination: raw-test-output
-      - codecov/upload:
-          file: coverage.txt
-      - store_test_results:
-          path: /tmp/test-results
-      - run: make check-style
-      - run: make dist
-      - save_cache:
-          name: Save Golang dependencies cache
-          key: dependency-cache-{{ checksum "./go.sum" }}
-          paths:
-            - ./server/vendor
-      - save_cache:
-          name: Save webapp dependencies cache
-          key: dependency-cache-{{ checksum "./webapp/yarn.lock" }}
-          paths:
-            - ./webapp/node_modules
-      - store_artifacts:
-          path: ./dist
-          destination: build
-      - persist_to_workspace:
-          root: .
-          paths:  
-            - dist
   release:
     docker:
       - image: circleci/golang:1.12-node
@@ -58,31 +14,23 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: make dist
       - run: make release
 
 workflows:
-  build:
+  version: 2
+  ci:
     jobs:
-      - build:
+      - plugin-ci/lint
+      - plugin-ci/test
+      - plugin-ci/build
+      - plugin-ci/deploy-release-github:
           filters:
-            branches:
-              only: /.*/
-            tags:
-              ignore: /.*/
-  build-and-release:
-    jobs:
-      - build:
-          filters:
-            branches:
-              ignore: /.*/
             tags:
               only: /^v.*/
-      - release:
+            branches:
+              ignore: /.*/
+          context: "Standup Raven - Build & Release"
           requires:
-            - build
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/
+            - plugin-ci/lint
+            - plugin-ci/test
+            - plugin-ci/build
