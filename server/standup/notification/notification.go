@@ -36,10 +36,10 @@ const (
 // SendNotificationsAndReports checks for all standup channels and sends
 // notifications and standup reports as needed.
 // This is the entry point of the whole standup cycle.
-func SendNotificationsAndReports() {
+func SendNotificationsAndReports() error {
 	channelIDs, err := standup.GetStandupChannels()
 	if err != nil {
-		return 
+		return err
 	}
 
 	pendingWindowOpenNotificationChannelIDs,
@@ -48,18 +48,18 @@ func SendNotificationsAndReports() {
 	err := filterChannelNotification(channelIDs)
 
 	if err != nil {
-		return
+		return err
 	}
 
 	sendWindowOpenNotification(pendingWindowOpenNotificationChannelIDs)
 	if err := sendWindowCloseNotification(pendingWindowCloseNotificationChannelIDs); err != nil {
-		return
+		return err
 	}
 	if err := sendAllStandupReport(pendingStandupReportChannelIDs); err != nil {
-		return
+		return err
 	}
 
-	return
+	return nil
 }
 
 func sendAllStandupReport(channelIDs []string) error {

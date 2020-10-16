@@ -218,7 +218,11 @@ func (p *Plugin) Run() error {
 		config.Mattermost,
 		"StandupRavenReportScheduler",
 		cluster.MakeWaitForInterval(config.RunnerInterval),
-		notification.SendNotificationsAndReports,
+		func() {
+			if err := notification.SendNotificationsAndReports(); err != nil {
+				logger.Error("Failed to send notification/report. Error: " + err.Error(), err, nil)
+			}
+		},
 	)
 	
 	if err != nil {
