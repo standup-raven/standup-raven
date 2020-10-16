@@ -26,7 +26,19 @@
     
 * ##### I'm seeing "Standup is disabled for this channel" message on opening standup modal.
 
-    The channel standup is disabled. Run `/standup config` and enable standup from the modal that opens. 
+    The channel standup is disabled. Run `/standup config` and enable standup from the modal that opens.
+    
+* ##### I run `/standup` but no dialog popups for submitting standup.
+
+    Verify that you have set the value for [`Site URL`](https://docs.mattermost.com/administration/config-settings.html#site-url) setting in your Mattermost sever configuration. Also verify that the value is correct (should contain protocol, host and port)
+
+    ![Site URL Verification Demo](/docs/assets/images/test-live-url.gif)
+    
+* ##### I run `/standup config` but no configuration doalog opens up.
+
+    Verify that you have set the value for [`Site URL`](https://docs.mattermost.com/administration/config-settings.html#site-url) setting in your Mattermost sever configuration. Also verify that the value is correct (should contain protocol, host and port)
+
+    ![Site URL Verification Demo](/docs/assets/images/test-live-url.gif)
 
 * ##### I think the plugin is awesome and super cool.
 
