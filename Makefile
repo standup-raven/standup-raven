@@ -93,7 +93,7 @@ test-server: vendor
 
 test: test-server
 
-cover: test-server
+coverage: test-server
 	go tool cover -html=coverage.txt -o coverage.html
 
 .webinstall: webapp/yarn.lock
