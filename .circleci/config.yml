@@ -21,9 +21,21 @@ workflows:
   ci:
     jobs:
       - plugin-ci/lint
+          filters:
+            tags:
+              only: /^v.*/
       - plugin-ci/test
+          filters:
+            tags:
+              only: /^v.*/
       - plugin-ci/build
+          filters:
+            tags:
+              only: /^v.*/
       - plugin-ci/coverage
+          filters:
+            tags:
+              only: /^v.*/
       - plugin-ci/deploy-release-github:
           filters:
             tags:
