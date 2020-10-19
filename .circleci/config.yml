@@ -20,19 +20,19 @@ workflows:
   version: 2
   ci:
     jobs:
-      - plugin-ci/lint
+      - plugin-ci/lint:
           filters:
             tags:
               only: /^v.*/
-      - plugin-ci/test
+      - plugin-ci/test:
           filters:
             tags:
               only: /^v.*/
-      - plugin-ci/build
+      - plugin-ci/build:
           filters:
             tags:
               only: /^v.*/
-      - plugin-ci/coverage
+      - plugin-ci/coverage:
           filters:
             tags:
               only: /^v.*/
