@@ -23,6 +23,7 @@ workflows:
       - plugin-ci/lint
       - plugin-ci/test
       - plugin-ci/build
+      - plugin-ci/coverage
       - plugin-ci/deploy-release-github:
           filters:
             tags:
@@ -32,5 +33,5 @@ workflows:
           context: "Standup Raven - Build & Release"
           requires:
             - plugin-ci/lint
-            - plugin-ci/test
+            - plugin-ci/coverage
             - plugin-ci/build
