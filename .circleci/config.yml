@@ -42,7 +42,7 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-          context: "Standup Raven - Build & Release"
+          context: "standup-raven"
           requires:
             - plugin-ci/lint
             - plugin-ci/coverage
