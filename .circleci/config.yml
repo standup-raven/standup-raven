@@ -1,9 +1,184 @@
 # Use the latest 2.1 version of CircleCI pipeline processing engine, see https://circleci.com/docs/2.0/configuration-reference/
 version: 2.1
 
+
+
 orbs:
   codecov: codecov/codecov@1.1.0
-  plugin-ci: mattermost/plugin-ci@0.1.4
+  my-orb:
+    description: |
+      Stuff to do CI for mattermost plugins
+
+    orbs:
+      aws-s3: circleci/aws-s3@1.0.16
+      codecov: codecov/codecov@1.1.1
+
+    executors:
+      default:
+        docker:
+          - image: circleci/golang:1.14.1-node
+
+    commands:
+      deploy:
+        parameters:
+          bucket:
+            type: string
+          filename:
+            type: string
+        steps:
+          - aws-s3/copy:
+              from: << parameters.filename >>
+              to: << parameters.bucket >>
+              arguments: '--acl public-read --cache-control no-cache'
+
+      install-golangci-lint:
+        description: Install golangci-lint
+        parameters:
+          version:
+            type: string
+            default: 1.31.0
+          gobin:
+            type: string
+            default: /go/bin
+          prefix:
+            type: string
+            default: v1
+            description: Prefix for cache key to store the binary.
+        steps:
+          - restore_cache:
+              name: Restore golangci-lint cache
+              keys: [ '<< parameters.prefix >>-golangci-lint-{{ arch }}-<< parameters.version >>' ]
+          - run:
+              name: Install golangci-lint
+              command: |
+                mkdir -p << parameters.gobin >>
+                command -v << parameters.gobin >>/golangci-lint && exit
+                download=https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
+                wget -O- -q $download | sh -s -- -b << parameters.gobin >>/ v<< parameters.version >>
+          - save_cache:
+              name: Save golangci-lint cache
+              key: '<< parameters.prefix >>-golangci-lint-{{ arch }}-<< parameters.version >>'
+              paths: [ << parameters.gobin >>/golangci-lint ]
+
+    aliases:
+      - &restore_cache
+        restore_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
+      - &save_cache
+        save_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+
+    jobs:
+      lint:
+        executor:
+          name: default
+        resource_class: xlarge
+        steps:
+          - checkout
+          - install-golangci-lint
+          - *restore_cache
+          - run:
+              name: Checking code style
+              command: make check-style
+          - run: go mod tidy -v
+          - run:
+              name: Check git diff
+              command: |
+                git --no-pager diff --exit-code go.mod go.sum || (echo "Please run \"go mod tidy\" and commit the changes in go.mod and go.sum." && exit 1)
+          - *save_cache
+
+      test:
+        executor:
+          name: default
+        steps:
+          - checkout
+          - *restore_cache
+          - run: make test
+          - *save_cache
+
+      coverage:
+        executor:
+          name: default
+        steps:
+          - checkout
+          - *restore_cache
+          - run:
+              name: Generating Coverage Results
+              command: make coverage
+          - *save_cache
+          - codecov/upload:
+            file: server/coverage.txt
+
+      build:
+        executor:
+          name: default
+        steps:
+          - checkout
+          - run:
+              name: Building Plugin Bundle
+              command: make dist
+          - run:
+              name: Generating Release Notes
+              command: |
+                printf "Supported Mattermost Server Versions: **$(cat plugin.json | jq .min_server_version -r)+** \n## Enhancements\n\n## Fixes\n"  >> dist/release-notes.md
+                if [[ $(git tag -l | wc -l) -eq 1 ]]; then
+                  git log --pretty='format:- %h %s' --abbrev-commit --no-decorate --no-color $(git rev-list --max-parents=0 HEAD) HEAD >> dist/release-notes.md
+                else
+                  git log --pretty='format:- %h %s' --abbrev-commit --no-decorate --no-color $(git describe --tags --abbrev=0 $(git describe --tags --abbrev=0)^)..HEAD >> dist/release-notes.md
+                fi
+          - persist_to_workspace:
+              root: dist
+              paths:
+                - "*.tar.gz"
+                - "release-notes.md"
+          - store_artifacts:
+              path: dist
+
+      deploy-ci:
+        docker:
+          - image: circleci/python:2.7
+        steps:
+          - attach_workspace:
+              at: dist
+          - run: 'mv dist/*.tar.gz dist/$CIRCLE_PROJECT_REPONAME-ci.tar.gz'
+          - deploy:
+              filename: "dist/*.tar.gz"
+              bucket: "s3://mattermost-plugins-ci/ci/"
+
+      deploy-release:
+        docker:
+          - image: circleci/python:2.7
+        steps:
+          - attach_workspace:
+              at: dist
+          - run: 'mv dist/*.tar.gz dist/$CIRCLE_PROJECT_REPONAME-latest.tar.gz'
+          - run: 'cp dist/$CIRCLE_PROJECT_REPONAME-latest.tar.gz dist/$CIRCLE_PROJECT_REPONAME-$CIRCLE_TAG.tar.gz'
+          - deploy:
+              filename: "dist/$CIRCLE_PROJECT_REPONAME-latest.tar.gz"
+              bucket: "s3://mattermost-plugins-ci/release/"
+          - deploy:
+              filename: "dist/$CIRCLE_PROJECT_REPONAME-$CIRCLE_TAG.tar.gz"
+              bucket: "s3://mattermost-plugins-ci/release/"
+
+      deploy-release-github:
+        docker:
+          - image: cibuilds/github:0.13
+        steps:
+          - attach_workspace:
+              at: dist
+          - run:
+              name: "Publish Release on Github"
+              command: |
+                ls -a
+                ls -a dist
+                echo ${CIRCLE_PROJECT_USERNAME}
+                echo ${CIRCLE_PROJECT_REPONAME}
+                echo ${CIRCLE_SHA1}
+                echo ${CIRCLE_TAG}
+                cat ./dist/release-notes.md
+                ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -b "$(< ./dist/release-notes.md)" -c ${CIRCLE_SHA1} -n ${CIRCLE_TAG} -delete ${CIRCLE_TAG} dist/*.tar.gz
 
 jobs:
   list:
@@ -21,19 +196,19 @@ workflows:
   version: 2
   ci:
     jobs:
-      - plugin-ci/lint:
+      - my-orb/lint:
           filters:
             tags:
               only: /^v.*/
-      - plugin-ci/test:
+      - my-orb/test:
           filters:
             tags:
               only: /^v.*/
-      - plugin-ci/build:
+      - my-orb/build:
           filters:
             tags:
               only: /^v.*/
-      - plugin-ci/coverage:
+      - my-orb/coverage:
           filters:
             tags:
               only: /^v.*/
@@ -43,7 +218,7 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - plugin-ci/deploy-release-github:
+      - my-orb/deploy-release-github:
           filters:
             tags:
               only: /^v.*/
@@ -51,7 +226,7 @@ workflows:
               ignore: /.*/
           context: "standup-raven"
           requires:
-            - plugin-ci/lint
-            - plugin-ci/coverage
-            - plugin-ci/build
+            - my-orb/lint
+            - my-orb/coverage
+            - my-orb/build
             - list
