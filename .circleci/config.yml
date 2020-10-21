@@ -15,7 +15,7 @@ jobs:
       - run:
           name: "Debugging"
           command: |
-            ls -a
+            ls -a dist
 
 workflows:
   version: 2
