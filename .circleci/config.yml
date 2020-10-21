@@ -6,7 +6,7 @@ orbs:
   plugin-ci: mattermost/plugin-ci@0.1.4
 
 jobs:
-  release:
+  list:
     docker:
       - image: circleci/golang:1.15-node
     steps:
@@ -37,6 +37,13 @@ workflows:
           filters:
             tags:
               only: /^v.*/
+      - list:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+            context: "standup-raven"
       - plugin-ci/deploy-release-github:
           filters:
             tags:
@@ -48,3 +55,4 @@ workflows:
             - plugin-ci/lint
             - plugin-ci/coverage
             - plugin-ci/build
+            - list
