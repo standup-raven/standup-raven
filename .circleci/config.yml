@@ -8,13 +8,14 @@ orbs:
 jobs:
   release:
     docker:
-      - image: circleci/golang:1.12-node
-    working_directory: /go/src/github.com/standup-raven/standup-raven
+      - image: circleci/golang:1.15-node
     steps:
-      - checkout
       - attach_workspace:
-          at: .
-      - run: make release
+          at: dist
+      - run:
+          name: "Debugging"
+          command: |
+            ls -a
 
 workflows:
   version: 2
