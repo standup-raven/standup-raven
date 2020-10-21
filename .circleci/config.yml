@@ -43,7 +43,6 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-            context: "standup-raven"
       - plugin-ci/deploy-release-github:
           filters:
             tags:
