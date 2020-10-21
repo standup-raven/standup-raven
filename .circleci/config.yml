@@ -173,12 +173,12 @@ orbs:
               command: |
                 ls -a
                 ls -a dist
-                echo ${CIRCLE_PROJECT_USERNAME}
-                echo ${CIRCLE_PROJECT_REPONAME}
+                echo ${ORG}
+                echo ${REPO}
                 echo ${CIRCLE_SHA1}
                 echo ${CIRCLE_TAG}
                 cat ./dist/release-notes.md
-                ghr -t ${GITHUB_TOKEN} -u ${ORG} -r ${REPO} -b "$(< ./dist/release-notes.md)" -c ${CIRCLE_SHA1} -n ${CIRCLE_TAG} -delete ${CIRCLE_TAG} dist/*.tar.gz
+                ghr -t ${GITHUB_TOKEN} -u ${ORG} -r ${REPO} -b "$(cat ./dist/release-notes.md)" -c ${CIRCLE_SHA1} -n ${CIRCLE_TAG} -delete ${CIRCLE_TAG} dist/*.tar.gz
 
 jobs:
   list:
