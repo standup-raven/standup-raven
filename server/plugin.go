@@ -94,7 +94,7 @@ func (p *Plugin) setupStaticFileServer() error {
 		logger.Error("Couldn't find plugin executable path", err, nil)
 		return err
 	}
-	p.handler = http.FileServer(http.Dir(filepath.Dir(exe) + config.ServerExeToWebappRootPath))
+	p.handler = http.FileServer(http.Dir(filepath.Dir(exe) + config.ServerExeToStaticDirRootPath))
 	return nil
 }
 

@@ -4,7 +4,7 @@ const PLUGIN_DISPLAY_NAME = 'Standup Raven';
 
 const PLUGIN_BASE_URL = `plugins/${PLUGIN_NAME}`;
 
-const PLUGIN_STATIC_DIR_URL = `${PLUGIN_BASE_URL}/static`;
+const PLUGIN_STATIC_DIR_URL = `${PLUGIN_BASE_URL}`;
 
 const URL_SUBMIT_USER_STANDUP = `${PLUGIN_BASE_URL}/standup`;
 

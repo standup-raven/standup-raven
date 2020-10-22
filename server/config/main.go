@@ -11,12 +11,12 @@ import (
 )
 
 const (
-	PluginName                = "standup-raven"
-	CommandPrefix             = "standup"
-	ServerExeToWebappRootPath = "/../webapp"
+	PluginName                   = "standup-raven"
+	CommandPrefix                = "standup"
+	ServerExeToStaticDirRootPath = "/../webapp/static"
 
 	URLPluginBase = "/plugins/" + PluginName
-	URLStaticBase = URLPluginBase + "/static"
+	URLStaticBase = URLPluginBase
 
 	HeaderMattermostUserId = "Mattermost-User-Id"
 
