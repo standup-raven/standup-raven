@@ -34,12 +34,6 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-      - list:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
       - deploy-release-github:
           filters:
             tags:
@@ -51,4 +45,3 @@ workflows:
             - plugin-ci/lint
             - plugin-ci/coverage
             - plugin-ci/build
-            - list
