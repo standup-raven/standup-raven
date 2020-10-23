@@ -7,10 +7,9 @@ import (
 
 func commandConfig() *Config {
 	return &Config{
-		Command: &model.Command{
+		AutocompleteData: &model.AutocompleteData{
 			Trigger:          "config",
-			AutoComplete:     true,
-			AutoCompleteDesc: "Configure the standup for this channel.",
+			HelpText: "Configure the standup for this channel.",
 		},
 		HelpText: "",
 		Validate: validateCommandConfig,

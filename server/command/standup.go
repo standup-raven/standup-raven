@@ -17,11 +17,22 @@ const (
 
 func commandStandup() *Config {
 	return &Config{
-		Command: &model.Command{
+		AutocompleteData: &model.AutocompleteData{
 			Trigger:          "report",
-			AutoComplete:     true,
-			AutoCompleteDesc: "Generates standup reports for provided dates",
-			AutoCompleteHint: "<dates...> <visibility>",
+			HelpText: "Generates standup reports for provided dates",
+			//AutoCompleteHint: "<dates...> <visibility>",
+			Arguments: []*model.AutocompleteArg{
+				{
+					Name: "Date",
+					HelpText: "Date to generate standup report for",
+					Type: model.AutocompleteArgTypeText,
+					Required: true,
+					Data: &model.AutocompleteTextArg{
+						Hint:    "Date",
+						Pattern: "\\d\\d-\\d\\d-\\d\\d\\d\\d",
+					},
+				},
+			},
 		},
 		HelpText: "* dates must be in `DD-MM-YYYY` format\n" +
 			"* visibility can be one of the following -\n" +

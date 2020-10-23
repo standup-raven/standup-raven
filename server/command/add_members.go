@@ -14,11 +14,21 @@ import (
 
 func commandAddMembers() *Config {
 	return &Config{
-		Command: &model.Command{
-			Trigger:          "addmembers",
-			AutoComplete:     true,
-			AutoCompleteDesc: "Adds specified members to the standup and invites them to this channel.",
-			AutoCompleteHint: "<usernames...>",
+		AutocompleteData: &model.AutocompleteData{
+			Trigger:  "addmembers",
+			HelpText: "Adds specified members to the standup and invites them to this channel.",
+			Arguments: []*model.AutocompleteArg{
+				{
+					Type: model.AutocompleteArgTypeText,
+					Name: "Usernames",
+					Required: true,
+					HelpText: "Use @ mentions to quickly refer to a user",
+					Data: &model.AutocompleteTextArg{
+						Hint: "Usernames",
+						Pattern: "@.+",
+					},
+				},
+			},
 		},
 		HelpText: "* usernames can be specified as @ mentions",
 		Validate: validateAddMembers,

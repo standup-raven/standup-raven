@@ -13,10 +13,9 @@ import (
 
 func commandViewConfig() *Config {
 	return &Config{
-		Command: &model.Command{
-			Trigger:          "viewconfig",
-			AutoCompleteDesc: "View standup settings for this channel.",
-			AutoComplete:     true,
+		AutocompleteData: &model.AutocompleteData{
+			Trigger:  "viewconfig",
+			HelpText: "View standup settings for this channel.",
 		},
 		HelpText: "",
 		Validate: validateViewConfig,

@@ -11,15 +11,24 @@ import (
 // All other slash commands are run as /standup <command-name> [command-args]
 func Master() *Config {
 	return &Config{
-		Command: &model.Command{
-			Trigger:          config.CommandPrefix,
-			AutoComplete:     true,
-			AutoCompleteDesc: "Available commands: " + strings.Join(getAvailableCommands(), ", "),
+		AutocompleteData: &model.AutocompleteData{
+			Trigger:     config.CommandPrefix,
+			Hint:    "Standup Raven - Your Daily Standup Plugin",
+			SubCommands: getSumCommands(),
+			HelpText: "Available commands: " + strings.Join(getAvailableCommands(), ", "),
 		},
 		HelpText: "",
 		Validate: validateCommandMaster,
 		Execute:  executeCommandMaster,
 	}
+}
+
+func getSumCommands() []*model.AutocompleteData {
+	var subCommands []*model.AutocompleteData
+	for _, command := range commands {
+		subCommands = append(subCommands, command.AutocompleteData)
+	}
+	return subCommands
 }
 
 func getAvailableCommands() []string {

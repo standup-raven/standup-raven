@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/getsentry/sentry-go"
 	"github.com/mattermost/mattermost-plugin-api/cluster"
+	"github.com/mattermost/mattermost-plugin-api/experimental/common"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/migration"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
@@ -136,8 +137,17 @@ func (p *Plugin) setInjectedVars(configuration *config.Configuration) {
 }
 
 func (p *Plugin) RegisterCommands() error {
-	if err := config.Mattermost.RegisterCommand(command.Master().Command); err != nil {
-		logger.Error("Cound't register command", err, map[string]interface{}{"command": command.Master().Command.Trigger})
+	GetIcon
+	
+	if err := config.Mattermost.RegisterCommand(&model.Command{
+		Trigger: config.CommandPrefix,
+		Description: "descriptoon",
+		DisplayName: "display name",
+		AutoComplete: true,
+		Username: config.BotUsername,
+		AutocompleteData: command.Master().AutocompleteData,
+	}); err != nil {
+		logger.Error("couldn't register command", err, map[string]interface{}{"command": command.Master().AutocompleteData.Trigger})
 		return err
 	}
 
@@ -162,7 +172,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		params = split[1:]
 	}
 
-	if function != "/"+command.Master().Command.Trigger {
+	if function != "/"+command.Master().AutocompleteData.Trigger {
 		return nil, &model.AppError{Message: "Unknown command: [" + function + "] encountered"}
 	}
 
