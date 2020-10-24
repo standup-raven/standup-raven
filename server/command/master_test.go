@@ -20,7 +20,7 @@ func TestCommandMaster_Validation(t *testing.T) {
 		Props: map[string]interface{}{},
 	}
 	
-	response, err := command.Validate([]string{commandViewConfig().Command.Trigger}, context)
+	response, err := command.Validate([]string{commandViewConfig().AutocompleteData.Trigger}, context)
 	assert.Nil(t, err)
 	assert.Nil(t, response)
 
@@ -36,7 +36,7 @@ func TestCommandMaster_Validation(t *testing.T) {
 		return util.SendEphemeralText("error")
 	})
 
-	response, err = command.Validate([]string{commandViewConfig().Command.Trigger}, context)
+	response, err = command.Validate([]string{commandViewConfig().AutocompleteData.Trigger}, context)
 	assert.Nil(t, err)
 	assert.NotNil(t, response)
 	assert.Equal(t, "error", response.Text)
