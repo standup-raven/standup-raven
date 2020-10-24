@@ -12,17 +12,18 @@ import (
 func commandRemoveMembers() *Config {
 	return &Config{
 		AutocompleteData: &model.AutocompleteData{
-			Trigger:  "removemembers",
-			HelpText: "Removes specified members from this channel's standup.",
+			Trigger: "removemembers",
+			Hint:    "[username 1] [username 2] [username 3]...",
+			HelpText: "Removes specified members from the channel's standup. " +
+				"Members are NOT removed from the channel automatically.",
 			Arguments: []*model.AutocompleteArg{
 				{
 					Type:     model.AutocompleteArgTypeText,
-					Name:     "Usernames",
 					Required: true,
-					HelpText: "Use @ mentions to quickly refer to a user",
+					HelpText: "Use @ mentions to quickly refer to a user. For example `@johndoe`",
 					Data: &model.AutocompleteTextArg{
-						Hint: "Usernames",
-						Pattern: "@.+",
+						Hint:    "Usernames",
+						Pattern: ".+",
 					},
 				},
 			},

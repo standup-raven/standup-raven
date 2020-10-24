@@ -13,9 +13,8 @@ func Master() *Config {
 	return &Config{
 		AutocompleteData: &model.AutocompleteData{
 			Trigger:     config.CommandPrefix,
-			Hint:    "Standup Raven - Your Daily Standup Plugin",
 			SubCommands: getSumCommands(),
-			HelpText: "Available commands: " + strings.Join(getAvailableCommands(), ", "),
+			HelpText:    "Available commands: " + strings.Join(getAvailableCommands(), ", "),
 		},
 		HelpText: "",
 		Validate: validateCommandMaster,

@@ -15,22 +15,23 @@ import (
 func commandAddMembers() *Config {
 	return &Config{
 		AutocompleteData: &model.AutocompleteData{
-			Trigger:  "addmembers",
-			HelpText: "Adds specified members to the standup and invites them to this channel.",
+			Trigger: "addmembers",
+			Hint:    "[username 1] [username 2] [username 3]...",
+			HelpText: "Adds specified members to the the current channel's standup. " +
+				"Members are also automatically added to the current channel if not already part of it.",
 			Arguments: []*model.AutocompleteArg{
 				{
-					Type: model.AutocompleteArgTypeText,
-					Name: "Usernames",
+					Type:     model.AutocompleteArgTypeText,
 					Required: true,
-					HelpText: "Use @ mentions to quickly refer to a user",
+					HelpText: "Use @ mentions to quickly refer to a user. For example `@johndoe`",
 					Data: &model.AutocompleteTextArg{
-						Hint: "Usernames",
-						Pattern: "@.+",
+						Hint:    "Usernames",
+						Pattern: ".+",
 					},
 				},
 			},
 		},
-		HelpText: "* usernames can be specified as @ mentions",
+		HelpText: "* usernames can be specified as @ mentions", // TODO what is this helptext needed for?
 		Validate: validateAddMembers,
 		Execute:  executeAddMembers,
 	}

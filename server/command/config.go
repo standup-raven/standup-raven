@@ -8,8 +8,8 @@ import (
 func commandConfig() *Config {
 	return &Config{
 		AutocompleteData: &model.AutocompleteData{
-			Trigger:          "config",
-			HelpText: "Configure the standup for this channel.",
+			Trigger:  "config",
+			HelpText: "Open channel standup configuration dialog.",
 		},
 		HelpText: "",
 		Validate: validateCommandConfig,

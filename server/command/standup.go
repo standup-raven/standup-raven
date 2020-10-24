@@ -18,17 +18,32 @@ const (
 func commandStandup() *Config {
 	return &Config{
 		AutocompleteData: &model.AutocompleteData{
-			Trigger:          "report",
-			HelpText: "Generates standup reports for provided dates",
-			//AutoCompleteHint: "<dates...> <visibility>",
+			Trigger:  "report",
+			HelpText: "Generate standup reports for provided dates",
 			Arguments: []*model.AutocompleteArg{
 				{
-					Name: "Date",
-					HelpText: "Date to generate standup report for",
-					Type: model.AutocompleteArgTypeText,
+					HelpText: "Report visibility",
+					Type:     model.AutocompleteArgTypeStaticList,
+					Required: true,
+					Data: model.AutocompleteStaticListArg{
+						PossibleArguments: []model.AutocompleteListItem{
+							{
+								Item:     "Public",
+								HelpText: "Generated report(s) will be visible to everyone in this channel.",
+							},
+							{
+								Item:     "Private",
+								HelpText: "Generated report(s) will only be visible to you.",
+							},
+						},
+					},
+				},
+				{
+					HelpText: "Date to generate standup report for. Dates must be in `DD-MM-YYYY` format.",
+					Type:     model.AutocompleteArgTypeText,
 					Required: true,
 					Data: &model.AutocompleteTextArg{
-						Hint:    "Date",
+						Hint:    "[date 1] [date 2] [date 3]...",
 						Pattern: "\\d\\d-\\d\\d-\\d\\d\\d\\d",
 					},
 				},
@@ -52,25 +67,17 @@ func validateCommandStandup(args []string, context Context) (*model.CommandRespo
 	if standupConfig == nil {
 		return util.SendEphemeralText("Standup not configured for the channel")
 	}
-	if len(args) == 0 {
-		args = []string{otime.Now(standupConfig.Timezone).Format(dateLayout), notification.ReportVisibilityPrivate}
-	} else if len(args) == 1 {
-		lastArg := strings.ToLower(args[0])
-
-		if lastArg != notification.ReportVisibilityPublic && lastArg != notification.ReportVisibilityPrivate {
-			args = append(args, notification.ReportVisibilityPrivate)
-		} else {
-			args = []string{otime.Now(standupConfig.Timezone).Format(dateLayout), lastArg}
-		}
+	if len(args) < 2 {
+		return util.SendEphemeralText("Please specify report format and dates to generate report for.")
 	}
 
-	context.Props["visibility"] = strings.ToLower(args[len(args)-1])
+	context.Props["visibility"] = strings.ToLower(args[0])
 
 	// processing dates to generate report for
 	dates := make([]otime.OTime, len(args)-1)
 	count := 0
 
-	for _, arg := range args[0 : len(args)-1] {
+	for _, arg := range args[1:] {
 		t, err := time.Parse(dateLayout, arg)
 		if err != nil {
 			return util.SendEphemeralText(fmt.Sprintf("Error parsing this date: %s. Please specify date in format: DD-MM-YYYY", arg))
