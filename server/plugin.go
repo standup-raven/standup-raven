@@ -25,6 +25,7 @@ import (
 var PluginVersion string
 var SentryServerDSN string
 var SentryWebappDSN string
+var EncodedPluginIcon string
 
 type Plugin struct {
 	plugin.MattermostPlugin
@@ -137,12 +138,13 @@ func (p *Plugin) setInjectedVars(configuration *config.Configuration) {
 
 func (p *Plugin) RegisterCommands() error {
 	if err := config.Mattermost.RegisterCommand(&model.Command{
-		Trigger:          config.CommandPrefix,
-		Description:      "descriptoon",
-		DisplayName:      "display name",
-		AutoComplete:     true,
-		Username:         config.BotUsername,
-		AutocompleteData: command.Master().AutocompleteData,
+		Trigger:              config.CommandPrefix,
+		Description:          "descriptoon",
+		DisplayName:          "display name",
+		AutoComplete:         true,
+		Username:             config.BotUsername,
+		AutocompleteData:     command.Master().AutocompleteData,
+		AutocompleteIconData: EncodedPluginIcon,
 	}); err != nil {
 		logger.Error("couldn't register command", err, map[string]interface{}{"command": command.Master().AutocompleteData.Trigger})
 		return err
