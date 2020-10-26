@@ -38,7 +38,8 @@ func executeCommandHelp(args []string, context Context) (*model.CommandResponse,
 func generateHelpText(commands []*Config) string {
 	text := "### Standup Raven\n" +
 		"A Mattermost plugin for communicating daily standups across teams\n\n" +
-		"Follow the user guide [here](https://github.com/standup-raven/standup-raven/blob/master/docs/user_guide.md) to get started.\n\n"
+		"Follow the user guide [here](https://github.com/standup-raven/standup-raven/blob/master/docs/user_guide.md) to get started.\n\n\n" +
+		"**Slash Command Help**\n\n"
 
 	for _, command := range commands {
 		text += command.GetHelpText() + "\n"
