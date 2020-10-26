@@ -36,12 +36,13 @@ func executeCommandHelp(args []string, context Context) (*model.CommandResponse,
 }
 
 func generateHelpText(commands []*Config) string {
-	text := "TODO"
+	text := "### Standup Raven\n" +
+		"A Mattermost plugin for communicating daily standups across teams\n\n" +
+		"Follow the user guide [here](https://github.com/standup-raven/standup-raven/blob/master/docs/user_guide.md) to get started.\n\n"
 
-	// TODO
-	//for _, command := range commands {
-	//	text += fmt.Sprintf("* `%s %s` - %s \n\t%s\n", command.Command.Trigger, command.Command.AutoCompleteHint, command.Command.AutoCompleteDesc, strings.Replace(command.HelpText, "\n", "\n\t", -1))
-	//}
+	for _, command := range commands {
+		text += command.GetHelpText() + "\n"
+	}
 
 	return text
 }

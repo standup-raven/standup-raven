@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -12,9 +13,8 @@ type Context struct {
 }
 
 type Config struct {
-	//Command  *model.Command
 	AutocompleteData *model.AutocompleteData
-	HelpText         string
+	ExtraHelpText    string
 	Execute          func([]string, Context) (*model.CommandResponse, *model.AppError)
 	Validate         func([]string, Context) (*model.CommandResponse, *model.AppError)
 }
@@ -23,6 +23,25 @@ func (c *Config) Syntax() string {
 	return fmt.Sprintf("/%s %s", c.AutocompleteData.Trigger, c.AutocompleteData.HelpText)
 }
 
+func (c *Config) GetHelpText() string {
+	helpText := fmt.Sprintf(
+		"* `%s %s` - %s",
+		c.AutocompleteData.Trigger,
+		c.AutocompleteData.Hint,
+		c.AutocompleteData.HelpText,
+	)
+	
+	if c.ExtraHelpText != "" {
+		helpText += "\n\t" + strings.Replace(c.ExtraHelpText, "\n", "\n\t", -1)
+	}
+	
+	helpText += "\n\n"
+	return helpText
+}
+
+// Remember to add any new command to `executeCommandHelp` as well for 
+// generating help text.
+// executeCommandHelp doesn't use this map to prevent circular imports.
 var commands = map[string]*Config{
 	commandViewConfig().AutocompleteData.Trigger:    commandViewConfig(),
 	commandConfig().AutocompleteData.Trigger:        commandConfig(),

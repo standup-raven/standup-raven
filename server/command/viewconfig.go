@@ -17,9 +17,9 @@ func commandViewConfig() *Config {
 			Trigger:  "viewconfig",
 			HelpText: "View standup settings for this channel.",
 		},
-		HelpText: "",
-		Validate: validateViewConfig,
-		Execute:  executeViewConfig,
+		ExtraHelpText: "",
+		Validate:      validateViewConfig,
+		Execute:       executeViewConfig,
 	}
 }
 

@@ -11,9 +11,9 @@ func commandConfig() *Config {
 			Trigger:  "config",
 			HelpText: "Open channel standup configuration dialog.",
 		},
-		HelpText: "",
-		Validate: validateCommandConfig,
-		Execute:  executeCommandConfig,
+		ExtraHelpText: "",
+		Validate:      validateCommandConfig,
+		Execute:       executeCommandConfig,
 	}
 }
 

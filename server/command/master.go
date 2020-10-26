@@ -16,9 +16,9 @@ func Master() *Config {
 			SubCommands: getSumCommands(),
 			HelpText:    "Available commands: " + strings.Join(getAvailableCommands(), ", "),
 		},
-		HelpText: "",
-		Validate: validateCommandMaster,
-		Execute:  executeCommandMaster,
+		ExtraHelpText: "",
+		Validate:      validateCommandMaster,
+		Execute:       executeCommandMaster,
 	}
 }
 

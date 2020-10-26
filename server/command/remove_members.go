@@ -28,7 +28,7 @@ func commandRemoveMembers() *Config {
 				},
 			},
 		},
-		HelpText: "* doesn't remove the users from the channel\n" +
+		ExtraHelpText: "* doesn't remove the users from the channel\n" +
 			"	* usernames can be specified as @ mentions",
 		Validate: validateRemoveMembers,
 		Execute:  executeRemoveMembers,

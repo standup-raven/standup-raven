@@ -31,9 +31,9 @@ func commandAddMembers() *Config {
 				},
 			},
 		},
-		HelpText: "* usernames can be specified as @ mentions", // TODO what is this helptext needed for?
-		Validate: validateAddMembers,
-		Execute:  executeAddMembers,
+		ExtraHelpText: "* usernames can be specified as @ mentions", // TODO what is this helptext needed for?
+		Validate:      validateAddMembers,
+		Execute:       executeAddMembers,
 	}
 }
 

@@ -49,7 +49,7 @@ func commandStandup() *Config {
 				},
 			},
 		},
-		HelpText: "* dates must be in `DD-MM-YYYY` format\n" +
+		ExtraHelpText: "* dates must be in `DD-MM-YYYY` format\n" +
 			"* visibility can be one of the following -\n" +
 			"	* `public` - generated report is visible to everyone in the channel\n" +
 			"	* `private` - generated report is visible only to you",
