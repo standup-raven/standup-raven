@@ -43,7 +43,6 @@ func (c *Config) GetHelpText() string {
 // generating help text.
 // executeCommandHelp doesn't use this map to prevent circular imports.
 var commands = map[string]*Config{
-	commandViewConfig().AutocompleteData.Trigger:    commandViewConfig(),
 	commandConfig().AutocompleteData.Trigger:        commandConfig(),
 	commandAddMembers().AutocompleteData.Trigger:    commandAddMembers(),
 	commandRemoveMembers().AutocompleteData.Trigger: commandRemoveMembers(),

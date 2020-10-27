@@ -23,7 +23,6 @@ func executeCommandHelp(args []string, context Context) (*model.CommandResponse,
 	helpText := generateHelpText([]*Config{
 		commandConfig(),
 		commandAddMembers(),
-		commandViewConfig(),
 		commandRemoveMembers(),
 		commandStandup(),
 		commandHelp(),
