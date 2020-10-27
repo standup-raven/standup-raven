@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -60,16 +59,14 @@ func executeViewConfig(args []string, context Context) (*model.CommandResponse, 
 		if standupConfig.WindowCloseReminderEnabled {
 			windowCloseReminder = "enabled"
 		}
-		message = fmt.Sprintf(
-			"Window open time: %s \nWindow close time: %s \nTimezone: %s \nWindow open reminder: %s \nWindow close reminder: %s \nReport format: %s \nMembers: %s",
-			standupConfig.WindowOpenTime.GetTimeString(),
-			standupConfig.WindowCloseTime.GetTimeString(),
-			standupConfig.Timezone,
-			windowOpenReminder,
-			windowCloseReminder,
-			standupConfig.ReportFormat,
-			membersString,
-		)
+		
+		message = "Window open time: " + standupConfig.WindowOpenTime.GetTimeString() +
+			"\nWindow close time: " + standupConfig.WindowCloseTime.GetTimeString() +
+			"\nTimezone: " + standupConfig.Timezone +
+			"\nWindow open reminder: " + windowOpenReminder +
+			"\nWindow close reminder: " + windowCloseReminder +
+			"\nReport format: " + standupConfig.ReportFormat +
+			"\nMembers: " + membersString
 	}
 
 	return &model.CommandResponse{
