@@ -9,6 +9,7 @@ import util from '../../utils';
 
 const mapStateToProps = (state) => ({
     currentUserId: state.entities.users.currentUserId,
+    userRoles: Object.keys(state.entities.roles.roles),
     channelID: state.entities.channels.currentChannelId,
     visible: Selectors.isConfigModalVisible(state),
     siteURL: util.trimTrailingSlash(util.getValueSafely(state, 'entities.general.config.SiteURL', '')),

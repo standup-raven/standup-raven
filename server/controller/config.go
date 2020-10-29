@@ -50,24 +50,6 @@ var getActiveStandupChannels = &Endpoint{
 
 func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 	channelId := r.URL.Query().Get("channel_id")
-	userID := r.Header.Get(config.HeaderMattermostUserId)
-
-	// verifying if user is an effective channel admin
-	source := r.URL.Query().Get("source")
-	if config.GetConfig().PermissionSchemaEnabled && source != "standup-modal" {
-		isAdmin, appErr := isEffectiveAdmin(userID, channelId)
-
-		if appErr != nil {
-			http.Error(w, "An error occurred while verifying user permissions", appErr.StatusCode)
-			logger.Error("An error occurred while verifying user permissions", errors.New(appErr.Error()), nil)
-			return appErr
-		}
-
-		if !isAdmin {
-			http.Error(w, "You do not have permission to perform this operation", http.StatusUnauthorized)
-			return nil
-		}
-	}
 
 	c, err := standup.GetStandupConfig(channelId)
 	if err != nil {

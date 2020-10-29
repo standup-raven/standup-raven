@@ -1,3 +1,7 @@
+const channelAdminRole = 'channel_admin';
+const teamAdminRole = 'team_admin';
+const systemAdminRole = 'system_admin';
+
 /**
  * Returns the base url of the plugin
  * installation.
@@ -25,8 +29,16 @@ function trimTrailingSlash(url) {
     return url.replace(/\/+$/, '');
 }
 
+function isEffectiveChannelAdmin(userRoles) {
+    const userRoleMap = {};
+    userRoles.forEach((role) => userRoleMap[role] = true);
+
+    return userRoleMap[channelAdminRole] || userRoleMap[teamAdminRole] || userRoleMap[systemAdminRole];
+}
+
 export default {
     getBaseURL,
     getValueSafely,
     trimTrailingSlash,
+    isEffectiveChannelAdmin,
 };

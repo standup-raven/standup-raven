@@ -23,6 +23,8 @@ import * as HttpStatus from 'http-status-codes';
 import ToggleSwitch from '../toggleSwitch';
 import Cookies from 'js-cookie';
 import RRule from '../rRule';
+import utils from '../../utils';
+import * as RavenClient from '../../raven-client';
 
 const configModalCloseTimeout = 1000;
 const timezones = require('../../../../timezones.json');
@@ -82,6 +84,9 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             schedule: '',
             rruleString: '',
             startDate: new Date().toISOString(),
+            pluginConfig: {
+                permissionSchemaEnabled: true,
+            },
         };
     };
 
@@ -180,9 +185,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
 
     componentDidUpdate(prevProp) {
         if (this.props.visible && !prevProp.visible) {
-            this.getStandupConfig()
+            Promise.all([this.getStandupConfig(), this.getPluginConfig()])
                 .then(() => {
                     this.setState({showSpinner: false});
+                    console.log(this.state);
                 })
                 .catch(() => {
                     this.setState({showSpinner: false});
@@ -199,29 +205,52 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 .end((err, result) => {
                     if (result.ok) {
                         const standupConfig = result.body;
-                        const state = {
-                            hasPermission: true,
-                            windowOpenTime: standupConfig.windowOpenTime,
-                            windowCloseTime: standupConfig.windowCloseTime,
-                            reportFormat: standupConfig.reportFormat,
-                            members: standupConfig.members,
-                            sections: {},
-                            enabled: standupConfig.enabled,
-                            status: standupConfig.enabled,
-                            timezone: standupConfig.timezone,
-                            windowOpenReminderEnabled: standupConfig.windowOpenReminderEnabled,
-                            windowCloseReminderEnabled: standupConfig.windowCloseReminderEnabled,
-                            scheduleEnabled: standupConfig.scheduleEnabled,
-                            schedule: standupConfig.schedule,
-                            rruleString: standupConfig.rruleString,
-                            startDate: standupConfig.startDate,
-                        };
+                        // const state = {
+                        //     hasPermission: true,
+                        //     windowOpenTime: standupConfig.windowOpenTime,
+                        //     windowCloseTime: standupConfig.windowCloseTime,
+                        //     reportFormat: standupConfig.reportFormat,
+                        //     members: standupConfig.members,
+                        //     sections: {},
+                        //     enabled: standupConfig.enabled,
+                        //     status: standupConfig.enabled,
+                        //     timezone: standupConfig.timezone,
+                        //     windowOpenReminderEnabled: standupConfig.windowOpenReminderEnabled,
+                        //     windowCloseReminderEnabled: standupConfig.windowCloseReminderEnabled,
+                        //     scheduleEnabled: standupConfig.scheduleEnabled,
+                        //     schedule: standupConfig.schedule,
+                        //     rruleString: standupConfig.rruleString,
+                        //     startDate: standupConfig.startDate,
+                        //     isEffectiveChannelAdmin: utils.isEffectiveChannelAdmin(this.props.userRoles),
+                        // };
+
+                        const sections = {};
 
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
-                            state.sections[`line${i + 1}`] = standupConfig.sections[i];
+                            sections[`line${i + 1}`] = standupConfig.sections[i];
                         }
 
-                        this.setState(state);
+                        this.setState((prevState) => {
+                            prevState.hasPermission = true;
+                            prevState.windowOpenTime = standupConfig.windowOpenTime;
+                            prevState.windowCloseTime = standupConfig.windowCloseTime;
+                            prevState.reportFormat = standupConfig.reportFormat;
+                            prevState.members = standupConfig.members;
+                            prevState.sections = {};
+                            prevState.enabled = standupConfig.enabled;
+                            prevState.status = standupConfig.enabled;
+                            prevState.timezone = standupConfig.timezone;
+                            prevState.windowOpenReminderEnabled = standupConfig.windowOpenReminderEnabled;
+                            prevState.windowCloseReminderEnabled = standupConfig.windowCloseReminderEnabled;
+                            prevState.scheduleEnabled = standupConfig.scheduleEnabled;
+                            prevState.schedule = standupConfig.schedule;
+                            prevState.rruleString = standupConfig.rruleString;
+                            prevState.startDate = standupConfig.startDate;
+                            prevState.isEffectiveChannelAdmin = utils.isEffectiveChannelAdmin(this.props.userRoles);
+                            prevState.sections = sections;
+
+                            return prevState;
+                        });
                     } else if (result.status === HttpStatus.NOT_FOUND) {
                         // fetch system default timezone
                         request
@@ -250,6 +279,19 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                     resolve();
                 });
         });
+    };
+
+    getPluginConfig = () => {
+        RavenClient.Config.getPluginConfig(this.props.siteURL)
+            .then((pluginConfig) => {
+                this.setState((prevState) => {
+                    prevState.pluginConfig = pluginConfig;
+                    return prevState;
+                });
+            })
+            .catch((error) => {
+                console.error(error);
+            });
     };
 
     prepareStandupConfigPayload() {
@@ -346,6 +388,29 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 <br/><br/>
                 <span>{standupErrorSubMessage}</span>
             </span>);
+
+        let footer;
+
+        if (this.state.pluginConfig.permissionSchemaEnabled === true && !utils.isEffectiveChannelAdmin(this.props.userRoles)) {
+            footer = null;
+        } else {
+            footer = (<Modal.Footer>
+                <Button
+                    type='button'
+                    onClick={this.handleClose}
+                    variant={'primary'}
+                >
+                    {'Cancel'}
+                </Button>
+                <Button
+                    type='submit'
+                    bsStyle='primary'
+                    onClick={this.saveStandupConfig}
+                >
+                    {'Save'}
+                </Button>
+            </Modal.Footer>);
+        }
 
         return (
             <Modal
@@ -488,7 +553,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                     </div>
                 </Modal.Body>
 
-                <Modal.Footer>
+                <Modal.Footer hidden={this.state.showSpinner || (this.state.pluginConfig.permissionSchemaEnabled && !utils.isEffectiveChannelAdmin(this.props.userRoles))}>
+
                     <Button
                         type='button'
                         onClick={this.handleClose}
@@ -520,6 +586,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
 ConfigModal.propTypes = {
     channelID: PropTypes.string.isRequired,
     currentUserId: PropTypes.string.isRequired,
+    userRoles: PropTypes.arrayOf(PropTypes.string).isRequired,
     close: PropTypes.func.isRequired,
     visible: PropTypes.bool,
     siteURL: PropTypes.string.isRequired,
