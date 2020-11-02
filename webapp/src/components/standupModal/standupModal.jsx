@@ -136,7 +136,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
 
     getStandupConfig = () => {
         return new Promise((resolve) => {
-            const url = `${this.props.siteURL}/${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}&source=standup-modal`;
+            const url = `${this.props.siteURL}/${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}`;
             request
                 .get(url)
                 .withCredentials()

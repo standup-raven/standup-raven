@@ -30,16 +30,16 @@ func (c *Config) GetHelpText() string {
 		c.AutocompleteData.Hint,
 		c.AutocompleteData.HelpText,
 	)
-	
+
 	if c.ExtraHelpText != "" {
 		helpText += "\n\t" + strings.Replace(c.ExtraHelpText, "\n", "\n\t", -1)
 	}
-	
+
 	helpText += "\n\n"
 	return helpText
 }
 
-// Remember to add any new command to `executeCommandHelp` as well for 
+// Remember to add any new command to `executeCommandHelp` as well for
 // generating help text.
 // executeCommandHelp doesn't use this map to prevent circular imports.
 var commands = map[string]*Config{

@@ -3,10 +3,6 @@ GOARCH=amd64
 GOFLAGS ?= $(GOFLAGS:)
 MANIFEST_FILE ?= plugin.json
 
-define GetFromPkg
-$(shell node -p "require('./build_properties.json').$(1)")
-endef
-
 define GetPluginId
 $(shell node -p "require('./plugin.json').id")
 endef

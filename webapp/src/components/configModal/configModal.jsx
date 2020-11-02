@@ -156,6 +156,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         for (let i = 0; i <= Object.keys(this.state.sections).length; ++i) {
             sections.push(
                 <FormGroup
+                    disabled={!this.state.hasPermission}
                     key={i.toString()}
                     style={{...style.formGroup, ...style.sections}}
                 >
@@ -188,7 +189,6 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             Promise.all([this.getStandupConfig(), this.getPluginConfig()])
                 .then(() => {
                     this.setState({showSpinner: false});
-                    console.log(this.state);
                 })
                 .catch(() => {
                     this.setState({showSpinner: false});
@@ -205,33 +205,12 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 .end((err, result) => {
                     if (result.ok) {
                         const standupConfig = result.body;
-                        // const state = {
-                        //     hasPermission: true,
-                        //     windowOpenTime: standupConfig.windowOpenTime,
-                        //     windowCloseTime: standupConfig.windowCloseTime,
-                        //     reportFormat: standupConfig.reportFormat,
-                        //     members: standupConfig.members,
-                        //     sections: {},
-                        //     enabled: standupConfig.enabled,
-                        //     status: standupConfig.enabled,
-                        //     timezone: standupConfig.timezone,
-                        //     windowOpenReminderEnabled: standupConfig.windowOpenReminderEnabled,
-                        //     windowCloseReminderEnabled: standupConfig.windowCloseReminderEnabled,
-                        //     scheduleEnabled: standupConfig.scheduleEnabled,
-                        //     schedule: standupConfig.schedule,
-                        //     rruleString: standupConfig.rruleString,
-                        //     startDate: standupConfig.startDate,
-                        //     isEffectiveChannelAdmin: utils.isEffectiveChannelAdmin(this.props.userRoles),
-                        // };
-
                         const sections = {};
-
                         for (let i = 0; i < standupConfig.sections.length; ++i) {
                             sections[`line${i + 1}`] = standupConfig.sections[i];
                         }
 
                         this.setState((prevState) => {
-                            prevState.hasPermission = true;
                             prevState.windowOpenTime = standupConfig.windowOpenTime;
                             prevState.windowCloseTime = standupConfig.windowCloseTime;
                             prevState.reportFormat = standupConfig.reportFormat;
@@ -286,6 +265,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             .then((pluginConfig) => {
                 this.setState((prevState) => {
                     prevState.pluginConfig = pluginConfig;
+                    prevState.hasPermission =
+                        pluginConfig.permissionSchemaEnabled && utils.isEffectiveChannelAdmin(this.props.userRoles);
                     return prevState;
                 });
             })
@@ -363,15 +344,12 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 </MenuItem>
             ),
         );
-
-        let showStandupError = false;
         let standupErrorMessage = '';
         let standupErrorSubMessage = '';
 
-        if (this.state.hasPermission === false) {
-            showStandupError = true;
-            standupErrorMessage = 'You do not have permission to perform this operation';
-            standupErrorSubMessage = 'Only a channel admin can perform this operation';
+        if (!this.state.hasPermission) {
+            standupErrorMessage = 'Viewing configuration in read-only mode.';
+            standupErrorSubMessage = 'Only a channel admin can update the configuration.';
         }
 
         const spinner =
@@ -383,34 +361,11 @@ class ConfigModal extends (SentryBoundary, React.Component) {
             </div>);
 
         const errorMessage =
-            (<span>
+            (<div style={style.standupErrorSection}>
                 <span style={style.standupErrorMessage}>{standupErrorMessage}</span>
-                <br/><br/>
+                <br/>
                 <span>{standupErrorSubMessage}</span>
-            </span>);
-
-        let footer;
-
-        if (this.state.pluginConfig.permissionSchemaEnabled === true && !utils.isEffectiveChannelAdmin(this.props.userRoles)) {
-            footer = null;
-        } else {
-            footer = (<Modal.Footer>
-                <Button
-                    type='button'
-                    onClick={this.handleClose}
-                    variant={'primary'}
-                >
-                    {'Cancel'}
-                </Button>
-                <Button
-                    type='submit'
-                    bsStyle='primary'
-                    onClick={this.saveStandupConfig}
-                >
-                    {'Save'}
-                </Button>
-            </Modal.Footer>);
-        }
+            </div>);
 
         return (
             <Modal
@@ -424,24 +379,22 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                     </Modal.Title>
                 </Modal.Header>
 
-                <Modal.Body style={showStandupError ? {} : style.body}>
+                <Modal.Body style={style.body}>
                     {/* in progress spinner */}
                     <span hidden={!this.state.showSpinner}>
                         {spinner}
                     </span>
 
-                    {/* generic error message section */}
-                    <span hidden={this.state.showSpinner || !showStandupError}>
-                        {errorMessage}
-                    </span>
-
-                    <div hidden={this.state.showSpinner || !this.state.hasPermission || showStandupError}>
+                    <div hidden={this.state.showSpinner}>
                         <Tabs id={'standup-config-tabs'}>
                             <Tab
                                 eventKey={1}
                                 title={'General'}
                             >
-                                <FormGroup style={style.formGroup}>
+                                <FormGroup
+                                    style={style.formGroup}
+                                    disabled={!this.state.hasPermission}
+                                >
                                     <ControlLabel style={style.controlLabel}>
                                         {'Enabled:'}
                                     </ControlLabel>
@@ -451,7 +404,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                         theme={this.props.theme}
                                     />
                                 </FormGroup>
-                                <FormGroup style={style.formGroup}>
+                                <FormGroup
+                                    style={style.formGroup}
+                                    disabled={!this.state.hasPermission}
+                                >
                                     <ControlLabel style={style.controlLabel}>
                                         {'Standup Schedule:'}
                                     </ControlLabel>
@@ -461,11 +417,15 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                         theme={this.props.theme}
                                     />
                                 </FormGroup>
-                                <FormGroup style={style.formGroup}>
+                                <FormGroup
+                                    style={style.formGroup}
+                                    disabled={!this.state.hasPermission}
+                                >
                                     <ControlLabel style={style.controlLabel}>
                                         {'Standup Report Format:'}
                                     </ControlLabel>
                                     <SplitButton
+                                        disabled={!this.state.hasPermission}
                                         title={ConfigModal.REPORT_DISPLAY_NAMES[this.state.reportFormat]}
                                         onSelect={this.handleReportTypeChange}
                                         bsStyle={'link'}
@@ -474,7 +434,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                         <MenuItem eventKey={'type_aggregated'}>{'Type Aggregated'}</MenuItem>
                                     </SplitButton>
                                 </FormGroup>
-                                <FormGroup style={{...style.formGroup, ...style.formGroupNoMarginBottom}}>
+                                <FormGroup
+                                    style={{...style.formGroup, ...style.formGroupNoMarginBottom}}
+                                    disabled={!this.state.hasPermission}
+                                >
                                     <ControlLabel style={style.controlLabel}>{'Sections:'}</ControlLabel>
                                 </FormGroup>
 
@@ -486,7 +449,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 eventKey={2}
                                 title={'Notifications'}
                             >
-                                <FormGroup style={style.formGroup}>
+                                <FormGroup
+                                    style={style.formGroup}
+                                    disabled={!this.state.hasPermission}
+                                >
                                     <ControlLabel style={style.controlLabel}>
                                         {'Window Open Reminder:'}
                                     </ControlLabel>
@@ -496,7 +462,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                         theme={this.props.theme}
                                     />
                                 </FormGroup>
-                                <FormGroup style={style.formGroup}>
+                                <FormGroup
+                                    style={style.formGroup}
+                                    disabled={!this.state.hasPermission}
+                                >
                                     <ControlLabel style={style.controlLabel}>
                                         {'Window Close Reminder:'}
                                     </ControlLabel>
@@ -511,7 +480,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                 eventKey={3}
                                 title={'Schedule'}
                             >
-                                <FormGroup style={style.formGroup}>
+                                <FormGroup
+                                    style={style.formGroup}
+                                    disabled={!this.state.hasPermission}
+                                >
                                     <ControlLabel style={style.controlLabel}>
                                         {'Window Time:'}
                                     </ControlLabel>
@@ -529,7 +501,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                         bsStyle={'link'}
                                     />
                                 </FormGroup>
-                                <FormGroup style={style.formGroup}>
+                                <FormGroup
+                                    style={style.formGroup}
+                                    disabled={!this.state.hasPermission}
+                                >
                                     <ControlLabel style={style.controlLabel}>
                                         {'Timezone:'}
                                     </ControlLabel>
@@ -541,7 +516,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                                     >{data}
                                     </SplitButton>
                                 </FormGroup>
-                                <FormGroup>
+                                <FormGroup disabled={!this.state.hasPermission}>
                                     <RRule
                                         startDate={this.state.startDate}
                                         rrule={this.state.rruleString}
@@ -553,24 +528,28 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                     </div>
                 </Modal.Body>
 
-                <Modal.Footer hidden={this.state.showSpinner || (this.state.pluginConfig.permissionSchemaEnabled && !utils.isEffectiveChannelAdmin(this.props.userRoles))}>
+                <Modal.Footer hidden={this.state.showSpinner}>
+                    <div hidden={this.state.hasPermission}>
+                        <Button
+                            type='button'
+                            onClick={this.handleClose}
+                            variant={'primary'}
+                        >
+                            {'Cancel'}
+                        </Button>
+                        <Button
+                            type='submit'
+                            bsStyle='primary'
+                            onClick={this.saveStandupConfig}
+                        >
+                            {'Save'}
+                        </Button>
+                    </div>
 
-                    <Button
-                        type='button'
-                        onClick={this.handleClose}
-                        variant={'primary'}
-                    >
-                        {'Cancel'}
-                    </Button>
-                    <Button
-                        type='submit'
-                        bsStyle='primary'
-                        onClick={this.saveStandupConfig}
-                    >
-                        {'Save'}
-                    </Button>
+                    <div hidden={!this.state.hasPermission}>
+                        {errorMessage}
+                    </div>
                 </Modal.Footer>
-
                 <Alert
                     bsStyle={this.state.message.type}
                     style={style.alert}

@@ -11,6 +11,7 @@ class ToggleSwitch extends (SentryBoundary, React.Component) {
         return (
             <div className={'toggle-switch'} >
                 <Switch
+                    disabled={this.props.disabled}
                     onChange={this.props.onChange}
                     checked={this.props.checked}
                     onColor={color(this.props.theme.linkColor).darken(darkenRatio).hex()}

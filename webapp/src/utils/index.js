@@ -31,7 +31,9 @@ function trimTrailingSlash(url) {
 
 function isEffectiveChannelAdmin(userRoles) {
     const userRoleMap = {};
-    userRoles.forEach((role) => userRoleMap[role] = true);
+    userRoles.forEach((role) => {
+        userRoleMap[role] = true;
+    });
 
     return userRoleMap[channelAdminRole] || userRoleMap[teamAdminRole] || userRoleMap[systemAdminRole];
 }
