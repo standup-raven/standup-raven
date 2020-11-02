@@ -28,6 +28,10 @@ func baseMock() *plugintest.API {
 		Location: location,
 		PluginVersion: version3_0_0,
 	}
+
+	// mocks for mutex
+	mockAPI.On("KVSetWithOptions", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
+	
 	config.SetConfig(mockConfig)
 	return mockAPI
 }

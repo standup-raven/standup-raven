@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mattermost/mattermost-plugin-api/cluster"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/util"
@@ -57,8 +58,16 @@ var migrations = []Migration{
 //DatabaseMigration gets the current database schema version and performs
 //all the required data migrations.
 func DatabaseMigration() error {
-	pluginVersion := config.GetConfig().PluginVersion
+	mutex, err := cluster.NewMutex(config.Mattermost, "standup-raven-migration")
+	if err != nil {
+		logger.Error("Failed to create mutex for running migrations.", err, nil)
+		return err
+	}
 
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	pluginVersion := config.GetConfig().PluginVersion
 	schemaVersion, appErr := getCurrentSchemaVersion()
 	if appErr != nil {
 		return appErr
