@@ -14,11 +14,11 @@ Set up your development environment for building, running, and testing the Stand
 
 #### 👨‍💻 Obtaining Source
 
-    $ go get -u github.com/standup-raven/standup-raven/server
+    $ git clone git@github.com:standup-raven/standup-raven.git
 
 #### Go
 
-Requires go version 1.13
+Requires go version 1.15
 
     https://golang.org/doc/install
     
@@ -52,7 +52,7 @@ For other platform refer the [official installation guide](https://github.com/ja
 
 ### 👨‍💻 Building
 
-Once you have fetched the repo via `go get`, simply run `$ make dist` from the repo.
+Once you have fetched the repo, simply run `$ make dist` from the repo.
 
 This will produce three artifacts in `/dist` directory -
 
