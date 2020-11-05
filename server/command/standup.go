@@ -2,13 +2,15 @@ package command
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
 	"github.com/standup-raven/standup-raven/server/util"
-	"strings"
-	"time"
 )
 
 const (
@@ -92,14 +94,12 @@ func validateCommandStandup(args []string, context Context) (*model.CommandRespo
 }
 
 func executeCommandStandup(args []string, context Context) (*model.CommandResponse, *model.AppError) {
-	channelId := context.CommandArgs.ChannelId
+	channelID := context.CommandArgs.ChannelId
 	visibility := context.Props["visibility"].(string)
-	userId := context.CommandArgs.UserId
+	userID := context.CommandArgs.UserId
 
 	for _, date := range context.Props["dates"].([]otime.OTime) {
-		if err := notification.SendStandupReport([]string{channelId}, date, visibility, userId, false); err != nil {
-			// continue
-		}
+		_ = notification.SendStandupReport([]string{channelID}, date, visibility, userID, false)
 	}
 
 	return &model.CommandResponse{

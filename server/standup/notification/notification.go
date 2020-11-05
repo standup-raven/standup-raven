@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
+
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
@@ -109,7 +110,7 @@ func GetNotificationStatus(channelID string) (*ChannelNotificationStatus, error)
 }
 
 // SendStandupReport sends standup report for all channel IDs specified
-func SendStandupReport(channelIDs []string, date otime.OTime, visibility string, userId string, updateStatus bool) error {
+func SendStandupReport(channelIDs []string, date otime.OTime, visibility string, userID string, updateStatus bool) error {
 	for _, channelID := range channelIDs {
 		logger.Info("Sending standup report for channel: "+channelID+" time: "+date.GetDateString(), nil)
 
@@ -137,7 +138,7 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 
 				user, appErr := config.Mattermost.GetUser(userID)
 				if appErr != nil {
-					logger.Error("Couldn't fetch user", appErr, map[string]interface{}{"userID": userId})
+					logger.Error("Couldn't fetch user", appErr, map[string]interface{}{"userID": userID})
 					return errors.New(appErr.Error())
 				}
 
@@ -167,7 +168,7 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 		}
 
 		if visibility == ReportVisibilityPrivate {
-			config.Mattermost.SendEphemeralPost(userId, post)
+			config.Mattermost.SendEphemeralPost(userID, post)
 		} else {
 			_, appErr := config.Mattermost.CreatePost(post)
 			if appErr != nil {
@@ -198,7 +199,7 @@ func SendStandupReport(channelIDs []string, date otime.OTime, visibility string,
 }
 
 func generateReport(
-	standupConfig *standup.StandupConfig,
+	standupConfig *standup.Config,
 	members []*standup.UserStandup,
 	membersNoStandup []string,
 	channelID string,
@@ -353,7 +354,7 @@ func filterChannelNotification(channelIDs map[string]string) ([]string, []string
 
 // shouldSendWindowOpenNotification checks if window open notification should
 // be sent to the channel with specified notification status
-func shouldSendWindowOpenNotification(notificationStatus *ChannelNotificationStatus, standupConfig *standup.StandupConfig) string {
+func shouldSendWindowOpenNotification(notificationStatus *ChannelNotificationStatus, standupConfig *standup.Config) string {
 	if notificationStatus.WindowOpenNotificationSent {
 		return ChannelNotificationStatusSent
 	}
@@ -370,7 +371,7 @@ func shouldSendWindowOpenNotification(notificationStatus *ChannelNotificationSta
 
 // shouldSendWindowCloseNotification checks if window close notification should
 // be sent to the channel with specified notification status
-func shouldSendWindowCloseNotification(notificationStatus *ChannelNotificationStatus, standupConfig *standup.StandupConfig) string {
+func shouldSendWindowCloseNotification(notificationStatus *ChannelNotificationStatus, standupConfig *standup.Config) string {
 	if notificationStatus.WindowCloseNotificationSent {
 		return ChannelNotificationStatusSent
 	}
@@ -389,7 +390,7 @@ func shouldSendWindowCloseNotification(notificationStatus *ChannelNotificationSt
 
 // shouldSendStandupReport checks if standup report should
 // be sent to the channel with specified notification status
-func shouldSendStandupReport(notificationStatus *ChannelNotificationStatus, standupConfig *standup.StandupConfig) string {
+func shouldSendStandupReport(notificationStatus *ChannelNotificationStatus, standupConfig *standup.Config) string {
 	if notificationStatus.StandupReportSent {
 		return ChannelNotificationStatusSent
 	} else if otime.Now(standupConfig.Timezone).GetTimeWithSeconds(standupConfig.Timezone).After(standupConfig.WindowCloseTime.GetTimeWithSeconds(standupConfig.Timezone).Time) {
@@ -449,16 +450,16 @@ func sendWindowCloseNotification(channelIDs []string) error {
 		logger.Debug("Fetching members with pending standup reports", nil)
 
 		var usersPendingStandup []string
-		for _, userId := range standupConfig.Members {
-			userStandup, err := standup.GetUserStandup(userId, channelID, otime.Now(standupConfig.Timezone))
+		for _, userID := range standupConfig.Members {
+			userStandup, err := standup.GetUserStandup(userID, channelID, otime.Now(standupConfig.Timezone))
 			if err != nil {
 				return err
 			}
 
 			if userStandup == nil {
-				user, err := config.Mattermost.GetUser(userId)
+				user, err := config.Mattermost.GetUser(userID)
 				if err != nil {
-					logger.Error("Couldn't find user with user ID", err, map[string]interface{}{"userID": userId})
+					logger.Error("Couldn't find user with user ID", err, map[string]interface{}{"userID": userID})
 					return err
 				}
 
@@ -510,7 +511,7 @@ func sendWindowCloseNotification(channelIDs []string) error {
 
 // generateTypeAggregatedStandupReport generates a Type Aggregated standup report
 func generateTypeAggregatedStandupReport(
-	standupConfig *standup.StandupConfig,
+	standupConfig *standup.Config,
 	userStandups []*standup.UserStandup,
 	membersNoStandup []string,
 	channelID string,
@@ -570,7 +571,7 @@ func generateTypeAggregatedStandupReport(
 
 // generateUserAggregatedStandupReport generates a User Aggregated standup report
 func generateUserAggregatedStandupReport(
-	standupConfig *standup.StandupConfig,
+	standupConfig *standup.Config,
 	userStandups []*standup.UserStandup,
 	membersNoStandup []string,
 	channelID string,
@@ -706,7 +707,7 @@ func deleteReminderPosts(channelID string) error {
 	return nil
 }
 
-func isStandupDay(standupConfig *standup.StandupConfig) bool {
+func isStandupDay(standupConfig *standup.Config) bool {
 	todayOtime := otime.Now(standupConfig.Timezone)
 	today := time.Date(todayOtime.Year(), todayOtime.Month(), todayOtime.Day(), 0, 0, 0, 0, todayOtime.Location())
 

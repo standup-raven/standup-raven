@@ -1,10 +1,12 @@
 package command
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/util"
-	"strings"
 )
 
 // Master is the driver command for all other commands

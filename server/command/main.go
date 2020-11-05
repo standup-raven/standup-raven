@@ -32,7 +32,7 @@ func (c *Config) GetHelpText() string {
 	)
 
 	if c.ExtraHelpText != "" {
-		helpText += "\n\t" + strings.Replace(c.ExtraHelpText, "\n", "\n\t", -1)
+		helpText += "\n\t" + strings.ReplaceAll(c.ExtraHelpText, "\n", "\n\t")
 	}
 
 	helpText += "\n\n"

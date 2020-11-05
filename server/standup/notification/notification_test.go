@@ -3,22 +3,24 @@ package notification
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/teambition/rrule-go"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/teambition/rrule-go"
 
 	"bou.ke/monkey"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
-	"github.com/stretchr/testify/assert"
 )
 
 var rule *rrule.RRule
@@ -55,8 +57,6 @@ func baseMock(mockAPI *plugintest.API) {
 	monkey.Patch(logger.Error, func(msg string, err error, extraData map[string]interface{}) {})
 	monkey.Patch(logger.Info, func(msg string, err error, keyValuePairs ...interface{}) {})
 	monkey.Patch(logger.Warn, func(msg string, err error, keyValuePairs ...interface{}) {})
-	//fakeTime := time.Date(2019, time.May, 19, 10, 2, 3, 4, time.UTC)
-	//monkey.Patch(time.Now, func() time.Time { return fakeTime })
 
 	location, _ := time.LoadLocation("Asia/Kolkata")
 	mockConfig := &config.Configuration{
@@ -98,19 +98,20 @@ func TestSendNotificationsAndReports(t *testing.T) {
 	})
 
 	monkey.Patch(GetNotificationStatus, func(channelID string) (*ChannelNotificationStatus, error) {
-		if channelID == "channel_1" {
+		switch {
+		case channelID == "channel_1":
 			return &ChannelNotificationStatus{
 				StandupReportSent:           false,
 				WindowOpenNotificationSent:  false,
 				WindowCloseNotificationSent: false,
 			}, nil
-		} else if channelID == "channel_2" {
+		case channelID == "channel_2":
 			return &ChannelNotificationStatus{
 				StandupReportSent:           false,
 				WindowOpenNotificationSent:  true,
 				WindowCloseNotificationSent: false,
 			}, nil
-		} else if channelID == "channel_3" {
+		case channelID == "channel_3":
 			return &ChannelNotificationStatus{
 				StandupReportSent:           false,
 				WindowOpenNotificationSent:  true,
@@ -122,40 +123,45 @@ func TestSendNotificationsAndReports(t *testing.T) {
 		return nil, nil
 	})
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	parsedRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
-
-			standupConfig := &standup.StandupConfig{
-				ChannelId:                  "channel_1",
-				WindowOpenTime:             windowOpenTime,
-				WindowCloseTime:            windowCloseTime,
-				Enabled:                    true,
-				Members:                    []string{"user_id_1", "user_id_2"},
-				ReportFormat:               config.ReportFormatUserAggregated,
-				Sections:                   []string{"section 1", "section 2"},
-				Timezone:                   "Asia/Kolkata",
-				WindowOpenReminderEnabled:  true,
-				WindowCloseReminderEnabled: true,
-				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		switch {
+		case channelID == "channel_1":
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
 			}
-
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(2 * time.Hour),
+			}
+			standupConfig := &standup.Config{
+				ChannelID:                  "channel_1",
+				WindowOpenTime:             windowOpenTime,
+				WindowCloseTime:            windowCloseTime,
+				Enabled:                    true,
+				Members:                    []string{"user_id_1", "user_id_2"},
+				ReportFormat:               config.ReportFormatUserAggregated,
+				Sections:                   []string{"section 1", "section 2"},
+				Timezone:                   "Asia/Kolkata",
+				WindowOpenReminderEnabled:  true,
+				WindowCloseReminderEnabled: true,
+				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
+				RRule:                      parsedRule,
+			}
 			return standupConfig, nil
-
-		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
-
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_2",
+		case channelID == "channel_2":
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+			}
+			return &standup.Config{
+				ChannelID:                  "channel_2",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -166,14 +172,17 @@ func TestSendNotificationsAndReports(t *testing.T) {
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
 				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+				RRule:                      parsedRule,
 			}, nil
-		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
-
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_3",
+		case channelID == "channel_3":
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+			}
+			return &standup.Config{
+				ChannelID:                  "channel_3",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -184,9 +193,9 @@ func TestSendNotificationsAndReports(t *testing.T) {
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
 				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+				RRule:                      parsedRule,
 			}, nil
-		} else {
+		default:
 			t.Fatal("unknown argument encountered: " + channelID)
 			return nil, nil
 		}
@@ -221,7 +230,6 @@ func TestSendNotificationsAndReports(t *testing.T) {
 		}
 
 		panic(t)
-		return nil, nil
 	})
 
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
@@ -318,19 +326,23 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 		return nil, nil
 	})
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	parsedRrule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(2 * time.Hour),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_1",
+			return &standup.Config{
+				ChannelID:                  "channel_1",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -341,14 +353,18 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
 				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+				RRule:                      parsedRrule,
 			}, nil
 		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_2",
+			return &standup.Config{
+				ChannelID:                  "channel_2",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -359,14 +375,18 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
 				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+				RRule:                      parsedRrule,
 			}, nil
 		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_3",
+			return &standup.Config{
+				ChannelID:                  "channel_3",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -377,7 +397,7 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
 				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+				RRule:                      parsedRrule,
 			}, nil
 		}
 
@@ -414,7 +434,6 @@ func TestSendNotificationsAndReports_SendStandupReport_Error(t *testing.T) {
 		}
 
 		panic(t)
-		return nil, nil
 	})
 
 	assert.NotNil(t, SendNotificationsAndReports(), "no error should have been produced")
@@ -453,19 +472,23 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 		return &ChannelNotificationStatus{}, nil
 	})
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	parsedRRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(2 * time.Hour),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_1",
+			return &standup.Config{
+				ChannelID:                  "channel_1",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -476,14 +499,18 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
 				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+				RRule:                      parsedRRule,
 			}, nil
 		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_2",
+			return &standup.Config{
+				ChannelID:                  "channel_2",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -494,14 +521,18 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
 				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+				RRule:                      parsedRRule,
 			}, nil
 		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_3",
+			return &standup.Config{
+				ChannelID:                  "channel_3",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -512,7 +543,7 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
 				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+				RRule:                      parsedRRule,
 			}, nil
 		}
 
@@ -549,20 +580,18 @@ func TestSendNotificationsAndReports_GetNotificationStatus_NoData(t *testing.T) 
 		}
 
 		panic(t)
-		return nil, nil
 	})
 
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 1)
 	mockAPI.AssertNumberOfCalls(t, "KVGet", 1)
 	mockAPI.AssertNumberOfCalls(t, "KVSet", 1)
-
 }
 
 func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 	// TODO - fix this flaky test
 	t.SkipNow()
-	
+
 	defer TearDown()
 	mockAPI := setUp()
 	baseMock(mockAPI)
@@ -613,18 +642,22 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 		return nil, nil
 	})
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	parsedRRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-55 * time.Minute)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-55 * time.Minute),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_1",
+		return &standup.Config{
+			ChannelID:                  "channel_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -635,7 +668,7 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: true,
 			RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-			RRule:                      rule,
+			RRule:                      parsedRRule,
 		}, nil
 	})
 
@@ -668,7 +701,6 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 		}
 
 		panic(t)
-		return nil, nil
 	})
 
 	err = SendNotificationsAndReports()
@@ -676,7 +708,7 @@ func TestSendNotificationsAndReports_GetUser_Error(t *testing.T) {
 	if err != nil {
 		msg = err.Error()
 	}
-	assert.NotNil(t, err, "error should have been produced: " + msg)
+	assert.NotNil(t, err, "error should have been produced: "+msg)
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
 	mockAPI.AssertNumberOfCalls(t, "KVGet", 0)
 	mockAPI.AssertNumberOfCalls(t, "KVSet", 0)
@@ -734,7 +766,7 @@ func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 		return nil, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, errors.New("")
 	})
 
@@ -767,7 +799,6 @@ func TestSendNotificationsAndReports_GetStandupConfig_Error(t *testing.T) {
 		}
 
 		panic(t)
-		return nil, nil
 	})
 
 	monkey.Patch(config.Mattermost.GetUser, func(string) (*model.User, *model.AppError) {
@@ -828,7 +859,7 @@ func TestSendNotificationsAndReports_GetStandupConfig_Nil(t *testing.T) {
 		return nil, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, nil
 	})
 
@@ -861,7 +892,6 @@ func TestSendNotificationsAndReports_GetStandupConfig_Nil(t *testing.T) {
 		}
 
 		panic(t)
-		return nil, nil
 	})
 
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced as no standup config found is handled")
@@ -919,19 +949,23 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 		return nil, nil
 	})
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	parsedRRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(2 * time.Hour),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_1",
+			return &standup.Config{
+				ChannelID:                  "channel_1",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -942,14 +976,18 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
 				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+				RRule:                      parsedRRule,
 			}, nil
 		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_2",
+			return &standup.Config{
+				ChannelID:                  "channel_2",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -960,14 +998,18 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
 				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+				RRule:                      parsedRRule,
 			}, nil
 		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_3",
+			return &standup.Config{
+				ChannelID:                  "channel_3",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -978,7 +1020,7 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 				WindowOpenReminderEnabled:  true,
 				WindowCloseReminderEnabled: true,
 				RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-				RRule:                      rule,
+				RRule:                      parsedRRule,
 			}, nil
 		}
 
@@ -1015,11 +1057,9 @@ func TestSendNotificationsAndReports_WindowOpenNotificationSent_Sent(t *testing.
 		}
 
 		panic(t)
-		return nil, nil
 	})
 
 	assert.Nil(t, SendNotificationsAndReports(), "no error should have been produced")
-	//mockAPI.AssertNumberOfCalls(t, "CreatePost", 1)
 }
 
 func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
@@ -1038,18 +1078,22 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 		}, nil
 	})
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-50*24*time.Hour))
+	parsedRRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-50*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:       "channel_1",
+		return &standup.Config{
+			ChannelID:       "channel_1",
 			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
 			Enabled:         true,
@@ -1058,7 +1102,7 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 			Sections:        []string{"section 1", "section 2"},
 			Timezone:        "Asia/Kolkata",
 			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-			RRule:           rule,
+			RRule:           parsedRRule,
 		}, nil
 	})
 
@@ -1068,12 +1112,16 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 		}, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_1",
+		return &standup.Config{
+			ChannelID:                  "channel_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -1084,7 +1132,7 @@ func TestSendNotificationsAndReports_NotWorkDay(t *testing.T) {
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: true,
 			RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-			RRule:                      rule,
+			RRule:                      parsedRRule,
 		}, nil
 	})
 
@@ -1106,16 +1154,20 @@ func TestSendNotificationsAndReports_Integration(t *testing.T) {
 	)
 	mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s_%s", config.CacheKeyPrefixNotificationStatus, "channel_1", util.GetCurrentDateString("Asia/Kolkata")))).Return(nil, nil)
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	parsedRRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
 
-	windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-	windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
-	standupConfig, _ := json.Marshal(&standup.StandupConfig{
-		ChannelId:                  "channel_1",
+	windowOpenTime := otime.OTime{
+		Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+	}
+	windowCloseTime := otime.OTime{
+		Time: otime.Now("Asia/Kolkata").Add(2 * time.Hour),
+	}
+	standupConfig, _ := json.Marshal(&standup.Config{
+		ChannelID:                  "channel_1",
 		WindowOpenTime:             windowOpenTime,
 		WindowCloseTime:            windowCloseTime,
 		Enabled:                    true,
@@ -1126,7 +1178,7 @@ func TestSendNotificationsAndReports_Integration(t *testing.T) {
 		WindowOpenReminderEnabled:  true,
 		WindowCloseReminderEnabled: true,
 		RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:                      rule,
+		RRule:                      parsedRRule,
 	})
 	mockAPI.On("KVGet", "UzFgbepiypG8qfVARBfHu154LDNiZOw7Mr6Ue4kNZrk=").Return(standupConfig, nil)
 
@@ -1173,18 +1225,22 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 		}, nil
 	})
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	parsedRRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_2",
+		return &standup.Config{
+			ChannelID:                  "channel_2",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -1195,7 +1251,7 @@ func TestSendNotificationsAndReports_sendWindowCloseNotification_Error(t *testin
 			WindowOpenReminderEnabled:  true,
 			WindowCloseReminderEnabled: true,
 			RRuleString:                "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-			RRule:                      rule,
+			RRule:                      parsedRRule,
 		}, nil
 	})
 
@@ -1243,12 +1299,16 @@ func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing
 		}, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_2",
+		return &standup.Config{
+			ChannelID:                  "channel_2",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -1279,7 +1339,6 @@ func TestSendNotificationsAndReports_FilterChannelNotifications_Error(t *testing
 	if err != nil {
 		assert.NotNil(t, err, err.Error())
 	}
-
 }
 
 func TestSendNotificationsAndReports_Standup_Disabled(t *testing.T) {
@@ -1310,12 +1369,16 @@ func TestSendNotificationsAndReports_Standup_Disabled(t *testing.T) {
 		}, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(2 * time.Hour),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_1",
+		return &standup.Config{
+			ChannelID:                  "channel_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    false,
@@ -1363,12 +1426,16 @@ func TestSendNotificationsAndReports_StandupReport_Sent(t *testing.T) {
 		}, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(2 * time.Hour),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_1",
+		return &standup.Config{
+			ChannelID:                  "channel_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -1418,12 +1485,16 @@ func TestSendNotificationsAndReports_SendWindowOpenNotification_CreatePost_Error
 		}, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(2 * time.Hour),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_1",
+		return &standup.Config{
+			ChannelID:                  "channel_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -1476,12 +1547,16 @@ func TestSendNotificationsAndReports_ShouldSendWindowOpenNotification_NotYet(t *
 		}, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(2 * time.Hour)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(2 * time.Hour),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_1",
+		return &standup.Config{
+			ChannelID:                  "channel_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -1532,12 +1607,16 @@ func TestSendNotificationsAndReports_WindowCloseNotification(t *testing.T) {
 		}, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-55 * time.Minute)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-55 * time.Minute),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_1",
+		return &standup.Config{
+			ChannelID:                  "channel_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -1700,12 +1779,16 @@ func TestSendStandupReport(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -1744,26 +1827,30 @@ func TestSendStandupReport(t *testing.T) {
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, errors.New("")
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -1803,12 +1890,16 @@ func TestSendStandupReport_GetReminderPosts_Error(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -1867,12 +1958,16 @@ func TestSendStandupReport_DeleteReminderPosts_Error(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -1934,12 +2029,16 @@ func TestSendStandupReport_GetReminderPosts_DeletePostError(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2001,12 +2100,16 @@ func TestSendStandupReport_GetReminderPosts_KVDeleteError(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2065,12 +2168,16 @@ func TestSendStandupReport_GetReminderPosts_JsonError(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2131,12 +2238,16 @@ func TestSendStandupReport_GetReminderPosts_Data(t *testing.T) {
 	)
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2179,12 +2290,16 @@ func TestSendStandupReport_GetUserStandup_Error(t *testing.T) {
 	mockAPI := setUp()
 	baseMock(mockAPI)
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2227,12 +2342,16 @@ func TestSendStandupReport_GetUserStandup_Nil(t *testing.T) {
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2265,26 +2384,30 @@ func TestSendStandupReport_GetUserStandup_Nil(t *testing.T) {
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, errors.New("")
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2323,12 +2446,16 @@ func TestSendStandupReport_GetUserStandup_Nil_GetUser_Error(t *testing.T) {
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2370,12 +2497,16 @@ func TestSendStandupReport_ReportFormatUserAggregated(t *testing.T) {
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatUserAggregated,
@@ -2415,26 +2546,30 @@ func TestSendStandupReport_ReportFormatUserAggregated(t *testing.T) {
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, errors.New("")
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2474,12 +2609,16 @@ func TestSendStandupReport_UnknownReportFormat(t *testing.T) {
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               "some_unknown_report_format",
@@ -2527,19 +2666,17 @@ func TestSendStandupReport_ReportVisibility_Public(t *testing.T) {
 	)
 
 	mockAPI.On("CreatePost", mock.AnythingOfType("*model.Post"), mock.Anything).Return(&model.Post{}, nil)
-	//mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return(nil, nil)
-	//mockAPI.On("KVSet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1")), mock.Anything).Return(nil)
-	//mockAPI.On("KVDelete", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_1"))).Return(nil)
-	//mockAPI.On("KVGet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_2"))).Return(nil, nil)
-	//mockAPI.On("KVSet", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_2")), mock.Anything).Return(nil)
-	//mockAPI.On("KVDelete", util.GetKeyHash(fmt.Sprintf("%s_%s", "reminderPosts", "channel_2"))).Return(nil)
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2579,26 +2716,30 @@ func TestSendStandupReport_ReportVisibility_Public(t *testing.T) {
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, errors.New("")
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2638,12 +2779,16 @@ func TestSendStandupReport_ReportVisibility_Public_CreatePost_Error(t *testing.T
 
 	mockAPI.On("CreatePost", mock.AnythingOfType("*model.Post"), mock.Anything).Return(nil, model.NewAppError("", "", nil, "", 0))
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2683,26 +2828,30 @@ func TestSendStandupReport_ReportVisibility_Public_CreatePost_Error(t *testing.T
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, errors.New("")
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", false)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2739,12 +2888,16 @@ func TestSendStandupReport_UpdateStatus_True(t *testing.T) {
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2784,26 +2937,30 @@ func TestSendStandupReport_UpdateStatus_True(t *testing.T) {
 	assert.Nil(t, err, "should not produce any error")
 
 	// error in GetStandupConfig
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, errors.New("")
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", true)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig failed")
 
 	// no standup config
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, nil
 	})
 	err = SendStandupReport([]string{"channel_1", "channel_2"}, otime.Now("Asia/Kolkata"), ReportVisibilityPrivate, "user_1", true)
 	assert.NotNil(t, err, "should produce any error as GetStandupConfig didn't return any standup config")
 
 	// standup with no members
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2843,12 +3000,16 @@ func TestSendStandupReport_UpdateStatus_True_GetNotificationStatus_Error(t *test
 
 	mockAPI.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(&model.Post{})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  channelID,
+		return &standup.Config{
+			ChannelID:                  channelID,
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			ReportFormat:               config.ReportFormatTypeAggregated,
@@ -2924,12 +3085,16 @@ func TestSetNotificationStatus(t *testing.T) {
 	mockAPI := setUp()
 	baseMock(mockAPI)
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_id_1",
+		return &standup.Config{
+			ChannelID:                  "channel_id_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -2952,12 +3117,16 @@ func TestSetNotificationStatus_JsonMarshal_Error(t *testing.T) {
 	monkey.Patch(json.Marshal, func(v interface{}) ([]byte, error) {
 		return nil, errors.New("")
 	})
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_id_1",
+		return &standup.Config{
+			ChannelID:                  "channel_id_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -2978,12 +3147,16 @@ func TestSetNotificationStatus_KVSet_Error(t *testing.T) {
 	mockAPI := setUp()
 	baseMock(mockAPI)
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(model.NewAppError("", "", nil, "", 0))
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_id_1",
+		return &standup.Config{
+			ChannelID:                  "channel_id_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -3045,13 +3218,17 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 		return nil, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_1",
+			return &standup.Config{
+				ChannelID:                  "channel_1",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -3065,11 +3242,15 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_2",
+			return &standup.Config{
+				ChannelID:                  "channel_2",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -3083,11 +3264,15 @@ func TestSendNotificationsAndReports_GetUserStandup_Nodata(t *testing.T) {
 				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_3",
+			return &standup.Config{
+				ChannelID:                  "channel_3",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -3177,13 +3362,17 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 		return nil, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		if channelID == "channel_1" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_1",
+			return &standup.Config{
+				ChannelID:                  "channel_1",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -3197,11 +3386,15 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_2" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_2",
+			return &standup.Config{
+				ChannelID:                  "channel_2",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -3215,11 +3408,15 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 				RRule:                      rule,
 			}, nil
 		} else if channelID == "channel_3" {
-			windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Hour)}
-			windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(1 * time.Minute)}
+			windowOpenTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(-1 * time.Hour),
+			}
+			windowCloseTime := otime.OTime{
+				Time: otime.Now("Asia/Kolkata").Add(1 * time.Minute),
+			}
 
-			return &standup.StandupConfig{
-				ChannelId:                  "channel_3",
+			return &standup.Config{
+				ChannelID:                  "channel_3",
 				WindowOpenTime:             windowOpenTime,
 				WindowCloseTime:            windowCloseTime,
 				Enabled:                    true,
@@ -3271,7 +3468,6 @@ func TestSendNotificationsAndReports_MemberNoStandup(t *testing.T) {
 		}
 
 		panic(t)
-		return nil, nil
 	})
 	err := SendStandupReport([]string{"channel_1", "channel_2", "channel_3"}, otime.Now("Asia/Kolkata"), ReportVisibilityPublic, "user_1", true)
 	assert.Nil(t, err, "should not produce any error")
@@ -3335,7 +3531,7 @@ func TestSendNotificationsAndReports_StandupConfig_Error(t *testing.T) {
 		return nil, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, errors.New("")
 	})
 
@@ -3368,12 +3564,10 @@ func TestSendNotificationsAndReports_StandupConfig_Error(t *testing.T) {
 		}
 
 		panic(t)
-		return nil, nil
 	})
 
 	assert.NotNil(t, SendNotificationsAndReports())
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
-
 }
 
 func TestSendNotificationsAndReports_StandupConfig_Nil(t *testing.T) {
@@ -3429,7 +3623,7 @@ func TestSendNotificationsAndReports_StandupConfig_Nil(t *testing.T) {
 		return []string{}, []string{}, []string{"channel_1", "channel_2", "channel_3"}, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
 		return nil, nil
 	})
 
@@ -3462,12 +3656,10 @@ func TestSendNotificationsAndReports_StandupConfig_Nil(t *testing.T) {
 		}
 
 		panic(t)
-		return nil, nil
 	})
 
 	assert.NotNil(t, SendNotificationsAndReports())
 	mockAPI.AssertNumberOfCalls(t, "CreatePost", 0)
-
 }
 
 func TestSendNotificationsAndReports_WindowCloseReminderEnabled_Disabled(t *testing.T) {
@@ -3502,12 +3694,16 @@ func TestSendNotificationsAndReports_WindowCloseReminderEnabled_Disabled(t *test
 		}, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-55 * time.Minute)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-55 * time.Minute),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_1",
+		return &standup.Config{
+			ChannelID:                  "channel_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -3575,12 +3771,16 @@ func TestSendNotificationsAndReports_WindowOpenReminderEnabled_Disabled(t *testi
 		}, nil
 	})
 
-	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-1 * time.Minute)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
+	monkey.Patch(standup.GetStandupConfig, func(channelID string) (*standup.Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-1 * time.Minute),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(5 * time.Minute),
+		}
 
-		return &standup.StandupConfig{
-			ChannelId:                  "channel_1",
+		return &standup.Config{
+			ChannelID:                  "channel_1",
 			WindowOpenTime:             windowOpenTime,
 			WindowCloseTime:            windowCloseTime,
 			Enabled:                    true,
@@ -3617,16 +3817,16 @@ func TestSendNotificationsAndReports_WindowOpenReminderEnabled_Disabled(t *testi
 }
 
 func TestIsStandupDay(t *testing.T) {
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	parsedRRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
-	
-	standupConfig := &standup.StandupConfig{
+
+	standupConfig := &standup.Config{
 		Timezone: "Asia/Kolkata",
-		RRule: rule,
+		RRule:    parsedRRule,
 	}
-	
+
 	isStandupDay(standupConfig)
 }

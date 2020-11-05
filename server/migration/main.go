@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/mattermost/mattermost-plugin-api/cluster"
+	"github.com/thoas/go-funk"
+
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/util"
-	"github.com/thoas/go-funk"
-	"strings"
 )
 
 var (
@@ -55,8 +57,8 @@ var migrations = []Migration{
 	upgradeDatabaseToVersion3_1_1,
 }
 
-//DatabaseMigration gets the current database schema version and performs
-//all the required data migrations.
+// DatabaseMigration gets the current database schema version and performs
+// all the required data migrations.
 func DatabaseMigration() error {
 	mutex, err := cluster.NewMutex(config.Mattermost, "standup-raven-migration")
 	if err != nil {

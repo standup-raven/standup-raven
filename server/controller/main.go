@@ -1,9 +1,10 @@
 package controller
 
 import (
+	"net/http"
+
 	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/util"
-	"net/http"
 )
 
 type Endpoint struct {

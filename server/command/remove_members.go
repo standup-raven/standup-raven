@@ -1,12 +1,14 @@
 package command
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
+
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
-	"strings"
 )
 
 func commandRemoveMembers() *Config {

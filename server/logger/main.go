@@ -2,7 +2,9 @@ package logger
 
 import (
 	"fmt"
+
 	"github.com/getsentry/sentry-go"
+
 	"github.com/standup-raven/standup-raven/server/config"
 )
 

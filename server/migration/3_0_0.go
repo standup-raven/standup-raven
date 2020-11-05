@@ -1,12 +1,13 @@
 package migration
 
 import (
-	"github.com/standup-raven/standup-raven/server/config"
-	"github.com/standup-raven/standup-raven/server/logger"
-	"github.com/standup-raven/standup-raven/server/standup"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/standup-raven/standup-raven/server/config"
+	"github.com/standup-raven/standup-raven/server/logger"
+	"github.com/standup-raven/standup-raven/server/standup"
 )
 
 func upgradeDatabaseToVersion3_0_0(fromVersion string) error {

@@ -3,11 +3,13 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/standup-raven/standup-raven/server/otime"
-	"go.uber.org/atomic"
 	"strings"
 	"time"
+
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"go.uber.org/atomic"
+
+	"github.com/standup-raven/standup-raven/server/otime"
 )
 
 const (
@@ -18,7 +20,7 @@ const (
 	URLPluginBase = "/plugins/" + PluginName
 	URLStaticBase = URLPluginBase
 
-	HeaderMattermostUserId = "Mattermost-User-Id"
+	HeaderMattermostUserID = "Mattermost-User-Id"
 
 	ReportFormatUserAggregated = "user_aggregated"
 	ReportFormatTypeAggregated = "type_aggregated"
@@ -83,14 +85,14 @@ func (c *Configuration) ProcessConfiguration() error {
 
 	if c.EnableErrorReporting && len(c.SentryServerDSN) == 0 {
 		Mattermost.LogError("Sentry Server DSN cannot be empty if error reporting is enabled")
-		return errors.New("Sentry Server DSN cannot be empty if error reporting is enabled")
+		return errors.New("sentry server DSN cannot be empty if error reporting is enabled")
 	}
 
 	c.SentryWebappDSN = strings.TrimSpace(c.SentryWebappDSN)
 
 	if c.EnableErrorReporting && len(c.SentryWebappDSN) == 0 {
 		Mattermost.LogError("Sentry Webapp DSN cannot be empty if error reporting is enabled")
-		return errors.New("Sentry Webapp DSN cannot be empty if error reporting is enabled")
+		return errors.New("sentry webapp DSN cannot be empty if error reporting is enabled")
 	}
 
 	c.Location = location
@@ -98,14 +100,14 @@ func (c *Configuration) ProcessConfiguration() error {
 	return nil
 }
 
-func (c *Configuration) ToJson() []byte {
+func (c *Configuration) ToJSON() []byte {
 	data, _ := json.Marshal(c)
 	return data
 }
 
 func (c *Configuration) Clone() *Configuration {
 	var clone Configuration
-	_ = json.Unmarshal(c.ToJson(), &clone)
+	_ = json.Unmarshal(c.ToJSON(), &clone)
 	return &clone
 }
 

@@ -1,16 +1,17 @@
 package util
 
 import (
-	"bou.ke/monkey"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/standup-raven/standup-raven/server/otime"
 	"net/http"
 	"net/url"
 	"testing"
 	"time"
-)
 
-import "github.com/stretchr/testify/assert"
+	"bou.ke/monkey"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/standup-raven/standup-raven/server/otime"
+)
 
 func TestSplitArgs(t *testing.T) {
 	actual, err := SplitArgs("foo bar baz")
@@ -29,7 +30,7 @@ func TestSplitArgs(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, actual, []string{"foo"}, "single param is fine")
 
-	actual, err = SplitArgs("foo \"bar baz")
+	_, err = SplitArgs("foo \"bar baz")
 	assert.NotNil(t, err, "error should be produced ad quote is not closed")
 
 	actual, err = SplitArgs("   foo   ")
@@ -57,7 +58,7 @@ func TestMax(t *testing.T) {
 
 func TestSendEphemeralText(t *testing.T) {
 	response, err := SendEphemeralText("my message")
-	
+
 	assert.Nil(t, err)
 	assert.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, response.Type)
 	assert.Equal(t, "my message", response.Text)
@@ -72,10 +73,12 @@ func TestDifference(t *testing.T) {
 func TestGetCurrentDateString(t *testing.T) {
 	monkey.Patch(otime.Now, func(timezone string) otime.OTime {
 		t, _ := time.Parse("02-Jan-06", "02-Jan-06")
-		return otime.OTime{t}
+		return otime.OTime{
+			Time: t,
+		}
 	})
 	defer monkey.Unpatch(otime.Now)
-	
+
 	assert.Equal(t, "20060102", GetCurrentDateString("Asia/Kolkata"))
 }
 
@@ -85,9 +88,9 @@ func TestGetKeyHash(t *testing.T) {
 
 func TestDumpRequest(t *testing.T) {
 	url, _ := url.Parse("https://www.example.com")
-	
+
 	assert.True(t, len(DumpRequest(&http.Request{
-		URL:  url,
+		URL: url,
 	})) > 0)
 }
 

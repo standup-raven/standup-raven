@@ -62,21 +62,13 @@ check-style-webapp: .webinstall
 	cd webapp && yarn run lintstyle
 
 check-style-server:
-	@echo Running GOFMT
-
-	@for package in $$(go list ./server/...); do \
-		echo "Checking "$$package; \
-		files=$$(go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}' $$package); \
-		if [ "$$files" ]; then \
-			gofmt_output=$$(gofmt -w -s $$files 2>&1); \
-			if [ "$$gofmt_output" ]; then \
-				echo "$$gofmt_output"; \
-				echo "gofmt failure"; \
-				exit 1; \
-			fi; \
-		fi; \
-	done
-	@echo "gofmt success"; \
+	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
+    		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
+    		exit 1; \
+    	fi; \
+    
+	@echo Running golangci-lint
+	golangci-lint run ./server/...
 	
 fix-style: check-style-server
 	@echo Checking for style guide compliance

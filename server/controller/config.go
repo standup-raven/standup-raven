@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
+
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/logger"
@@ -49,9 +50,9 @@ var getActiveStandupChannels = &Endpoint{
 }
 
 func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
-	channelId := r.URL.Query().Get("channel_id")
+	channelID := r.URL.Query().Get("channel_id")
 
-	c, err := standup.GetStandupConfig(channelId)
+	c, err := standup.GetStandupConfig(channelID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return err
@@ -62,11 +63,11 @@ func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 
-	// TODO: make use of ToJson function for sending conf in response
+	// TODO: make use of ToJSON function for sending conf in response
 	data, err := json.Marshal(c)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logger.Error("Couldn't serialize config data", err, map[string]interface{}{"config": c.ToJson()})
+		logger.Error("Couldn't serialize config data", err, map[string]interface{}{"config": c.ToJSON()})
 		return err
 	}
 
@@ -82,15 +83,15 @@ func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	// get config data from body
 	decoder := json.NewDecoder(r.Body)
-	conf := &standup.StandupConfig{}
+	conf := &standup.Config{}
 	if err := decoder.Decode(&conf); err != nil {
 		logger.Error("Could not decode request body", err, map[string]interface{}{"request": util.DumpRequest(r)})
 		http.Error(w, "Could not decode request body", http.StatusBadRequest)
 		return err
 	}
 
-	userID := r.Header.Get(config.HeaderMattermostUserId)
-	channelID := conf.ChannelId
+	userID := r.Header.Get(config.HeaderMattermostUserID)
+	channelID := conf.ChannelID
 
 	// if permission schema is enabled,
 	// verify if user is an effective channel admin
@@ -136,14 +137,14 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	// 	1. Standup Raven channel header button won't show up ever in
 	//			this channel, even if standup is configured in the channel.
 	// 	2. Scheduled standup reports won't work for this channel.
-	if err := standup.AddStandupChannel(conf.ChannelId); err != nil {
+	if err := standup.AddStandupChannel(conf.ChannelID); err != nil {
 		http.Error(w, "Error occurred while saving standup conf", http.StatusInternalServerError)
 		return err
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	if _, err := w.Write([]byte(conf.ToJson())); err != nil {
-		logger.Error("Error occurred in writing data to HTTP response", err, map[string]interface{}{"config": conf.ToJson()})
+	if _, err := w.Write([]byte(conf.ToJSON())); err != nil {
+		logger.Error("Error occurred in writing data to HTTP response", err, map[string]interface{}{"config": conf.ToJSON()})
 		return err
 	}
 
@@ -157,10 +158,10 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 	config.Mattermost.PublishWebSocketEvent(
 		event,
 		map[string]interface{}{
-			"channel_id": conf.ChannelId,
+			"channel_id": conf.ChannelID,
 		},
 		&model.WebsocketBroadcast{
-			UserId: r.Header.Get(config.HeaderMattermostUserId),
+			UserId: r.Header.Get(config.HeaderMattermostUserID),
 		},
 	)
 

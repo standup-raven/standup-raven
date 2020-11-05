@@ -3,12 +3,13 @@ package controller
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/standup"
-	"net/http"
 )
 
 var getStandup = &Endpoint{
@@ -38,7 +39,7 @@ func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	userStandup.UserID = r.Header.Get(config.HeaderMattermostUserId)
+	userStandup.UserID = r.Header.Get(config.HeaderMattermostUserID)
 
 	if err := userStandup.IsValid(); err != nil {
 		logger.Info("user standup validation failed", err)
@@ -60,7 +61,7 @@ func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
 }
 
 func executeGetStandup(w http.ResponseWriter, r *http.Request) error {
-	userID := r.Header.Get(config.HeaderMattermostUserId)
+	userID := r.Header.Get(config.HeaderMattermostUserID)
 	channelID := r.URL.Query().Get("channel_id")
 	standupConfig, err := standup.GetStandupConfig(channelID)
 	if err != nil {

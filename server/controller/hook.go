@@ -2,12 +2,13 @@ package controller
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
-	"net/http"
 )
 
 var hook = &Endpoint{

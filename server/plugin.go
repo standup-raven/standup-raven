@@ -2,19 +2,22 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
+
 	"github.com/getsentry/sentry-go"
 	"github.com/mattermost/mattermost-plugin-api/cluster"
+
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/migration"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
-	"io/ioutil"
-	"net/http"
 
 	"os"
 	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+
 	"github.com/standup-raven/standup-raven/server/command"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller"
@@ -22,6 +25,7 @@ import (
 )
 
 // ldflag variables
+
 var PluginVersion string
 var SentryServerDSN string
 var SentryWebappDSN string
@@ -30,12 +34,10 @@ var EncodedPluginIcon string
 type Plugin struct {
 	plugin.MattermostPlugin
 	handler http.Handler
-	running bool
 	job     *cluster.Job
 }
 
 func (p *Plugin) OnActivate() error {
-
 	config.Mattermost = p.API
 
 	if err := p.OnConfigurationChange(); err != nil {
@@ -209,7 +211,7 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if err := endpoint.Execute(w, r); err != nil {
-		logger.Error("Error occurred processing "+r.URL.String(), err, map[string]interface{}{"request": string(d)})
+		logger.Error("Error occurred processing "+r.URL.String(), err, map[string]interface{}{"request": d})
 		sentry.WithScope(func(scope *sentry.Scope) {
 			sentry.CaptureException(err)
 		})
