@@ -238,20 +238,18 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             .end((error, response) => {
                                 if (response.ok) {
                                     const timezone = String(response.body);
-                                    this.setState({
-                                        timezone,
+                                    this.setState((prevState) => {
+                                        prevState.timezone = timezone;
+                                        return prevState;
                                     });
                                 } else if (error) {
                                     console.log(error);
                                 }
                             });
-
-                        this.setState({
-                            hasPermission: true,
-                        });
                     } else if (result.status === HttpStatus.UNAUTHORIZED) {
-                        this.setState({
-                            hasPermission: false,
+                        this.setState((prevState) => {
+                            prevState.hasPermission = false;
+                            return prevState;
                         });
                     }
 
@@ -529,7 +527,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 </Modal.Body>
 
                 <Modal.Footer hidden={this.state.showSpinner}>
-                    <div hidden={this.state.hasPermission}>
+                    <div hidden={this.state.hasPermission === false}>
                         <Button
                             type='button'
                             onClick={this.handleClose}
@@ -546,7 +544,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                         </Button>
                     </div>
 
-                    <div hidden={!this.state.hasPermission}>
+                    <div hidden={this.state.hasPermission === true}>
                         {errorMessage}
                     </div>
                 </Modal.Footer>

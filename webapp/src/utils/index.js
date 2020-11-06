@@ -35,7 +35,7 @@ function isEffectiveChannelAdmin(userRoles) {
         userRoleMap[role] = true;
     });
 
-    return userRoleMap[channelAdminRole] || userRoleMap[teamAdminRole] || userRoleMap[systemAdminRole];
+    return Boolean(userRoleMap[channelAdminRole] || userRoleMap[teamAdminRole] || userRoleMap[systemAdminRole]);
 }
 
 export default {
