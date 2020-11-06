@@ -14,6 +14,9 @@ linters-settings:
     enable-all: true
   misspell:
     locale: US
+  gocritic:
+    disabled-checks:
+      - ifElseChain
 
 linters:
   disable-all: true
@@ -41,6 +44,8 @@ linters:
     - whitespace
 
 issues:
+  exclude:
+    - 'declaration of "(err|ctx)" shadows declaration at'
   exclude-rules:
     - path: server/manifest.go
       linters:

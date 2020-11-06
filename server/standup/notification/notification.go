@@ -323,6 +323,7 @@ func filterChannelNotification(channelIDs map[string]string) ([]string, []string
 		// we check in opposite order of time and check for just one notification to send.
 		// This prevents expired notifications from being sent in case some of
 		// the notifications were missed in the past
+
 		if status := shouldSendStandupReport(notificationStatus, standupConfig); status == ChannelNotificationStatusSend {
 			logger.Debug(fmt.Sprintf("Channel [%s] needs standup report", channelID), nil)
 			standupReportChannels = append(standupReportChannels, channelID)
