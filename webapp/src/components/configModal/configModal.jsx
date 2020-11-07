@@ -249,12 +249,13 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             .end((error, response) => {
                                 if (response.ok) {
                                     const timezone = String(response.body);
+                                    // eslint-disable-next-line max-nested-callbacks
                                     this.setState((prevState) => {
                                         prevState.timezone = timezone;
                                         return prevState;
                                     });
                                 } else if (error) {
-                                    console.log(error);
+                                    console.error(error);
                                 }
                             });
                     } else if (result.status === HttpStatus.UNAUTHORIZED) {
@@ -547,6 +548,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 </Modal.Body>
 
                 <Modal.Footer hidden={this.state.showSpinner || showNewStandupInitializationPermissionError}>
+                    {/*eslint-disable-next-line eqeqeq*/}
                     <div hidden={this.state.hasPermission == false}>
                         <Button
                             type='button'
@@ -564,6 +566,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                         </Button>
                     </div>
 
+                    {/*eslint-disable-next-line eqeqeq*/}
                     <div hidden={this.state.hasPermission == true}>
                         {errorMessage}
                     </div>
