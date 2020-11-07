@@ -45,6 +45,9 @@ function getStyle() {
         body: {
             minHeight: '380px',
         },
+        bodyCompact: {
+            minHeight: 'unset',
+        },
         standupErrorSection: {
             textAlign: 'center',
             color: 'var(--center-channel-color)',

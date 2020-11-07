@@ -30,6 +30,15 @@ const configModalCloseTimeout = 1000;
 const timezones = require('../../../../timezones.json');
 
 class ConfigModal extends (SentryBoundary, React.Component) {
+    newConfigPermissionMissingComponent = (
+        <span>
+            <span>{'No standup configured for this channel'}</span>
+            <br/>
+            <br/>
+            <span>{'You do not have permission to setup Standup Raven. Please contact a system, team or channel admin to do so.'}</span>
+        </span>
+    );
+
     constructor(props) {
         super(props);
         this.state = this.getInitialState();
@@ -65,6 +74,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         return {
             showSpinner: true,
             hasPermission: undefined,
+            standupConfigured: null,
             windowOpenTime: '00:00',
             windowCloseTime: '00:00',
             reportFormat: 'user_aggregated',
@@ -227,6 +237,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             prevState.startDate = standupConfig.startDate;
                             prevState.isEffectiveChannelAdmin = utils.isEffectiveChannelAdmin(this.props.userRoles);
                             prevState.sections = sections;
+                            prevState.standupConfigured = true;
 
                             return prevState;
                         });
@@ -365,6 +376,10 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                 <span>{standupErrorSubMessage}</span>
             </div>);
 
+        const showNewStandupInitializationPermissionError = this.state.standupConfigured === false && // if standup is NOT configured for this channel
+            this.state.pluginConfig.permissionSchemaEnabled && // and permission schema is enabled
+            !this.state.hasPermission; // and the user doesn't have permission
+
         return (
             <Modal
                 show={this.props.visible}
@@ -377,13 +392,13 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                     </Modal.Title>
                 </Modal.Header>
 
-                <Modal.Body style={style.body}>
+                <Modal.Body style={showNewStandupInitializationPermissionError ? style.bodyCompact : style.body}>
                     {/* in progress spinner */}
                     <span hidden={!this.state.showSpinner}>
                         {spinner}
                     </span>
 
-                    <div hidden={this.state.showSpinner}>
+                    <div hidden={this.state.showSpinner || showNewStandupInitializationPermissionError}>
                         <Tabs id={'standup-config-tabs'}>
                             <Tab
                                 eventKey={1}
@@ -524,10 +539,13 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                             </Tab>
                         </Tabs>
                     </div>
+
+                    {showNewStandupInitializationPermissionError ? (this.newConfigPermissionMissingComponent) : null}
+
                 </Modal.Body>
 
-                <Modal.Footer hidden={this.state.showSpinner}>
-                    <div hidden={this.state.hasPermission === false}>
+                <Modal.Footer hidden={this.state.showSpinner || showNewStandupInitializationPermissionError}>
+                    <div hidden={this.state.hasPermission == false}>
                         <Button
                             type='button'
                             onClick={this.handleClose}
@@ -544,7 +562,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                         </Button>
                     </div>
 
-                    <div hidden={this.state.hasPermission === true}>
+                    <div hidden={this.state.hasPermission == true}>
                         {errorMessage}
                     </div>
                 </Modal.Footer>

@@ -43,4 +43,7 @@ export default {
     getValueSafely,
     trimTrailingSlash,
     isEffectiveChannelAdmin,
+    channelAdminRole,
+    teamAdminRole,
+    systemAdminRole,
 };
