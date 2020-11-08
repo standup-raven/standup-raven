@@ -3,10 +3,6 @@ GOARCH=amd64
 GOFLAGS ?= $(GOFLAGS:)
 MANIFEST_FILE ?= plugin.json
 
-define GetFromPkg
-$(shell node -p "require('./build_properties.json').$(1)")
-endef
-
 define GetPluginId
 $(shell node -p "require('./plugin.json').id")
 endef
@@ -66,21 +62,13 @@ check-style-webapp: .webinstall
 	cd webapp && yarn run lintstyle
 
 check-style-server:
-	@echo Running GOFMT
-
-	@for package in $$(go list ./server/...); do \
-		echo "Checking "$$package; \
-		files=$$(go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}' $$package); \
-		if [ "$$files" ]; then \
-			gofmt_output=$$(gofmt -w -s $$files 2>&1); \
-			if [ "$$gofmt_output" ]; then \
-				echo "$$gofmt_output"; \
-				echo "gofmt failure"; \
-				exit 1; \
-			fi; \
-		fi; \
-	done
-	@echo "gofmt success"; \
+	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
+    		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
+    		exit 1; \
+    	fi; \
+    
+	@echo Running golangci-lint
+	golangci-lint run ./server/...
 	
 fix-style: check-style-server
 	@echo Checking for style guide compliance
@@ -89,11 +77,11 @@ fix-style: check-style-server
 	
 test-server: vendor
 	@echo Running server tests
-	go test -v -coverprofile=coverage.txt -json ./... > test.json
+	go test -v -coverprofile=coverage.txt ./...
 
 test: test-server
 
-cover: test-server
+coverage: test-server
 	go tool cover -html=coverage.txt -o coverage.html
 
 .webinstall: webapp/yarn.lock
@@ -122,8 +110,11 @@ doquickdist:
 	cp -r webapp/dist/* dist/$(PLUGINNAME)/webapp/
 
 	# Build files from server
-	 cd server && go get github.com/mitchellh/gox
-	 $(shell go env GOPATH)/bin/gox -ldflags="-X 'main.PluginVersion=$(PLUGINVERSION)' -X 'main.SentryServerDSN=$(SERVER_DSN)' -X 'main.SentryWebappDSN=$(WEBAPP_DSN)'" -osarch='darwin/amd64 linux/amd64 windows/amd64' -gcflags='all=-N -l' -output 'dist/intermediate/plugin_{{.OS}}_{{.Arch}}' ./server
+	# We need to disable gomodules when installing gox to prevent `go get` from updating go.mod file.
+	# See this for more details -
+	# 	https://stackoverflow.com/questions/56842385/using-go-get-to-download-binaries-without-adding-them-to-go-mod
+	 cd server && GO111MODULE=off go get github.com/mitchellh/gox
+	 $(shell go env GOPATH)/bin/gox -ldflags="-X 'main.PluginVersion=$(PLUGINVERSION)' -X 'main.SentryServerDSN=$(SERVER_DSN)' -X 'main.SentryWebappDSN=$(WEBAPP_DSN)' -X 'main.EncodedPluginIcon=data:image/svg+xml;base64,`base64 webapp/src/assets/images/logo.svg`' " -osarch='darwin/amd64 linux/amd64 windows/amd64' -gcflags='all=-N -l' -output 'dist/intermediate/plugin_{{.OS}}_{{.Arch}}' ./server
 
 	# Copy plugin files
 	cp plugin.json dist/$(PLUGINNAME)/

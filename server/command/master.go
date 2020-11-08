@@ -1,25 +1,35 @@
 package command
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/util"
-	"strings"
 )
 
 // Master is the driver command for all other commands
 // All other slash commands are run as /standup <command-name> [command-args]
 func Master() *Config {
 	return &Config{
-		Command: &model.Command{
-			Trigger:          config.CommandPrefix,
-			AutoComplete:     true,
-			AutoCompleteDesc: "Available commands: " + strings.Join(getAvailableCommands(), ", "),
+		AutocompleteData: &model.AutocompleteData{
+			Trigger:     config.CommandPrefix,
+			SubCommands: getSumCommands(),
+			HelpText:    "Available commands: " + strings.Join(getAvailableCommands(), ", "),
 		},
-		HelpText: "",
-		Validate: validateCommandMaster,
-		Execute:  executeCommandMaster,
+		ExtraHelpText: "",
+		Validate:      validateCommandMaster,
+		Execute:       executeCommandMaster,
 	}
+}
+
+func getSumCommands() []*model.AutocompleteData {
+	var subCommands []*model.AutocompleteData
+	for _, command := range commands {
+		subCommands = append(subCommands, command.AutocompleteData)
+	}
+	return subCommands
 }
 
 func getAvailableCommands() []string {

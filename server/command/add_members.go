@@ -3,26 +3,39 @@ package command
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/thoas/go-funk"
+
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
-	"github.com/thoas/go-funk"
-	"strings"
 )
 
 func commandAddMembers() *Config {
 	return &Config{
-		Command: &model.Command{
-			Trigger:          "addmembers",
-			AutoComplete:     true,
-			AutoCompleteDesc: "Adds specified members to the standup and invites them to this channel.",
-			AutoCompleteHint: "<usernames...>",
+		AutocompleteData: &model.AutocompleteData{
+			Trigger: "addmembers",
+			Hint:    "[username 1] [username 2] [username 3]...",
+			HelpText: "Adds specified members to the the current channel's standup. " +
+				"Members are also automatically added to the current channel if not already part of it.",
+			Arguments: []*model.AutocompleteArg{
+				{
+					Type:     model.AutocompleteArgTypeText,
+					Required: true,
+					HelpText: "Use @ mentions to quickly refer to a user. For example `@johndoe`",
+					Data: &model.AutocompleteTextArg{
+						Hint:    "Usernames",
+						Pattern: ".+",
+					},
+				},
+			},
 		},
-		HelpText: "* usernames can be specified as @ mentions",
-		Validate: validateAddMembers,
-		Execute:  executeAddMembers,
+		ExtraHelpText: "* usernames can be specified as @ mentions", // TODO what is this helptext needed for?
+		Validate:      validateAddMembers,
+		Execute:       executeAddMembers,
 	}
 }
 
@@ -74,14 +87,14 @@ func executeAddMembers(args []string, context Context) (*model.CommandResponse, 
 func addChannelMembers(userIds []string, channelID string) ([]string, []string) {
 	var addedUsers, notAddedUsers []string
 
-	for _, userId := range userIds {
-		if _, appErr := config.Mattermost.AddChannelMember(channelID, userId); appErr != nil {
-			logger.Error(fmt.Sprintf("Error adding user [%s] to channel [%s]", userId, channelID), appErr, nil)
-			notAddedUsers = append(notAddedUsers, userId)
+	for _, userID := range userIds {
+		if _, appErr := config.Mattermost.AddChannelMember(channelID, userID); appErr != nil {
+			logger.Error(fmt.Sprintf("Error adding user [%s] to channel [%s]", userID, channelID), appErr, nil)
+			notAddedUsers = append(notAddedUsers, userID)
 			continue
 		}
 
-		addedUsers = append(addedUsers, userId)
+		addedUsers = append(addedUsers, userID)
 	}
 
 	return addedUsers, notAddedUsers

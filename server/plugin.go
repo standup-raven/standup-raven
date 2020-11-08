@@ -1,11 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 
 	"github.com/getsentry/sentry-go"
+	"github.com/mattermost/mattermost-plugin-api/cluster"
+
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/migration"
 	"github.com/standup-raven/standup-raven/server/standup/notification"
@@ -15,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+
 	"github.com/standup-raven/standup-raven/server/command"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller"
@@ -22,18 +25,19 @@ import (
 )
 
 // ldflag variables
+
 var PluginVersion string
 var SentryServerDSN string
 var SentryWebappDSN string
+var EncodedPluginIcon string
 
 type Plugin struct {
 	plugin.MattermostPlugin
 	handler http.Handler
-	running bool
+	job     *cluster.Job
 }
 
 func (p *Plugin) OnActivate() error {
-
 	config.Mattermost = p.API
 
 	if err := p.OnConfigurationChange(); err != nil {
@@ -52,7 +56,9 @@ func (p *Plugin) OnActivate() error {
 		return err
 	}
 
-	p.Run()
+	if err := p.Run(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -91,7 +97,7 @@ func (p *Plugin) setupStaticFileServer() error {
 		logger.Error("Couldn't find plugin executable path", err, nil)
 		return err
 	}
-	p.handler = http.FileServer(http.Dir(filepath.Dir(exe) + config.ServerExeToWebappRootPath))
+	p.handler = http.FileServer(http.Dir(filepath.Dir(exe) + config.ServerExeToStaticDirRootPath))
 	return nil
 }
 
@@ -133,8 +139,16 @@ func (p *Plugin) setInjectedVars(configuration *config.Configuration) {
 }
 
 func (p *Plugin) RegisterCommands() error {
-	if err := config.Mattermost.RegisterCommand(command.Master().Command); err != nil {
-		logger.Error("Cound't register command", err, map[string]interface{}{"command": command.Master().Command.Trigger})
+	if err := config.Mattermost.RegisterCommand(&model.Command{
+		Trigger:              config.CommandPrefix,
+		Description:          "descriptoon",
+		DisplayName:          "display name",
+		AutoComplete:         true,
+		Username:             config.BotUsername,
+		AutocompleteData:     command.Master().AutocompleteData,
+		AutocompleteIconData: EncodedPluginIcon,
+	}); err != nil {
+		logger.Error("couldn't register command", err, map[string]interface{}{"command": command.Master().AutocompleteData.Trigger})
 		return err
 	}
 
@@ -159,7 +173,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		params = split[1:]
 	}
 
-	if function != "/"+command.Master().Command.Trigger {
+	if function != "/"+command.Master().AutocompleteData.Trigger {
 		return nil, &model.AppError{Message: "Unknown command: [" + function + "] encountered"}
 	}
 
@@ -197,31 +211,38 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if err := endpoint.Execute(w, r); err != nil {
-		logger.Error("Error occurred processing "+r.URL.String(), err, map[string]interface{}{"request": string(d)})
+		logger.Error("Error occurred processing "+r.URL.String(), err, map[string]interface{}{"request": d})
 		sentry.WithScope(func(scope *sentry.Scope) {
 			sentry.CaptureException(err)
 		})
 	}
 }
 
-func (p *Plugin) Run() {
-	if !p.running {
-		p.running = true
-		p.runner()
+func (p *Plugin) Run() error {
+	if p.job != nil {
+		if err := p.job.Close(); err != nil {
+			return err
+		}
 	}
-}
 
-func (p *Plugin) runner() {
-	go func() {
-		<-time.NewTimer(config.RunnerInterval).C
-		if err := notification.SendNotificationsAndReports(); err != nil {
-			logger.Error("", err, nil)
-		}
-		if !p.running {
-			return
-		}
-		p.runner()
-	}()
+	job, err := cluster.Schedule(
+		config.Mattermost,
+		"StandupRavenReportScheduler",
+		cluster.MakeWaitForInterval(config.RunnerInterval),
+		func() {
+			if err := notification.SendNotificationsAndReports(); err != nil {
+				logger.Error("Failed to send notification/report. Error: "+err.Error(), err, nil)
+			}
+		},
+	)
+
+	if err != nil {
+		p.API.LogError(fmt.Sprintf("Unable to schedule job for standup reports. Error: {%s}", err.Error()))
+		return err
+	}
+
+	p.job = job
+	return nil
 }
 
 func (p *Plugin) initSentry() error {
@@ -242,8 +263,6 @@ func (p *Plugin) initSentry() error {
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetTag("pluginComponent", "server")
 	})
-
-	//raven.SetTagsContext()
 
 	return err
 }

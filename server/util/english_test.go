@@ -2,9 +2,9 @@ package util
 
 import (
 	"testing"
-)
 
-import "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
+)
 
 func TestHasHave(t *testing.T) {
 	assert.Equal(t, "have", HasHave(0), "0 is plural")

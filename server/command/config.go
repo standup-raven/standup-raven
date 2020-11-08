@@ -2,19 +2,19 @@ package command
 
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/standup-raven/standup-raven/server/config"
 )
 
 func commandConfig() *Config {
 	return &Config{
-		Command: &model.Command{
-			Trigger:          "config",
-			AutoComplete:     true,
-			AutoCompleteDesc: "Configure the standup for this channel.",
+		AutocompleteData: &model.AutocompleteData{
+			Trigger:  "config",
+			HelpText: "Open channel standup configuration dialog.",
 		},
-		HelpText: "",
-		Validate: validateCommandConfig,
-		Execute:  executeCommandConfig,
+		ExtraHelpText: "",
+		Validate:      validateCommandConfig,
+		Execute:       executeCommandConfig,
 	}
 }
 

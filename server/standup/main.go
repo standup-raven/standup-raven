@@ -4,17 +4,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/dustin/go-humanize"
-	"github.com/teambition/rrule-go"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/dustin/go-humanize"
+	"github.com/teambition/rrule-go"
+
+	"github.com/thoas/go-funk"
 
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/util"
-	"github.com/thoas/go-funk"
 )
 
 const (
@@ -24,7 +26,7 @@ const (
 )
 
 var (
-	standupScheduleRegex = regexp.MustCompile("^\\*\\*Standup Schedule\\*\\*: .+\\*\\* \\*\\*$")
+	standupScheduleRegex = regexp.MustCompile(`^\*\*Standup Schedule\*\*: .+\*\* \*\*$`)
 	weekRanks            = map[int]string{
 		-1: "last",
 		1:  "first",
@@ -42,11 +44,11 @@ type UserStandup struct {
 
 func (us *UserStandup) IsValid() error {
 	if us.UserID == "" {
-		return errors.New("No user ID specified in standup")
+		return errors.New("no user ID specified in standup")
 	}
 
 	if us.ChannelID == "" {
-		return errors.New("No channels ID specified in standup")
+		return errors.New("no channels ID specified in standup")
 	}
 
 	if _, err := config.Mattermost.GetChannel(us.ChannelID); err != nil {
@@ -59,14 +61,14 @@ func (us *UserStandup) IsValid() error {
 	}
 
 	if maxLen == 0 {
-		return errors.New("No tasks found. Please specify tasks for at least one section")
+		return errors.New("no tasks found. Please specify tasks for at least one section")
 	}
 
 	return nil
 }
 
-type StandupConfig struct {
-	ChannelId                  string       `json:"channelId"`
+type Config struct {
+	ChannelID                  string       `json:"channelId"`
 	WindowOpenTime             otime.OTime  `json:"windowOpenTime"`
 	WindowCloseTime            otime.OTime  `json:"windowCloseTime"`
 	ReportFormat               string       `json:"reportFormat"`
@@ -82,9 +84,9 @@ type StandupConfig struct {
 	StartDate                  time.Time    `json:"startDate"`
 }
 
-func (sc *StandupConfig) IsValid() error {
-	if sc.ChannelId == "" {
-		return errors.New("Channel ID cannot be empty")
+func (sc *Config) IsValid() error {
+	if sc.ChannelID == "" {
+		return errors.New("channel ID cannot be empty")
 	}
 
 	emptyTime := otime.OTime{}
@@ -98,29 +100,24 @@ func (sc *StandupConfig) IsValid() error {
 	}
 
 	if sc.WindowOpenTime.Time.After(sc.WindowCloseTime.Time) {
-		return errors.New("Window open time cannot be after window close time")
+		return errors.New("window open time cannot be after window close time")
 	}
 
 	if sc.Timezone == "" {
-		return errors.New("Timezone cannot be empty")
+		return errors.New("timezone cannot be empty")
 	}
 
 	reportFormat := sc.ReportFormat
 	if !funk.Contains(config.ReportFormats, reportFormat) {
-		return errors.New(fmt.Sprintf(
-			"Invalid report format specified. Report format should be one of: \"%s\"",
-			strings.Join(config.ReportFormats, "\", \"")),
-		)
+		return fmt.Errorf("invalid report format specified. Report format should be one of: \"%s\"", strings.Join(config.ReportFormats, "\", \""))
 	}
 
 	if _, err := time.LoadLocation(sc.Timezone); err != nil {
-		return errors.New(fmt.Sprintf(
-			"Invalid timezone specified : \"%s\"", sc.Timezone),
-		)
+		return fmt.Errorf("invalid timezone specified : \"%s\"", sc.Timezone)
 	}
 
 	if len(sc.Sections) < standupSectionsMinLength {
-		return errors.New(fmt.Sprintf("Too few sections in standup. Required at least %d section%s.", standupSectionsMinLength, util.SingularPlural(standupSectionsMinLength)))
+		return fmt.Errorf("too few sections in standup. Required at least %d section%s", standupSectionsMinLength, util.SingularPlural(standupSectionsMinLength))
 	}
 
 	if duplicateSection, hasDuplicate := util.ContainsDuplicates(&sc.Sections); hasDuplicate {
@@ -132,18 +129,18 @@ func (sc *StandupConfig) IsValid() error {
 	}
 
 	if sc.RRule.Freq == rrule.WEEKLY && (sc.RRule.OrigOptions.Byweekday == nil || len(sc.RRule.OrigOptions.Byweekday) == 0) {
-		return errors.New("At least one day must be selected for weekly standup.")
+		return errors.New("at least one day must be selected for weekly standup")
 	}
 
 	return nil
 }
 
-func (sc *StandupConfig) ToJson() string {
+func (sc *Config) ToJSON() string {
 	b, _ := json.Marshal(sc)
 	return string(b)
 }
 
-func (sc *StandupConfig) PreSave() error {
+func (sc *Config) PreSave() error {
 	if err := sc.setStartDateLocation(); err != nil {
 		return err
 	}
@@ -158,7 +155,7 @@ func (sc *StandupConfig) PreSave() error {
 
 // setStartDateLocation sets timezone of start date to
 // be same as standup timezone.
-func (sc *StandupConfig) setStartDateLocation() error {
+func (sc *Config) setStartDateLocation() error {
 	location, err := time.LoadLocation(sc.Timezone)
 	if err != nil {
 		logger.Error("Unable to parse standup location", err, map[string]interface{}{"location": sc.Timezone})
@@ -181,12 +178,12 @@ func (sc *StandupConfig) setStartDateLocation() error {
 }
 
 // initializeRRule initialized RRULE by parsing the RRULE string.
-func (sc *StandupConfig) initializeRRule() error {
+func (sc *Config) initializeRRule() error {
 	rule, err := util.ParseRRuleFromString(sc.RRuleString, sc.StartDate)
 	if err != nil {
 		logger.Error("unable to parse rrule string in standup config pre-save", err, map[string]interface{}{
 			"rrule":     sc.RRuleString,
-			"channelID": sc.ChannelId,
+			"channelID": sc.ChannelID,
 		})
 		return err
 	}
@@ -206,7 +203,7 @@ func (sc *StandupConfig) initializeRRule() error {
 //
 // So here we bring all timesets to current date (no alterting of time) to
 // get the current timezone picked up.
-func (sc *StandupConfig) fixRRuleTimezone() {
+func (sc *Config) fixRRuleTimezone() {
 	today := time.Now()
 	for i := range sc.RRule.Timeset {
 		sc.RRule.Timeset[i] = sc.RRule.Timeset[i].AddDate(today.Year()-1, int(today.Month())-1, today.Day()-1)
@@ -214,7 +211,7 @@ func (sc *StandupConfig) fixRRuleTimezone() {
 }
 
 // GenerateScheduleString generates a user-friendly, string representation of standup schedule.
-func (sc *StandupConfig) GenerateScheduleString() string {
+func (sc *Config) GenerateScheduleString() string {
 	_ = config.GetConfig()
 
 	windowOpenTime := sc.WindowOpenTime.Format("15:04")
@@ -232,7 +229,7 @@ func (sc *StandupConfig) GenerateScheduleString() string {
 	return fmt.Sprintf("**Standup Schedule**: %s %s to %s", frequencyString, windowOpenTime, windowCloseTime)
 }
 
-func (sc *StandupConfig) generateWeeklySchedule() string {
+func (sc *Config) generateWeeklySchedule() string {
 	prefix := ""
 
 	if sc.RRule.Interval == 1 {
@@ -249,7 +246,7 @@ func (sc *StandupConfig) generateWeeklySchedule() string {
 	return fmt.Sprintf("%s on %s", prefix, strings.Join(daysOfWeek, ", "))
 }
 
-func (sc *StandupConfig) generateMonthlySchedule() string {
+func (sc *Config) generateMonthlySchedule() string {
 	var prefix, suffix string
 
 	if sc.RRule.Interval == 1 {
@@ -285,7 +282,6 @@ func (sc *StandupConfig) generateMonthlySchedule() string {
 	}
 
 	return fmt.Sprintf("%s on the %s", prefix, suffix)
-
 }
 
 // AddStandupChannel adds the specified channel to the list of standup channels.
@@ -376,8 +372,8 @@ func GetUserStandup(userID, channelID string, date otime.OTime) (*UserStandup, e
 
 // TODO this should return the set config
 // SaveStandupConfig saves standup config for the specified channel
-func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
-	logger.Debug(fmt.Sprintf("Saving standup config for channel: %s", standupConfig.ChannelId), nil)
+func SaveStandupConfig(standupConfig *Config) (*Config, error) {
+	logger.Debug(fmt.Sprintf("Saving standup config for channel: %s", standupConfig.ChannelID), nil)
 
 	standupConfig.Members = funk.UniqString(standupConfig.Members)
 	serializedStandupConfig, err := json.Marshal(standupConfig)
@@ -390,29 +386,29 @@ func SaveStandupConfig(standupConfig *StandupConfig) (*StandupConfig, error) {
 		return nil, err
 	}
 
-	key := config.CacheKeyPrefixTeamStandupConfig + standupConfig.ChannelId
+	key := config.CacheKeyPrefixTeamStandupConfig + standupConfig.ChannelID
 	if err := config.Mattermost.KVSet(util.GetKeyHash(key), serializedStandupConfig); err != nil {
-		logger.Error("Couldn't save channel standup config in KV store", err, map[string]interface{}{"channelID": standupConfig.ChannelId})
+		logger.Error("Couldn't save channel standup config in KV store", err, map[string]interface{}{"channelID": standupConfig.ChannelID})
 		return nil, err
 	}
 
 	return standupConfig, nil
 }
 
-func updateChannelHeader(newConfig *StandupConfig) error {
-	oldConfig, err := GetStandupConfig(newConfig.ChannelId)
+func updateChannelHeader(newConfig *Config) error {
+	oldConfig, err := GetStandupConfig(newConfig.ChannelID)
 	if err != nil {
 		return err
 	}
 
 	// no old config is equivalent to having standup schedule disabled in old config
 	if oldConfig == nil {
-		oldConfig = &StandupConfig{
+		oldConfig = &Config{
 			ScheduleEnabled: false,
 		}
 	}
 
-	channel, appErr := config.Mattermost.GetChannel(newConfig.ChannelId)
+	channel, appErr := config.Mattermost.GetChannel(newConfig.ChannelID)
 	if appErr != nil {
 		return errors.New(appErr.Error())
 	}
@@ -423,11 +419,12 @@ func updateChannelHeader(newConfig *StandupConfig) error {
 		return nil
 	}
 
-	if oldConfig.ScheduleEnabled && !newConfig.ScheduleEnabled {
+	switch {
+	case oldConfig.ScheduleEnabled && !newConfig.ScheduleEnabled:
 		channel.Header = removeChannelHeaderSchedule(channel.Header)
-	} else if !oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled {
+	case !oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled:
 		channel.Header = addChannelHeaderSchedule(channel.Header, newConfig.GenerateScheduleString())
-	} else if oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled {
+	case oldConfig.ScheduleEnabled && newConfig.ScheduleEnabled:
 		channel.Header = removeChannelHeaderSchedule(channel.Header)
 		channel.Header = addChannelHeaderSchedule(channel.Header, newConfig.GenerateScheduleString())
 	}
@@ -462,7 +459,7 @@ func addChannelHeaderSchedule(channelHeader string, schedule string) string {
 }
 
 // GetStandupConfig fetches standup config for the specified channel
-func GetStandupConfig(channelID string) (*StandupConfig, error) {
+func GetStandupConfig(channelID string) (*Config, error) {
 	logger.Debug(fmt.Sprintf("Fetching standup config for channel: %s", channelID), nil)
 
 	key := config.CacheKeyPrefixTeamStandupConfig + channelID
@@ -477,9 +474,9 @@ func GetStandupConfig(channelID string) (*StandupConfig, error) {
 		return nil, nil
 	}
 
-	var standupConfig *StandupConfig
+	var standupConfig *Config
 	if len(data) > 0 {
-		standupConfig = &StandupConfig{}
+		standupConfig = &Config{}
 		if err := json.Unmarshal(data, standupConfig); err != nil {
 			logger.Error("Couldn't unmarshal data into standup config", err, nil)
 			return nil, err

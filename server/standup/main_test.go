@@ -1,23 +1,25 @@
 package standup
 
 import (
-	"bou.ke/monkey"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
+	"bou.ke/monkey"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/teambition/rrule-go"
+
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/util"
-	"github.com/teambition/rrule-go"
-	"net/http"
-	"testing"
-	"time"
 )
-import "github.com/stretchr/testify/assert"
-import "github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 
 func baseMock() *plugintest.API {
 	mockAPI := &plugintest.API{}
@@ -106,8 +108,8 @@ func TestStandupConfig_IsValid(t *testing.T) {
 	windowOpenTime, _ := otime.Parse("13:05")
 	windowCloseTime, _ := otime.Parse("13:55")
 
-	standupConfig := StandupConfig{
-		ChannelId:       "channel_id",
+	standupConfig := Config{
+		ChannelID:       "channel_id",
 		WindowOpenTime:  windowOpenTime,
 		WindowCloseTime: windowCloseTime,
 		Enabled:         true,
@@ -128,9 +130,9 @@ func TestStandupConfig_IsValid(t *testing.T) {
 
 	assert.Nil(t, standupConfig.IsValid(), "should be valid")
 
-	standupConfig.ChannelId = ""
+	standupConfig.ChannelID = ""
 	assert.NotNil(t, standupConfig.IsValid(), "should be invalid as channel ID is empty")
-	standupConfig.ChannelId = "channel_id"
+	standupConfig.ChannelID = "channel_id"
 
 	standupConfig.WindowOpenTime = otime.OTime{}
 	assert.NotNil(t, standupConfig.IsValid(), "should be invalid as window open time is empty")
@@ -139,7 +141,7 @@ func TestStandupConfig_IsValid(t *testing.T) {
 	standupConfig.WindowCloseTime = otime.OTime{}
 	assert.NotNil(t, standupConfig.IsValid(), "should be invalid as window close time is empty")
 
-	standupConfig.ChannelId = "channel_id"
+	standupConfig.ChannelID = "channel_id"
 	standupConfig.WindowOpenTime, _ = otime.Parse("10:00")
 	standupConfig.WindowCloseTime, _ = otime.Parse("09:00")
 	assert.NotNil(t, standupConfig.IsValid(), "should be invalid as window open time is after window close time")
@@ -174,11 +176,11 @@ func TestStandupConfig_IsValid(t *testing.T) {
 	standupConfig.RRule.OrigOptions.Byweekday = []rrule.Weekday{}
 	assert.NotNil(t, standupConfig.IsValid(), "should not be valid as no days are specified with weekly standup")
 	standupConfig.RRule = rule
-	
+
 	// testing invalid timezone
 	standupConfig.Timezone = "Invalid-timezone"
 	assert.NotNil(t, standupConfig.IsValid(), "should not be valid as specified timezone is invalid")
-	
+
 	// testing with  empty timezone
 	standupConfig.Timezone = ""
 	assert.NotNil(t, standupConfig.IsValid(), "should not be valid as specified timezone is empty")
@@ -203,8 +205,8 @@ func TestStandupConfig_ToJson(t *testing.T) {
 	windowOpenTime, _ := otime.Parse("13:05")
 	windowCloseTime, _ := otime.Parse("13:55")
 
-	standupConfig := StandupConfig{
-		ChannelId:       "channel_id",
+	standupConfig := Config{
+		ChannelID:       "channel_id",
 		WindowOpenTime:  windowOpenTime,
 		WindowCloseTime: windowCloseTime,
 		Enabled:         true,
@@ -213,32 +215,32 @@ func TestStandupConfig_ToJson(t *testing.T) {
 		Sections:        []string{"section 1", "section 2"},
 	}
 
-	standupConfig.ToJson()
+	standupConfig.ToJSON()
 }
 
 func TestStandupConfig_PreSave(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
 	config.Mattermost = mockAPI
-	
+
 	istanbul, err := time.LoadLocation("Europe/Istanbul")
 	if err != nil {
 		t.Fatal("istanbul should have loaded successfully", err)
 		return
 	}
-	
+
 	startDate := time.Date(2020, time.July, 9, 5, 28, 0, 0, istanbul)
-	
-	standupConfig := StandupConfig{
-		Timezone: "Asia/Kolkata",
-		StartDate: startDate,
+
+	standupConfig := Config{
+		Timezone:    "Asia/Kolkata",
+		StartDate:   startDate,
 		RRuleString: "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH;COUNT=4",
 	}
-	
+
 	assert.Nil(t, standupConfig.RRule)
-	
+
 	err = standupConfig.PreSave()
-	
+
 	assert.Nil(t, err)
 	assert.Equal(t, "Asia/Kolkata", standupConfig.StartDate.Location().String())
 	assert.NotNil(t, standupConfig.RRule)
@@ -247,25 +249,24 @@ func TestStandupConfig_PreSave(t *testing.T) {
 	assert.Equal(t, 1, standupConfig.RRule.Interval)
 	assert.Equal(t, 4, standupConfig.RRule.Count)
 	assert.Equal(t, 4, len(standupConfig.RRule.All()))
-	
+
 	now := time.Now()
 	for _, timeset := range standupConfig.RRule.Timeset {
 		assert.Equal(t, now.Year(), timeset.Year())
 		assert.Equal(t, now.Month(), timeset.Month())
 		assert.Equal(t, now.Day(), timeset.Day())
 	}
-	
+
 	// With invalid timezone
 	mockAPI.On("LogError", mock.AnythingOfType("string"), mock.AnythingOfType("string"))
 	standupConfig.Timezone = "Invalid/Timezone"
 	assert.NotNil(t, standupConfig.PreSave())
 	standupConfig.Timezone = "Asia/Kolkata"
-	
+
 	// with invalid rrule
 	standupConfig.RRuleString = "invalid rrule string"
 	assert.NotNil(t, standupConfig.PreSave())
 	standupConfig.RRuleString = "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH;COUNT=4"
-	
 }
 
 func TestAddStandupChannel(t *testing.T) {
@@ -392,12 +393,16 @@ func TestSaveUserStandup(t *testing.T) {
 	mockAPI := baseMock()
 	mockAPI.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
 
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
-		windowOpenTime := otime.OTime{otime.Now("Asia/Kolkata").Add(-55 * time.Minute)}
-		windowCloseTime := otime.OTime{otime.Now("Asia/Kolkata").Add(5 * time.Minute)}
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
+		windowOpenTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(-55 * time.Minute),
+		}
+		windowCloseTime := otime.OTime{
+			Time: otime.Now("Asia/Kolkata").Add(5 * time.Minute),
+		}
 
-		return &StandupConfig{
-			ChannelId:       "channel_1",
+		return &Config{
+			ChannelID:       "channel_1",
 			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
 			Enabled:         true,
@@ -468,7 +473,6 @@ func TestGetUserStandup(t *testing.T) {
 	userStandup, err = GetUserStandup("user_id", "channel_id", otime.Now("Asia/Kolkata"))
 	assert.Nil(t, err, "no error should have been produced")
 	assert.Nil(t, userStandup, "no user standup should have been found")
-
 }
 
 func TestSaveStandupConfig(t *testing.T) {
@@ -479,8 +483,8 @@ func TestSaveStandupConfig(t *testing.T) {
 	mockAPI.On("GetChannel", "channel_id").Return(&model.Channel{}, nil)
 	mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
 
-	standupConfig := &StandupConfig{
-		ChannelId:       "channel_id",
+	standupConfig := &Config{
+		ChannelID:       "channel_id",
 		Members:         []string{"user_id_1"},
 		WindowOpenTime:  otime.Now("Asia/Kolkata"),
 		WindowCloseTime: otime.Now("Asia/Kolkata"),
@@ -512,7 +516,6 @@ func TestSaveStandupConfig(t *testing.T) {
 	savedStandupConfig, err = SaveStandupConfig(standupConfig)
 	assert.Error(t, err, "error should have been produced as KVSet failed")
 	assert.Nil(t, savedStandupConfig, "no standup config should have been returned")
-
 }
 
 func TestSaveStandupConfig_DuplicateMembers(t *testing.T) {
@@ -525,8 +528,8 @@ func TestSaveStandupConfig_DuplicateMembers(t *testing.T) {
 
 	now := otime.Now("Asia/Kolkata")
 
-	standupConfig := &StandupConfig{
-		ChannelId:       "channel_id",
+	standupConfig := &Config{
+		ChannelID:       "channel_id",
 		Members:         []string{"user_id_1", "user_id_1"},
 		WindowOpenTime:  now,
 		WindowCloseTime: now,
@@ -537,8 +540,8 @@ func TestSaveStandupConfig_DuplicateMembers(t *testing.T) {
 
 	savedStandupConfig, err := SaveStandupConfig(standupConfig)
 	assert.Nil(t, err, "no error should have been produced")
-	assert.Equal(t, &StandupConfig{
-		ChannelId:       "channel_id",
+	assert.Equal(t, &Config{
+		ChannelID:       "channel_id",
 		Members:         []string{"user_id_1"},
 		WindowOpenTime:  now,
 		WindowCloseTime: now,
@@ -552,8 +555,8 @@ func TestGetStandupConfig(t *testing.T) {
 	defer TearDown()
 	mockAPI := baseMock()
 
-	standupConfigBytes, _ := json.Marshal(&StandupConfig{
-		ChannelId:       "channel_id",
+	standupConfigBytes, _ := json.Marshal(&Config{
+		ChannelID:       "channel_id",
 		Members:         []string{"user_id_1"},
 		WindowOpenTime:  otime.Now("Asia/Kolkata"),
 		WindowCloseTime: otime.Now("Asia/Kolkata"),
@@ -565,7 +568,7 @@ func TestGetStandupConfig(t *testing.T) {
 
 	standupConfig, err := GetStandupConfig("channel_id")
 	assert.Nil(t, err, "no error should have been produced")
-	assert.Equal(t, "channel_id", standupConfig.ChannelId, "both standup configs should be identical")
+	assert.Equal(t, "channel_id", standupConfig.ChannelID, "both standup configs should be identical")
 	assert.Equal(t, []string{"user_id_1"}, standupConfig.Members, "both standup configs should be identical")
 	assert.Equal(t, []string{"section 1"}, standupConfig.Sections, "both standup configs should be identical")
 	assert.Equal(t, config.ReportFormatUserAggregated, standupConfig.ReportFormat, "both standup configs should be identical")
@@ -582,13 +585,12 @@ func TestGetStandupConfig(t *testing.T) {
 	standupConfig, err = GetStandupConfig("channel_id")
 	assert.Nil(t, err, "no error should have been produced as lack of standup config is valid scenerio")
 	assert.Nil(t, standupConfig, "no standup config should have been returned")
-
 }
 
 func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 	location, err := time.LoadLocation("Asia/Kolkata")
 	assert.Nil(t, err, "location should have loaded successfully")
-	
+
 	otime.DefaultLocation = location
 
 	conf := &config.Configuration{
@@ -610,8 +612,8 @@ func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	standupConfig := StandupConfig{
-		ChannelId:                  "",
+	standupConfig := Config{
+		ChannelID:                  "",
 		WindowOpenTime:             windowOpenTime,
 		WindowCloseTime:            windowCloseTime,
 		ReportFormat:               "",
@@ -639,7 +641,7 @@ func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 
 	standupScheduleString := standupConfig.GenerateScheduleString()
 	assert.Equal(t, "**Standup Schedule**: Weekly on MO, TU, WE, TH, FR, SA, SU 10:00 to 15:00", standupScheduleString)
-	
+
 	// weekly, Monday to Friday
 	rruleString = "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR;COUNT=10"
 	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
@@ -652,7 +654,7 @@ func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 	standupConfig.RRule = rule
 	standupScheduleString = standupConfig.GenerateScheduleString()
 	assert.Equal(t, "**Standup Schedule**: Weekly on MO, TU, WE, TH, FR 10:00 to 15:00", standupScheduleString)
-	
+
 	// weekly, Monday to Friday every alternate week
 	rruleString = "FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,TU,WE,TH,FR;COUNT=10"
 	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
@@ -665,7 +667,7 @@ func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 	standupConfig.RRule = rule
 	standupScheduleString = standupConfig.GenerateScheduleString()
 	assert.Equal(t, "**Standup Schedule**: Every 2 weeks on MO, TU, WE, TH, FR 10:00 to 15:00", standupScheduleString)
-	
+
 	// every month on the 1st
 	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYMONTHDAY=1;COUNT=5"
 	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
@@ -720,7 +722,7 @@ func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 	standupConfig.RRule = rule
 	standupScheduleString = standupConfig.GenerateScheduleString()
 	assert.Equal(t, "**Standup Schedule**: Monthly on the 4th 10:00 to 15:00", standupScheduleString)
-	
+
 	// every 3 months month on the 2nd
 	rruleString = "FREQ=MONTHLY;INTERVAL=3;BYMONTHDAY=2;COUNT=5"
 	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
@@ -733,7 +735,7 @@ func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 	standupConfig.RRule = rule
 	standupScheduleString = standupConfig.GenerateScheduleString()
 	assert.Equal(t, "**Standup Schedule**: Every 3 months on the 2nd 10:00 to 15:00", standupScheduleString)
-	
+
 	// every month on the first Monday
 	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=1;BYDAY=MO;COUNT=5"
 	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
@@ -798,7 +800,7 @@ func TestStandupConfig_GenerateScheduleString(t *testing.T) {
 	standupConfig.RRule = rule
 	standupScheduleString = standupConfig.GenerateScheduleString()
 	assert.Equal(t, "**Standup Schedule**: Monthly on the first weekend 10:00 to 15:00", standupScheduleString)
-	
+
 	// every month on the last Monday
 	rruleString = "FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=MO;COUNT=5"
 	rule, err = util.ParseRRuleFromString(rruleString, time.Now().Add(-5*24*time.Hour))
@@ -884,88 +886,88 @@ func TestUpdateChannelHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	parsedRRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
 
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
-		return &StandupConfig{
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
+		return &Config{
 			ScheduleEnabled: true,
 			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
 			Timezone:        "Asia/Kolkata",
 			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-			RRule:           rule,
+			RRule:           parsedRRule,
 		}, nil
 	})
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: true,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 1)
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: false,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 2)
 
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
-		return &StandupConfig{
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
+		return &Config{
 			ScheduleEnabled: false,
 			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
 			Timezone:        "Asia/Kolkata",
 			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-			RRule:           rule,
+			RRule:           parsedRRule,
 		}, nil
 	})
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: false,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 3)
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: true,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 4)
-	
+
 	// no existing channel standup config
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
-		return nil, nil	
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
+		return nil, nil
 	})
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: true,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
-	
+
 	// no existing channel header
 	mockAPI = baseMock()
 	config.Mattermost = mockAPI
@@ -974,11 +976,11 @@ func TestUpdateChannelHeader(t *testing.T) {
 		Header: "",
 	}, nil)
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: true,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
@@ -990,22 +992,22 @@ func TestUpdateChannelHeader(t *testing.T) {
 	mockAPI.On("GetChannel", "channel_id_1").Return(&model.Channel{
 		Header: "**Standup Schedule**: Weekly on MO 10:00 to 15:00** ** | user-defined header",
 	}, nil)
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
-		return &StandupConfig{
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
+		return &Config{
 			ScheduleEnabled: true,
 			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
 			Timezone:        "Asia/Kolkata",
 			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-			RRule:           rule,
+			RRule:           parsedRRule,
 		}, nil
 	})
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: true,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
@@ -1017,22 +1019,22 @@ func TestUpdateChannelHeader(t *testing.T) {
 	mockAPI.On("GetChannel", "channel_id_1").Return(&model.Channel{
 		Header: "",
 	}, nil)
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
-		return &StandupConfig{
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
+		return &Config{
 			ScheduleEnabled: true,
 			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
 			Timezone:        "Asia/Kolkata",
 			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-			RRule:           rule,
+			RRule:           parsedRRule,
 		}, nil
 	})
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: true,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
@@ -1040,13 +1042,12 @@ func TestUpdateChannelHeader(t *testing.T) {
 
 func TestUpdateChannelHeader_GetStandupConfig_Error(t *testing.T) {
 	defer TearDown()
-	//mockAPI := baseMock()
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
 		return nil, errors.New("error")
 	})
 
-	err := updateChannelHeader(&StandupConfig{
-		ChannelId: "channel_id_1",
+	err := updateChannelHeader(&Config{
+		ChannelID: "channel_id_1",
 	})
 
 	assert.NotNil(t, err, "error should have been produced as GetStandupConfig failed")
@@ -1057,7 +1058,6 @@ func TestUpdateChannelHeader_GetChannel_Error(t *testing.T) {
 	mockAPI := baseMock()
 
 	mockAPI.On("GetChannel", "channel_id_1").Return(nil, model.NewAppError("", "", nil, "", http.StatusInternalServerError))
-	//mockAPI.On("UpdateChannel", mock.Anything).Return(nil, nil)
 
 	windowOpenTime, err := otime.Parse("10:00")
 	if err != nil {
@@ -1069,11 +1069,8 @@ func TestUpdateChannelHeader_GetChannel_Error(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	//location, err := time.LoadLocation("Asia/Kolkata")
-	//assert.Nil(t, err, "location should have loaded successfully")
-
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
-		return &StandupConfig{
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
+		return &Config{
 			ScheduleEnabled: true,
 			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
@@ -1081,13 +1078,12 @@ func TestUpdateChannelHeader_GetChannel_Error(t *testing.T) {
 		}, nil
 	})
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: true,
 	})
 
 	assert.NotNil(t, err, "error should have been produced as GetChannel failed")
-	//mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 1)
 }
 
 func TestUpdateChannelHeader_UpdateChannel_Error(t *testing.T) {
@@ -1109,28 +1105,28 @@ func TestUpdateChannelHeader_UpdateChannel_Error(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	parsedRRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
 
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
-		return &StandupConfig{
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
+		return &Config{
 			ScheduleEnabled: true,
 			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
 			Timezone:        "Asia/Kolkata",
 			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-			RRule:           rule,
+			RRule:           parsedRRule,
 		}, nil
 	})
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: true,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.NotNil(t, err, "error should have been produced as UpdateChannel failed")
@@ -1156,45 +1152,45 @@ func TestUpdateChannelHeader_ExistingPipeInHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
+	parsedRRule, err := util.ParseRRuleFromString("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10", time.Now().Add(-5*24*time.Hour))
 	if err != nil {
 		t.Fatal("Couldn't parse RRULE", err)
 		return
 	}
 
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
-		return &StandupConfig{
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
+		return &Config{
 			ScheduleEnabled: true,
 			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
 			Timezone:        "Asia/Kolkata",
 			RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-			RRule:           rule,
+			RRule:           parsedRRule,
 		}, nil
 	})
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: true,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 1)
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: false,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 2)
 
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
-		return &StandupConfig{
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
+		return &Config{
 			ScheduleEnabled: false,
 			WindowOpenTime:  windowOpenTime,
 			WindowCloseTime: windowCloseTime,
@@ -1202,21 +1198,21 @@ func TestUpdateChannelHeader_ExistingPipeInHeader(t *testing.T) {
 		}, nil
 	})
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: false,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 3)
 
-	err = updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err = updateChannelHeader(&Config{
+		ChannelID:       "channel_id_1",
 		ScheduleEnabled: true,
 		RRuleString:     "FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU;COUNT=10",
-		RRule:           rule,
+		RRule:           parsedRRule,
 	})
 
 	assert.Nil(t, err, "no error should have been produced")
@@ -1231,14 +1227,14 @@ func TestUpdateChannelHeader_ArchivedChannel(t *testing.T) {
 		DeleteAt: time.Now().Unix(),
 	}, nil)
 
-	monkey.Patch(GetStandupConfig, func(channelID string) (*StandupConfig, error) {
+	monkey.Patch(GetStandupConfig, func(channelID string) (*Config, error) {
 		return nil, nil
 	})
 
-	err := updateChannelHeader(&StandupConfig{
-		ChannelId:       "channel_id_1",
+	err := updateChannelHeader(&Config{
+		ChannelID: "channel_id_1",
 	})
-	
+
 	assert.Nil(t, err)
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 0)
 }

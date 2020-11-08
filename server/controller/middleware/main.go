@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
 	"net/http"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // Middleware type implements any logic required to be performed

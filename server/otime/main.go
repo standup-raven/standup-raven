@@ -14,11 +14,11 @@ const (
 	layoutTime            = "15:04"
 	layoutTimeWithSeconds = "15:04:05"
 	layoutDate            = "20060102"
-	userTimeLayout        = "2006 15:04"
 )
 
 var nilTime = (time.Time{}).UnixNano()
 
+// DefaultLocation is the default timezone to be used when creating a new standup config.
 // TODO will need to remove this and use channel-specific location
 // 	when adding per-channel timezone setting
 var DefaultLocation *time.Location
@@ -40,14 +40,14 @@ func Now(timezone string) OTime {
 	return OTime{now.In(location)}
 }
 
-//GetTime returns time with format like "15:04"
+// GetTime returns time with format like "15:04"
 func (ct OTime) GetTime(timezone string) OTime {
 	now, _ := time.Parse(layoutTime, ct.Format(layoutTime))
 	location, _ := time.LoadLocation(timezone)
 	return OTime{now.In(location)}
 }
 
-//GetTimeWithSeconds returns time with format like "15:04:05"
+// GetTimeWithSeconds returns time with format like "15:04:05"
 func (ct OTime) GetTimeWithSeconds(timezone string) OTime {
 	now, _ := time.Parse(layoutTimeWithSeconds, ct.Format(layoutTimeWithSeconds))
 	location, _ := time.LoadLocation(timezone)
@@ -58,7 +58,7 @@ func (ct OTime) GetTimeString() string {
 	return ct.Time.Format(layoutTime)
 }
 
-//GetDate returns date with format like "20060102"
+// GetDate returns date with format like "20060102"
 func (ct OTime) GetDate(timezone string) OTime {
 	now, _ := time.Parse(layoutDate, ct.Format(layoutDate))
 	location, _ := time.LoadLocation(timezone)

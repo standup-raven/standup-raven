@@ -3,14 +3,16 @@ package util
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/pkg/errors"
-	"github.com/standup-raven/standup-raven/server/otime"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"regexp"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/pkg/errors"
+
+	"github.com/standup-raven/standup-raven/server/otime"
 )
 
 func SplitArgs(s string) ([]string, error) {
@@ -35,7 +37,6 @@ func SplitArgs(s string) ([]string, error) {
 		} else {
 			args = append(args, s[start:end])
 		}
-
 	}
 
 	cleanedArgs := make([]string, len(args))
@@ -56,17 +57,15 @@ func SplitArgs(s string) ([]string, error) {
 func Min(a, b int) int {
 	if a < b {
 		return a
-	} else {
-		return b
 	}
+	return b
 }
 
 func Max(a, b int) int {
 	if a > b {
 		return a
-	} else {
-		return b
 	}
+	return b
 }
 
 func SendEphemeralText(msg string) (*model.CommandResponse, *model.AppError) {
@@ -99,7 +98,7 @@ func GetCurrentDateString(timezone string) string {
 
 func GetKeyHash(key string) string {
 	hash := sha256.New()
-	hash.Write([]byte(key))
+	_, _ = hash.Write([]byte(key))
 	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
 }
 
@@ -130,9 +129,9 @@ func ContainsDuplicates(data *[]string) (string, bool) {
 	for _, item := range *data {
 		if _, ok := seen[item]; ok {
 			return item, true
-		} else {
-			seen[item] = true
 		}
+
+		seen[item] = true
 	}
 
 	return "", false

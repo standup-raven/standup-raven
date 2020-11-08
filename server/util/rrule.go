@@ -1,8 +1,9 @@
 package util
 
 import (
-	"github.com/teambition/rrule-go"
 	"time"
+
+	"github.com/teambition/rrule-go"
 )
 
 func ParseRRuleFromString(rruleString string, startDate time.Time) (*rrule.RRule, error) {

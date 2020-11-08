@@ -1,17 +1,14 @@
 package command
 
 import (
-	"fmt"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"strings"
 )
 
 func commandHelp() *Config {
 	return &Config{
-		Command: &model.Command{
-			Trigger:          "help",
-			AutoComplete:     true,
-			AutoCompleteDesc: "Shows help on various standup commands",
+		AutocompleteData: &model.AutocompleteData{
+			Trigger:  "help",
+			HelpText: "Display Standup Raven help text.", // TODO prepare this help text
 		},
 		Validate: validateCommandHelp,
 		Execute:  executeCommandHelp,
@@ -26,7 +23,6 @@ func executeCommandHelp(args []string, context Context) (*model.CommandResponse,
 	helpText := generateHelpText([]*Config{
 		commandConfig(),
 		commandAddMembers(),
-		commandViewConfig(),
 		commandRemoveMembers(),
 		commandStandup(),
 		commandHelp(),
@@ -39,10 +35,13 @@ func executeCommandHelp(args []string, context Context) (*model.CommandResponse,
 }
 
 func generateHelpText(commands []*Config) string {
-	text := ""
+	text := "### Standup Raven\n" +
+		"A Mattermost plugin for communicating daily standups across teams\n\n" +
+		"Follow the user guide [here](https://github.com/standup-raven/standup-raven/blob/master/docs/user_guide.md) to get started.\n\n\n" +
+		"**Slash Command Help**\n\n"
 
 	for _, command := range commands {
-		text += fmt.Sprintf("* `%s %s` - %s \n\t%s\n", command.Command.Trigger, command.Command.AutoCompleteHint, command.Command.AutoCompleteDesc, strings.Replace(command.HelpText, "\n", "\n\t", -1))
+		text += command.GetHelpText() + "\n"
 	}
 
 	return text
