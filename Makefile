@@ -110,7 +110,10 @@ doquickdist:
 	cp -r webapp/dist/* dist/$(PLUGINNAME)/webapp/
 
 	# Build files from server
-	 cd server && go get github.com/mitchellh/gox
+	# We need to disable gomodules when installing gox to prevent `go get` from updating go.mod file.
+	# See this for more details -
+	# 	https://stackoverflow.com/questions/56842385/using-go-get-to-download-binaries-without-adding-them-to-go-mod
+	 cd server && GO111MODULE=off go get github.com/mitchellh/gox
 	 $(shell go env GOPATH)/bin/gox -ldflags="-X 'main.PluginVersion=$(PLUGINVERSION)' -X 'main.SentryServerDSN=$(SERVER_DSN)' -X 'main.SentryWebappDSN=$(WEBAPP_DSN)' -X 'main.EncodedPluginIcon=data:image/svg+xml;base64,`base64 webapp/src/assets/images/logo.svg`' " -osarch='darwin/amd64 linux/amd64 windows/amd64' -gcflags='all=-N -l' -output 'dist/intermediate/plugin_{{.OS}}_{{.Arch}}' ./server
 
 	# Copy plugin files
