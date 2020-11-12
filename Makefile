@@ -147,6 +147,7 @@ quickdist: prequickdist doquickdist postquickdist
 
 dist: vendor .webinstall quickdist
 	@echo Building plugin
+	make --version
 
 run: .webinstall
 	@echo Not yet implemented
