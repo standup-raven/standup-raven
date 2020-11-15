@@ -86,7 +86,7 @@ class ChannelHeaderButtonIcon extends React.Component {
         return (
             <span
                 ref={this.handleRef}
-                className={'raven-icon'}
+                className={'raven-icon LOL'}
                 dangerouslySetInnerHTML={{
                     __html: logo,
                 }}

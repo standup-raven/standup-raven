@@ -45,12 +45,19 @@ try {
 )
 endef
 
+define UpdateServerHash
+git ls-files ./server | xargs shasum -a 256 | cut -d" " -f1 | shasum -a 256 | cut -d" " -f1 > server.sha
+endef
+
+define UpdateWebappHash
+git ls-files ./webapp | xargs shasum -a 256 | cut -d" " -f1 | shasum -a 256 | cut -d" " -f1 > webapp.sha
+endef
 
 PLUGINNAME=$(call GetPluginId)
 PLUGINVERSION=$(call GetPluginVersion)
 PACKAGENAME=mattermost-plugin-$(PLUGINNAME)-$(PLUGINVERSION)
 
-.PHONY: default build test run clean stop check-style check-style-server .distclean dist fix-style release
+.PHONY: default build test run clean stop check-style check-style-server .distclean dist fix-style release inithashes
 
 default: check-style test dist
 
@@ -93,21 +100,26 @@ vendor: go.sum
 	@echo "Downloading server dependencies"
 	go mod download
 
+inithashes:
+ifeq (,$(wildcard ./server.sha))
+	@echo "Initializing server hash file"
+	@$(call UpdateServerHash)
+endif
+ifeq (,$(wildcard ./webapp.sha))
+	@echo "Initializing webapp hash file"
+	@$(call UpdateWebappHash)
+endif
+
 prequickdist: .distclean plugin.json
 	@echo Updating plugin.json with timezones
 	$(call AddTimeZoneOptions)
     
-doquickdist: 
+doquickdist: inithashes buildwebapp
 	@echo $(PLUGINNAME)
 	@echo $(PACKAGENAME)
 	@echo $(PLUGINVERSION)
 
 	@echo Quick building plugin
-
-	# Build and copy files from webapp
-	cd webapp && yarn run build
-	mkdir -p dist/$(PLUGINNAME)/webapp
-	cp -r webapp/dist/* dist/$(PLUGINNAME)/webapp/
 
 	# Build files from server
 	# We need to disable gomodules when installing gox to prevent `go get` from updating go.mod file.
@@ -132,12 +144,27 @@ doquickdist:
 	cd dist && tar -zcvf $(PACKAGENAME)-windows-amd64.tar.gz $(PLUGINNAME)/*
 
 	# Clean up temp files
-	rm -rf dist/$(PLUGINNAME)
+	#rm -rf dist/$(PLUGINNAME)
 	rm -rf dist/intermediate
 
 	@echo Linux plugin built at: dist/$(PACKAGENAME)-linux-amd64.tar.gz
 	@echo MacOS X plugin built at: dist/$(PACKAGENAME)-darwin-amd64.tar.gz
 	@echo Windows plugin built at: dist/$(PACKAGENAME)-windows-amd64.tar.gz
+
+buildwebapp:
+	cp webapp.sha webapp.old.sha
+	$(call UpdateWebappHash)
+	if cmp -s "webapp.sha" "webapp.old.sha"; then\
+		echo "Skipping webapp build as nothing changed.";\
+	else\
+		cd webapp;\
+		yarn run build;\
+		cd ..;\
+		mkdir -p dist/$(PLUGINNAME)/webapp;\
+		cp -r webapp/dist/* dist/$(PLUGINNAME)/webapp/;\
+	fi
+	rm webapp.old.sha
+
 
 postquickdist:
 	@echo Remove data from plugin.json
