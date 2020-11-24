@@ -52,6 +52,8 @@ PACKAGENAME=mattermost-plugin-$(PLUGINNAME)-$(PLUGINVERSION)
 
 .PHONY: default build test run clean stop check-style check-style-server .distclean dist fix-style release
 
+.SILENT: default build test run clean stop check-style check-style-server .distclean dist fix-style release inithashes buildwebapp buildserver
+
 default: check-style test dist
 
 check-style: check-style-server check-style-webapp
@@ -93,29 +95,89 @@ vendor: go.sum
 	@echo "Downloading server dependencies"
 	go mod download
 
-prequickdist: .distclean plugin.json
+inithashes:
+ifeq (,$(wildcard ./server.sha))
+	@echo "Initializing server hash file"
+	@$(call UpdateServerHash)
+endif
+ifeq (,$(wildcard ./webapp.sha))
+	@echo "Initializing webapp hash file"
+	@$(call UpdateWebappHash)
+endif
+
+prequickdist: plugin.json
 	@echo Updating plugin.json with timezones
 	$(call AddTimeZoneOptions)
     
-doquickdist: 
+doquickdist: inithashes buildwebapp buildserver package
 	@echo $(PLUGINNAME)
 	@echo $(PACKAGENAME)
 	@echo $(PLUGINVERSION)
 
 	@echo Quick building plugin
 
-	# Build and copy files from webapp
-	cd webapp && yarn run build
-	mkdir -p dist/$(PLUGINNAME)/webapp
-	cp -r webapp/dist/* dist/$(PLUGINNAME)/webapp/
+buildserver:
+	cp server.sha server.old.sha
+	echo "Updating server hash"
+	$(call UpdateServerHash)
+	FILES_MATCH=true;\
+	if cmp -s "server.sha" "server.old.sha"; then\
+		FILES_MATCH=true;\
+	else\
+		FILES_MATCH=false;\
+	fi;\
+	DIST_DIR="./dist";\
+	export DIST_EXISTS=true;\
+	if [ -d "DIST_DIR" ]; then\
+		export DIST_EXISTS=true;\
+	else\
+		export DIST_EXISTS=false;\
+	fi;\
+	if $$FILES_MATCH && $$DIST_EXISTS; then\
+		echo "Skipping server build as nothing updated since last build.";\
+	else\
+		# Build files from server\
+		# We need to disable gomodules when installing gox to prevent `go get` from updating go.mod file.\
+		# See this for more details -\
+		# 	https://stackoverflow.com/questions/56842385/using-go-get-to-download-binaries-without-adding-them-to-go-mod\
+		cd server;\
+		GO111MODULE=off go get github.com/mitchellh/gox;\
+		cd ..;\
+		$(shell go env GOPATH)/bin/gox -ldflags="-X 'main.PluginVersion=$(PLUGINVERSION)' -X 'main.SentryServerDSN=$(SERVER_DSN)' -X 'main.SentryWebappDSN=$(WEBAPP_DSN)' -X 'main.EncodedPluginIcon=data:image/svg+xml;base64,`base64 webapp/src/assets/images/logo.svg`' " -osarch='darwin/amd64 linux/amd64 windows/amd64' -gcflags='all=-N -l' -output 'dist/intermediate/plugin_{{.OS}}_{{.Arch}}' ./server;\
+	fi
+	rm server.old.sha
 
-	# Build files from server
-	# We need to disable gomodules when installing gox to prevent `go get` from updating go.mod file.
-	# See this for more details -
-	# 	https://stackoverflow.com/questions/56842385/using-go-get-to-download-binaries-without-adding-them-to-go-mod
-	 cd server && GO111MODULE=off go get github.com/mitchellh/gox
-	 $(shell go env GOPATH)/bin/gox -ldflags="-X 'main.PluginVersion=$(PLUGINVERSION)' -X 'main.SentryServerDSN=$(SERVER_DSN)' -X 'main.SentryWebappDSN=$(WEBAPP_DSN)' -X 'main.EncodedPluginIcon=data:image/svg+xml;base64,`base64 webapp/src/assets/images/logo.svg`' " -osarch='darwin/amd64 linux/amd64 windows/amd64' -gcflags='all=-N -l' -output 'dist/intermediate/plugin_{{.OS}}_{{.Arch}}' ./server
+buildwebapp:
+	cp webapp.sha webapp.old.sha
+	echo "Updating webapp hash"
+	$(call UpdateWebappHash)
+	FILES_MATCH=true;\
+	if cmp -s "webapp.sha" "webapp.old.sha"; then\
+    	FILES_MATCH=true;\
+    else\
+    	FILES_MATCH=false;\
+    fi;\
+    DIST_DIR="./dist";\
+    export DIST_EXISTS=true;\
+    if [ -d "DIST_DIR" ]; then\
+    	export DIST_EXISTS=true;\
+    else\
+    	export DIST_EXISTS=false;\
+    fi;\
+    if $$FILES_MATCH && $$DIST_EXISTS; then\
+    	echo "Skipping webapp build as nothing updated since last build.";\
+    else\
+    	cd webapp;\
+    	yarn run build;\
+    	cd ..;\
+    	mkdir -p dist/$(PLUGINNAME)/webapp;\
+    	cp -r webapp/dist/* dist/$(PLUGINNAME)/webapp/;\
+    fi
+	rm webapp.old.sha
 
+package:
+	mkdir -p dist/$(PLUGINNAME)
+	
 	# Copy plugin files
 	cp plugin.json dist/$(PLUGINNAME)/
 
@@ -125,15 +187,15 @@ doquickdist:
 	mv dist/intermediate/plugin_darwin_amd64 dist/$(PLUGINNAME)/server/plugin.exe
 	cd dist && tar -zcvf $(PACKAGENAME)-darwin-amd64.tar.gz $(PLUGINNAME)/*
 
-	mv dist/intermediate/plugin_linux_amd64 dist/$(PLUGINNAME)/server/plugin.exe
-	cd dist && tar -zcvf $(PACKAGENAME)-linux-amd64.tar.gz $(PLUGINNAME)/*
-
-	mv dist/intermediate/plugin_windows_amd64.exe dist/$(PLUGINNAME)/server/plugin.exe
-	cd dist && tar -zcvf $(PACKAGENAME)-windows-amd64.tar.gz $(PLUGINNAME)/*
+#	mv dist/intermediate/plugin_linux_amd64 dist/$(PLUGINNAME)/server/plugin.exe
+#	cd dist && tar -zcvf $(PACKAGENAME)-linux-amd64.tar.gz $(PLUGINNAME)/*
+#
+#	mv dist/intermediate/plugin_windows_amd64.exe dist/$(PLUGINNAME)/server/plugin.exe
+#	cd dist && tar -zcvf $(PACKAGENAME)-windows-amd64.tar.gz $(PLUGINNAME)/*
 
 	# Clean up temp files
-	rm -rf dist/$(PLUGINNAME)
-	rm -rf dist/intermediate
+	#rm -rf dist/$(PLUGINNAME)
+	#rm -rf dist/intermediate
 
 	@echo Linux plugin built at: dist/$(PACKAGENAME)-linux-amd64.tar.gz
 	@echo MacOS X plugin built at: dist/$(PACKAGENAME)-darwin-amd64.tar.gz
@@ -153,13 +215,6 @@ run: .webinstall
 
 stop:
 	@echo Not yet implemented
-
-.distclean:
-	@echo Cleaning dist files
-
-	rm -rf dist
-	rm -rf webapp/dist
-	rm -f server/plugin.exe
 
 clean: .distclean
 	@echo Cleaning plugin
