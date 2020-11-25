@@ -67,26 +67,26 @@ default: check-style test dist
 check-style: check-style-server check-style-webapp
 
 check-style-webapp: .webinstall
-	@echo Checking for style guide compliance
+	echo Checking for style guide compliance
 	cd webapp && yarn run lintjs
 	cd webapp && yarn run lintstyle
 
 check-style-server:
-	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
+	if ! [ -x "$$(command -v golangci-lint)" ]; then \
 			echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
 			exit 1; \
 		fi; \
 	
-	@echo Running golangci-lint
+	echo Running golangci-lint
 	golangci-lint run ./server/...
 	
 fix-style: check-style-server
-	@echo Checking for style guide compliance
+	echo Checking for style guide compliance
 	cd webapp && yarn run fixjs
 	cd webapp && yarn run fixstyle
 	
 test-server: vendor
-	@echo Running server tests
+	echo Running server tests
 	go test -v -coverprofile=coverage.txt ./...
 
 test: test-server
@@ -95,33 +95,33 @@ coverage: test-server
 	go tool cover -html=coverage.txt -o coverage.html
 
 .webinstall: webapp/yarn.lock
-	@echo Getting webapp dependencies
+	echo Getting webapp dependencies
 
 	cd webapp && yarn install
 
 vendor: go.sum
-	@echo "Downloading server dependencies"
+	echo "Downloading server dependencies"
 	go mod download
 
 inithashes:
 ifeq (,$(wildcard ./server.sha))
-	@echo "Initializing server hash file"
-	@$(call UpdateServerHash)
+	echo "Initializing server hash file"
+	$(call UpdateServerHash)
 endif
 ifeq (,$(wildcard ./webapp.sha))
-	@echo "Initializing webapp hash file"
-	@$(call UpdateWebappHash)
+	echo "Initializing webapp hash file"
+	$(call UpdateWebappHash)
 endif
 
 prequickdist: plugin.json
-	@echo Updating plugin.json with timezones
+	echo Updating plugin.json with timezones
 	$(call AddTimeZoneOptions)
 	
 doquickdist: inithashes buildwebapp buildserver package
-	@echo $(PLUGINNAME)
-	@echo $(PACKAGENAME)
-	@echo $(PLUGINVERSION)
-	@echo Quick building plugin
+	echo $(PLUGINNAME)
+	echo $(PACKAGENAME)
+	echo $(PLUGINVERSION)
+	echo Quick building plugin
 
 buildserver:
 	cp server.sha server.old.sha
@@ -230,22 +230,22 @@ package:
 	rm webapp.old.sha
 
 postquickdist:
-	@echo Remove data from plugin.json
+	echo Remove data from plugin.json
 	$(call RemoveTimeZoneOptions)
 	
 quickdist: prequickdist doquickdist postquickdist
 
 dist: vendor .webinstall quickdist
-	@echo Building plugin
+	echo Building plugin
 
 run: .webinstall
-	@echo Not yet implemented
+	echo Not yet implemented
 
 stop:
-	@echo Not yet implemented
+	echo Not yet implemented
 
 clean: .distclean
-	@echo Cleaning plugin
+	echo Cleaning plugin
 
 	rm -rf webapp/node_modules
 	rm -rf webapp/.npminstall
@@ -254,9 +254,9 @@ clean: .distclean
 # variables are defined, or copying the files directly to a sibling mattermost-server directory
 .PHONY: deploy
 deploy:
-	@echo "Installing plugin via API"
+	echo "Installing plugin via API"
 
-	@echo "Authenticating admin user..." && \
+	echo "Authenticating admin user..." && \
 	TOKEN=`http --print h POST $(MM_SERVICESETTINGS_SITEURL)/api/v4/users/login login_id=$(MM_ADMIN_USERNAME) password=$(MM_ADMIN_PASSWORD) X-Requested-With:"XMLHttpRequest" | grep Token | cut -f2 -d' '` && \
 	http GET $(MM_SERVICESETTINGS_SITEURL)/api/v4/users/me Authorization:"Bearer $$TOKEN" > /dev/null && \
 	echo "Deleting existing plugin..." && \
@@ -270,9 +270,9 @@ deploy:
 	echo "Plugin uploaded successfully"
 
 release: dist
-	@echo "Installing ghr"
-	@go get -u github.com/tcnksm/ghr
-	@echo "Create new tag"
+	echo "Installing ghr"
+	go get -u github.com/tcnksm/ghr
+	echo "Create new tag"
 	$(shell git tag $(PLUGINVERSION))
-	@echo "Uploading artifacts"
-	@ghr -t $(GITHUB_TOKEN) -u $(ORG_NAME) -r $(REPO_NAME) $(PLUGINVERSION) dist/
+	echo "Uploading artifacts"
+	ghr -t $(GITHUB_TOKEN) -u $(ORG_NAME) -r $(REPO_NAME) $(PLUGINVERSION) dist/
