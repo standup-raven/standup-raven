@@ -47,9 +47,11 @@ module.exports = {
         ],
     },
     plugins: [
-        new CopyWebpackPlugin([
-            {from: 'src/assets/images', to: 'static/'},
-        ]),
+        new CopyWebpackPlugin({
+            patterns: [
+                {from: 'src/assets/images', to: 'static/'},
+            ],
+        }),
     ],
     externals: {
         react: 'React',
