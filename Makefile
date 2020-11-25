@@ -45,6 +45,14 @@ try {
 )
 endef
 
+define UpdateServerHash
+git ls-files ./server | xargs shasum -a 256 | cut -d" " -f1 | shasum -a 256 | cut -d" " -f1 > server.sha
+endef
+
+define UpdateWebappHash
+git ls-files ./webapp | xargs shasum -a 256 | cut -d" " -f1 | shasum -a 256 | cut -d" " -f1 > webapp.sha
+endef
+
 
 PLUGINNAME=$(call GetPluginId)
 PLUGINVERSION=$(call GetPluginVersion)
@@ -52,7 +60,7 @@ PACKAGENAME=mattermost-plugin-$(PLUGINNAME)-$(PLUGINVERSION)
 
 .PHONY: default build test run clean stop check-style check-style-server .distclean dist fix-style release
 
-.SILENT: default build test run clean stop check-style check-style-server .distclean dist fix-style release inithashes buildwebapp buildserver
+.SILENT: default build test run clean stop check-style check-style-server .distclean dist fix-style release inithashes buildwebapp buildserver package
 
 default: check-style test dist
 
@@ -65,10 +73,10 @@ check-style-webapp: .webinstall
 
 check-style-server:
 	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
-    		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
-    		exit 1; \
-    	fi; \
-    
+			echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
+			exit 1; \
+		fi; \
+	
 	@echo Running golangci-lint
 	golangci-lint run ./server/...
 	
@@ -108,12 +116,11 @@ endif
 prequickdist: plugin.json
 	@echo Updating plugin.json with timezones
 	$(call AddTimeZoneOptions)
-    
+	
 doquickdist: inithashes buildwebapp buildserver package
 	@echo $(PLUGINNAME)
 	@echo $(PACKAGENAME)
 	@echo $(PLUGINVERSION)
-
 	@echo Quick building plugin
 
 buildserver:
@@ -128,7 +135,7 @@ buildserver:
 	fi;\
 	DIST_DIR="./dist";\
 	export DIST_EXISTS=true;\
-	if [ -d "DIST_DIR" ]; then\
+	if [ -d $$DIST_DIR ]; then\
 		export DIST_EXISTS=true;\
 	else\
 		export DIST_EXISTS=false;\
@@ -136,6 +143,7 @@ buildserver:
 	if $$FILES_MATCH && $$DIST_EXISTS; then\
 		echo "Skipping server build as nothing updated since last build.";\
 	else\
+		echo "Building server component";\
 		# Build files from server\
 		# We need to disable gomodules when installing gox to prevent `go get` from updating go.mod file.\
 		# See this for more details -\
@@ -145,7 +153,6 @@ buildserver:
 		cd ..;\
 		$(shell go env GOPATH)/bin/gox -ldflags="-X 'main.PluginVersion=$(PLUGINVERSION)' -X 'main.SentryServerDSN=$(SERVER_DSN)' -X 'main.SentryWebappDSN=$(WEBAPP_DSN)' -X 'main.EncodedPluginIcon=data:image/svg+xml;base64,`base64 webapp/src/assets/images/logo.svg`' " -osarch='darwin/amd64 linux/amd64 windows/amd64' -gcflags='all=-N -l' -output 'dist/intermediate/plugin_{{.OS}}_{{.Arch}}' ./server;\
 	fi
-	rm server.old.sha
 
 buildwebapp:
 	cp webapp.sha webapp.old.sha
@@ -153,53 +160,74 @@ buildwebapp:
 	$(call UpdateWebappHash)
 	FILES_MATCH=true;\
 	if cmp -s "webapp.sha" "webapp.old.sha"; then\
-    	FILES_MATCH=true;\
-    else\
-    	FILES_MATCH=false;\
-    fi;\
-    DIST_DIR="./dist";\
-    export DIST_EXISTS=true;\
-    if [ -d "DIST_DIR" ]; then\
-    	export DIST_EXISTS=true;\
-    else\
-    	export DIST_EXISTS=false;\
-    fi;\
-    if $$FILES_MATCH && $$DIST_EXISTS; then\
-    	echo "Skipping webapp build as nothing updated since last build.";\
-    else\
-    	cd webapp;\
-    	yarn run build;\
-    	cd ..;\
-    	mkdir -p dist/$(PLUGINNAME)/webapp;\
-    	cp -r webapp/dist/* dist/$(PLUGINNAME)/webapp/;\
-    fi
-	rm webapp.old.sha
+		FILES_MATCH=true;\
+	else\
+		FILES_MATCH=false;\
+	fi;\
+	pwd;\
+	DIST_DIR="./dist";\
+	export DIST_EXISTS=true;\
+	if [ -d $$DIST_DIR ]; then\
+		export DIST_EXISTS=true;\
+	else\
+		export DIST_EXISTS=false;\
+	fi;\
+	echo $$FILES_MATCH;\
+	echo $$DIST_EXISTS;\
+	if $$FILES_MATCH && $$DIST_EXISTS; then\
+		echo "Skipping webapp build as nothing updated since last build.";\
+	else\
+		cd webapp;\
+		yarn run build;\
+		cd ..;\
+		mkdir -p dist/$(PLUGINNAME)/webapp;\
+		cp -r webapp/dist/* dist/$(PLUGINNAME)/webapp/;\
+	fi
 
 package:
-	mkdir -p dist/$(PLUGINNAME)
-	
-	# Copy plugin files
-	cp plugin.json dist/$(PLUGINNAME)/
-
-	# Copy server executables & compress plugin
-	mkdir -p dist/$(PLUGINNAME)/server
-
-	mv dist/intermediate/plugin_darwin_amd64 dist/$(PLUGINNAME)/server/plugin.exe
-	cd dist && tar -zcvf $(PACKAGENAME)-darwin-amd64.tar.gz $(PLUGINNAME)/*
-
-#	mv dist/intermediate/plugin_linux_amd64 dist/$(PLUGINNAME)/server/plugin.exe
-#	cd dist && tar -zcvf $(PACKAGENAME)-linux-amd64.tar.gz $(PLUGINNAME)/*
-#
-#	mv dist/intermediate/plugin_windows_amd64.exe dist/$(PLUGINNAME)/server/plugin.exe
-#	cd dist && tar -zcvf $(PACKAGENAME)-windows-amd64.tar.gz $(PLUGINNAME)/*
-
-	# Clean up temp files
-	#rm -rf dist/$(PLUGINNAME)
-	#rm -rf dist/intermediate
-
-	@echo Linux plugin built at: dist/$(PACKAGENAME)-linux-amd64.tar.gz
-	@echo MacOS X plugin built at: dist/$(PACKAGENAME)-darwin-amd64.tar.gz
-	@echo Windows plugin built at: dist/$(PACKAGENAME)-windows-amd64.tar.gz
+	WEBAPP_CHANGED=true;\
+	if cmp -s "webapp.sha" "webapp.old.sha"; then\
+		WEBAPP_CHANGED=false;\
+	else\
+		WEBAPP_CHANGED=true;\
+	fi;\
+	SERVER_CHANGED=true;\
+	if cmp -s "server.sha" "server.old.sha"; then\
+		SERVER_CHANGED=false;\
+	else\
+		SERVER_CHANGED=true;\
+	fi;\
+	ARTIFACTS_MISSING=false;\
+	if [[ -f dist/$(PACKAGENAME)-linux-amd64.tar.gz && -f dist/$(PACKAGENAME)-darwin-amd64.tar.gz && dist/$(PACKAGENAME)-windows-amd64.tar.gz ]]; then\
+		ARTIFACTS_MISSING=false;\
+	else\
+		ARTIFACTS_MISSING=true;\
+	fi;\
+	if $$WEBAPP_CHANGED || $$SERVER_CHANGED || $$ARTIFACTS_MISSING; then\
+		mkdir -p dist/$(PLUGINNAME);\
+		cp plugin.json dist/$(PLUGINNAME)/;\
+		mkdir -p dist/$(PLUGINNAME)/server;\
+		# build darwin artifact\
+		pwd;\
+		mv dist/intermediate/plugin_darwin_amd64 dist/$(PLUGINNAME)/server/plugin.exe;\
+		cd dist && tar -zcvf $(PACKAGENAME)-darwin-amd64.tar.gz $(PLUGINNAME)/*;\
+		cd ..;\
+		# build linux artifact\
+		mv dist/intermediate/plugin_linux_amd64 dist/$(PLUGINNAME)/server/plugin.exe;\
+		cd dist && tar -zcvf $(PACKAGENAME)-linux-amd64.tar.gz $(PLUGINNAME)/*;\
+		cd ..;\
+		# build windows artifact\
+		mv dist/intermediate/plugin_windows_amd64.exe dist/$(PLUGINNAME)/server/plugin.exe;\
+		cd dist && tar -zcvf $(PACKAGENAME)-windows-amd64.tar.gz $(PLUGINNAME)/*;\
+		cd ..;\
+		echo Linux plugin built at: dist/$(PACKAGENAME)-linux-amd64.tar.gz;\
+		echo MacOS X plugin built at: dist/$(PACKAGENAME)-darwin-amd64.tar.gz;\
+		echo Windows plugin built at: dist/$(PACKAGENAME)-windows-amd64.tar.gz;\
+	else\
+		echo "No need to package plugin as nothing changed";\
+	fi
+	rm server.old.sha
+	rm webapp.old.sha
 
 postquickdist:
 	@echo Remove data from plugin.json
