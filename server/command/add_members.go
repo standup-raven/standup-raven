@@ -40,7 +40,7 @@ func commandAddMembers() *Config {
 }
 
 func validateAddMembers(args []string, context Context) (*model.CommandResponse, *model.AppError) {
-	// we need at least one member
+	// we need at least one  member
 	if len(args) < 1 {
 		return util.SendEphemeralText("Please specify at least one user to add")
 	}

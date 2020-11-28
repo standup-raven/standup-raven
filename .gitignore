@@ -7,3 +7,7 @@ coverage.txt
 coverage.html
 webapp/sentry.properties
 test.json
+webapp.sha
+webapp.old.sha
+server.sha
+server.old.sha
