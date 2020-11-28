@@ -102,7 +102,6 @@ class StandupModal extends (SentryBoundary, React.Component) {
             });
     };
 
-    // TODO
     getUserStandup = () => {
         return new Promise((resolve) => {
             request
@@ -112,11 +111,8 @@ class StandupModal extends (SentryBoundary, React.Component) {
                     if (result.ok) {
                         const standup = {};
 
-                        for (const sectionTitle in result.body.standup) {
-                            if (!result.body.standup.hasOwnProperty(sectionTitle)) {
-                                continue;
-                            }
-
+                        // eslint-disable-next-line no-unused-vars
+                        for (const sectionTitle of Object.keys(result.body.standup)) {
                             standup[sectionTitle] = {};
                             for (let i = 0; i < result.body.standup[sectionTitle].length; ++i) {
                                 standup[sectionTitle][`line${i + 1}`] = result.body.standup[sectionTitle][i];
@@ -127,7 +123,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                             standup,
                         });
                     } else if (result.status !== HttpStatus.NOT_FOUND) {
-                        console.log(err);
+                        console.error(err);
                     }
                     resolve();
                 });
@@ -153,7 +149,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                         });
                         this.setState(state);
                     } else if (result.status !== HttpStatus.NOT_FOUND) {
-                        console.log(err);
+                        console.error(err);
                     }
                     resolve();
                 });
@@ -166,11 +162,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
             standup: {},
         };
 
-        for (const sectionTitle in this.state.standup) {
-            if (!this.state.standup.hasOwnProperty(sectionTitle)) {
-                continue;
-            }
-
+        for (const sectionTitle of Object.keys(this.state.standup)) {
             standup.standup[sectionTitle] = Object.values(this.state.standup[sectionTitle])
                 .map((x) => x.trim())
                 .filter((x) => x !== '');

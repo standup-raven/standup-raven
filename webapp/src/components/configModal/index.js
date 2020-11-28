@@ -42,7 +42,6 @@ function getCurrentUserRoles(state) {
         userRoles.push(...(currentChannel.roles.split(' ')));
     }
 
-    console.log(userRoles);
     return userRoles;
 }
 

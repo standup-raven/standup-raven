@@ -51,7 +51,6 @@ class RRule extends React.PureComponent {
     }
 
     rruleChangeHandler = (rrule) => {
-        console.log(rrule);
         this.setState({
             rrule,
         });

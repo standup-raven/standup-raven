@@ -75,7 +75,7 @@ if (buildProperties.sentry.enabled) {
             ignoreFile: '.sentrycliignore',
             ignore: ['node_modules', 'webpack.config.js'],
             configFile: 'sentry.properties',
-        })
+        }),
     );
 }
 
