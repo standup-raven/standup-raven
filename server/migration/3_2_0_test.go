@@ -31,6 +31,6 @@ func TestUpgradeDatabaseToVersion3_2_0(t *testing.T) {
 	})
 
 	err = upgradeDatabaseToVersion3_2_0(version3_1_1)
-	assert. NotNil(t, err)
+	assert.NotNil(t, err)
 	assert.Equal(t, 3, updateSchemaVersionCount)
 }
