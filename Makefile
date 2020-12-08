@@ -133,14 +133,13 @@ buildserver:
 	else\
 		FILES_MATCH=false;\
 	fi;\
-	DIST_DIR="./dist";\
-	export DIST_EXISTS=true;\
-	if [ -d $$DIST_DIR ]; then\
-		export DIST_EXISTS=true;\
+	ARTIFACTS_EXIST=false;\
+	if [[ -f ./dist/intermediate/plugin_linux_amd64 && -f ./dist/intermediate/plugin_darwin_amd64 && -f ./dist/intermediate/plugin_windows_amd64.exe ]]; then\
+		ARTIFACTS_EXIST=true;\
 	else\
-		export DIST_EXISTS=false;\
+		ARTIFACTS_EXIST=false;\
 	fi;\
-	if $$FILES_MATCH && $$DIST_EXISTS; then\
+	if $$FILES_MATCH && $$ARTIFACTS_EXIST; then\
 		echo "Skipping server build as nothing updated since last build.";\
 	else\
 		echo "Building server component";\
@@ -165,7 +164,7 @@ buildwebapp:
 		FILES_MATCH=false;\
 	fi;\
 	pwd;\
-	DIST_DIR="./dist";\
+	DIST_DIR="./dist/$(PLUGINNAME)/webapp";\
 	export DIST_EXISTS=true;\
 	if [ -d $$DIST_DIR ]; then\
 		export DIST_EXISTS=true;\
@@ -209,22 +208,22 @@ package:
 		mkdir -p dist/$(PLUGINNAME)/server;\
 		# build darwin artifact\
 		pwd;\
-		mv dist/intermediate/plugin_darwin_amd64 dist/$(PLUGINNAME)/server/plugin.exe;\
+		cp dist/intermediate/plugin_darwin_amd64 dist/$(PLUGINNAME)/server/plugin.exe;\
 		cd dist && tar -zcvf $(PACKAGENAME)-darwin-amd64.tar.gz $(PLUGINNAME)/*;\
 		cd ..;\
 		# build linux artifact\
-		mv dist/intermediate/plugin_linux_amd64 dist/$(PLUGINNAME)/server/plugin.exe;\
+		cp dist/intermediate/plugin_linux_amd64 dist/$(PLUGINNAME)/server/plugin.exe;\
 		cd dist && tar -zcvf $(PACKAGENAME)-linux-amd64.tar.gz $(PLUGINNAME)/*;\
 		cd ..;\
 		# build windows artifact\
-		mv dist/intermediate/plugin_windows_amd64.exe dist/$(PLUGINNAME)/server/plugin.exe;\
+		cp dist/intermediate/plugin_windows_amd64.exe dist/$(PLUGINNAME)/server/plugin.exe;\
 		cd dist && tar -zcvf $(PACKAGENAME)-windows-amd64.tar.gz $(PLUGINNAME)/*;\
 		cd ..;\
 		echo Linux plugin built at: dist/$(PACKAGENAME)-linux-amd64.tar.gz;\
 		echo MacOS X plugin built at: dist/$(PACKAGENAME)-darwin-amd64.tar.gz;\
 		echo Windows plugin built at: dist/$(PACKAGENAME)-windows-amd64.tar.gz;\
 	else\
-		echo "No need to package plugin as nothing changed";\
+		echo "Skipping package plugin as nothing changed";\
 	fi
 	rm server.old.sha
 	rm webapp.old.sha
