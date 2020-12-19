@@ -9,6 +9,7 @@ func commandHelp() *Config {
 		AutocompleteData: &model.AutocompleteData{
 			Trigger:  "help",
 			HelpText: "Display Standup Raven help text.", // TODO prepare this help text
+			RoleID: model.SYSTEM_USER_ROLE_ID,
 		},
 		Validate: validateCommandHelp,
 		Execute:  executeCommandHelp,
