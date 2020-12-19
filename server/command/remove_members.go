@@ -18,6 +18,7 @@ func commandRemoveMembers() *Config {
 			Hint:    "[username 1] [username 2] [username 3]...",
 			HelpText: "Removes specified members from the channel's standup. " +
 				"Members are NOT removed from the channel automatically.",
+			RoleID: model.SYSTEM_USER_ROLE_ID,
 			Arguments: []*model.AutocompleteArg{
 				{
 					Type:     model.AutocompleteArgTypeText,

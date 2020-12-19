@@ -141,8 +141,6 @@ func (p *Plugin) setInjectedVars(configuration *config.Configuration) {
 func (p *Plugin) RegisterCommands() error {
 	if err := config.Mattermost.RegisterCommand(&model.Command{
 		Trigger:              config.CommandPrefix,
-		Description:          "descriptoon",
-		DisplayName:          "display name",
 		AutoComplete:         true,
 		Username:             config.BotUsername,
 		AutocompleteData:     command.Master().AutocompleteData,
