@@ -11,7 +11,7 @@ func commandConfig() *Config {
 		AutocompleteData: &model.AutocompleteData{
 			Trigger:  "config",
 			HelpText: "Open channel standup configuration dialog.",
-			RoleID: model.SYSTEM_USER_ROLE_ID,
+			RoleID:   model.SYSTEM_USER_ROLE_ID,
 		},
 		ExtraHelpText: "",
 		Validate:      validateCommandConfig,
