@@ -18,6 +18,7 @@ func commandAddMembers() *Config {
 	return &Config{
 		AutocompleteData: &model.AutocompleteData{
 			Trigger: "addmembers",
+			RoleID:  model.SYSTEM_USER_ROLE_ID,
 			Hint:    "[username 1] [username 2] [username 3]...",
 			HelpText: "Adds specified members to the the current channel's standup. " +
 				"Members are also automatically added to the current channel if not already part of it.",
