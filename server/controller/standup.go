@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
@@ -15,22 +14,22 @@ import (
 var getStandup = &Endpoint{
 	Path:    "/standup",
 	Method:  http.MethodGet,
-	Execute: executeGetStandup,
+	Execute: authenticatedControllerWrapper(executeGetStandup),
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
 	},
 }
 
 var saveStandup = &Endpoint{
 	Path:    "/standup",
 	Method:  http.MethodPost,
-	Execute: executeSaveStandup,
+	Execute: authenticatedControllerWrapper(executeSaveStandup),
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
 	},
 }
 
-func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
+func executeSaveStandup(userID string, w http.ResponseWriter, r *http.Request) error {
 	userStandup := &standup.UserStandup{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(userStandup); err != nil {
@@ -39,7 +38,7 @@ func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	userStandup.UserID = r.Header.Get(config.HeaderMattermostUserID)
+	userStandup.UserID = userID
 
 	if err := userStandup.IsValid(); err != nil {
 		logger.Info("user standup validation failed", err)
@@ -60,8 +59,7 @@ func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func executeGetStandup(w http.ResponseWriter, r *http.Request) error {
-	userID := r.Header.Get(config.HeaderMattermostUserID)
+func executeGetStandup(userID string, w http.ResponseWriter, r *http.Request) error {
 	channelID := r.URL.Query().Get("channel_id")
 	standupConfig, err := standup.GetStandupConfig(channelID)
 	if err != nil {

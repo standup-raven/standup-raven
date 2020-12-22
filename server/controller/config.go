@@ -19,18 +19,18 @@ import (
 var getConfig = &Endpoint{
 	Path:    "/config",
 	Method:  http.MethodGet,
-	Execute: executeGetConfig,
+	Execute: authenticatedControllerWrapper(executeGetConfig),
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
 	},
 }
 
 var setConfig = &Endpoint{
 	Path:    "/config",
 	Method:  http.MethodPost,
-	Execute: executeSetConfig,
+	Execute: authenticatedControllerWrapper(executeSetConfig),
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
 	},
 }
 
@@ -45,11 +45,11 @@ var getActiveStandupChannels = &Endpoint{
 	Method:  http.MethodGet,
 	Execute: executeGetActiveStandupChannels,
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
 	},
 }
 
-func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
+func executeGetConfig(userID string, w http.ResponseWriter, r *http.Request) error {
 	channelID := r.URL.Query().Get("channel_id")
 
 	c, err := standup.GetStandupConfig(channelID)
@@ -80,7 +80,7 @@ func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
+func executeSetConfig(userID string, w http.ResponseWriter, r *http.Request) error {
 	// get config data from body
 	decoder := json.NewDecoder(r.Body)
 	conf := &standup.Config{}
@@ -90,7 +90,6 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	userID := r.Header.Get(config.HeaderMattermostUserID)
 	channelID := conf.ChannelID
 
 	// if permission schema is enabled,
@@ -161,7 +160,7 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 			"channel_id": conf.ChannelID,
 		},
 		&model.WebsocketBroadcast{
-			UserId: r.Header.Get(config.HeaderMattermostUserID),
+			UserId: userID,
 		},
 	)
 

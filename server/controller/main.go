@@ -7,10 +7,14 @@ import (
 	"github.com/standup-raven/standup-raven/server/util"
 )
 
+type endpointHandler func(w http.ResponseWriter, r *http.Request) error
+
+type authenticatedEndpointHandler func(userID string, w http.ResponseWriter, r *http.Request) error
+
 type Endpoint struct {
 	Path        string
 	Method      string
-	Execute     func(w http.ResponseWriter, r *http.Request) error
+	Execute     endpointHandler
 	Middlewares []middleware.Middleware
 }
 
@@ -31,4 +35,11 @@ func getEndpointKey(endpoint *Endpoint) string {
 
 func GetEndpoint(r *http.Request) *Endpoint {
 	return Endpoints[util.GetKeyHash(r.URL.Path+"-"+r.Method)]
+}
+
+func authenticatedControllerWrapper(handler authenticatedEndpointHandler) endpointHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		userID := r.Context().Value(middleware.CtxKeyUserID).(string)
+		return handler(userID, w, r)
+	}
 }
