@@ -51,6 +51,7 @@ var getActiveStandupChannels = &Endpoint{
 
 func executeGetConfig(userID string, w http.ResponseWriter, r *http.Request) error {
 	channelID := r.URL.Query().Get("channel_id")
+	_, _ = isEffectiveAdmin(userID, channelID)
 
 	c, err := standup.GetStandupConfig(channelID)
 	if err != nil {
@@ -184,63 +185,6 @@ func executeGetDefaultTimezone(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return nil
-}
-
-func isEffectiveAdmin(userID string, channelID string) (bool, *model.AppError) {
-	if isChannelAdmin, appErr := isChannelAdmin(userID, channelID); appErr != nil {
-		return false, appErr
-	} else if isChannelAdmin {
-		config.Mattermost.LogDebug("User is channel admin", "userID", userID)
-		return true, nil
-	}
-
-	channel, appErr := config.Mattermost.GetChannel(channelID)
-	if appErr != nil {
-		return false, appErr
-	}
-
-	if isTeamAdmin, appErr := isTeamAdmin(userID, channel.TeamId); appErr != nil {
-		return false, appErr
-	} else if isTeamAdmin {
-		config.Mattermost.LogDebug("User is team admin", "userID", userID)
-		return true, nil
-	}
-
-	if isSystemAdmin, appErr := isSystemAdmin(userID); appErr != nil {
-		return false, appErr
-	} else if isSystemAdmin {
-		config.Mattermost.LogDebug("User is system admin", "userID", userID)
-		return true, nil
-	}
-
-	return false, nil
-}
-
-func isChannelAdmin(userID string, channelID string) (bool, *model.AppError) {
-	channelMember, appErr := config.Mattermost.GetChannelMember(channelID, userID)
-	if appErr != nil {
-		return false, appErr
-	}
-
-	return strings.Contains(channelMember.Roles, model.CHANNEL_ADMIN_ROLE_ID), nil
-}
-
-func isTeamAdmin(userID string, teamID string) (bool, *model.AppError) {
-	teamMember, appErr := config.Mattermost.GetTeamMember(teamID, userID)
-	if appErr != nil {
-		return false, appErr
-	}
-
-	return strings.Contains(teamMember.Roles, model.TEAM_ADMIN_ROLE_ID), nil
-}
-
-func isSystemAdmin(userID string) (bool, *model.AppError) {
-	user, appErr := config.Mattermost.GetUser(userID)
-	if appErr != nil {
-		return false, appErr
-	}
-
-	return strings.Contains(user.Roles, model.SYSTEM_ADMIN_ROLE_ID), nil
 }
 
 func executeGetActiveStandupChannels(w http.ResponseWriter, r *http.Request) error {
