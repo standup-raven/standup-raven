@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"github.com/standup-raven/standup-raven/server/util"
-	"github.com/thoas/go-funk"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -15,6 +14,7 @@ type ContextKey string
 
 const (
 	CtxKeyUserID = ContextKey("user_id")
+	CtxKeyUserRoles = ContextKey("user_roles")
 	
 	RoleTypeEffectiveChannelAdmin = "isEffectiveChannelAdmin"
 	RoleTypeGuest = "isGuest"
@@ -48,10 +48,42 @@ func SetUserRoles(w http.ResponseWriter, r *http.Request) (*http.Request, *model
 		return nil, model.NewAppError("MiddlewareSetUserRoles", "", map[string]interface{}{"userID": userID, "channelID": channelID}, "", http.StatusInternalServerError)
 	}
 
-	userRoleTypes := map[string]bool{
-		"isEffectiveChannelAdmin": false,
-		"isGuest": false,
+	userRoleTypes := map[string]bool{}
+
+	userRolesMap := make(map[string]bool, len(userRoles))
+	for _, role := range userRoles {
+		userRolesMap[role] = true
 	}
 	
-	userRoleTypes[RoleTypeEffectiveChannelAdmin] = funk.Contains(userRoles, )
+	userRoleTypes[RoleTypeEffectiveChannelAdmin] = userRolesMap[model.SYSTEM_ADMIN_ROLE_ID] || userRolesMap[model.TEAM_ADMIN_ROLE_ID] || userRolesMap[model.CHANNEL_ADMIN_ROLE_ID]
+	userRoleTypes[RoleTypeGuest] = userRolesMap[model.SYSTEM_GUEST_ROLE_ID]
+
+	ctxWithUserRoles := context.WithValue(r.Context(), CtxKeyUserRoles, userRoleTypes)
+	rWithUserRoles := r.WithContext(ctxWithUserRoles)
+	return rWithUserRoles, nil
+}
+
+func DisallowGuests(w http.ResponseWriter, r *http.Request) (*http.Request, *model.AppError) {
+	userRoleTypes := r.Context().Value(CtxKeyUserRoles).(map[string]bool)
+	
+	if userRoleTypes[RoleTypeGuest] {
+		http.Error(w, "Guest users are not allowed to perform this operation", http.StatusForbidden)
+		return nil, model.NewAppError("DisallowGuests", "", nil, "Forbidden", http.StatusForbidden)
+	}
+	
+	return r, nil
+}
+
+func HandlePermissionSchema(w http.ResponseWriter, r *http.Request) (*http.Request, *model.AppError) {
+	if !config.GetConfig().PermissionSchemaEnabled {
+		return r, nil
+	}
+
+	userRoleType := r.Context().Value(CtxKeyUserRoles).(map[string]bool)
+	if !userRoleType[RoleTypeEffectiveChannelAdmin] {
+		http.Error(w, "You do not have permission to perform this operation", http.StatusUnauthorized)
+		return r, model.NewAppError("HandlePermissionSchema", "", map[string]interface{}{"userID": r.Context().Value(CtxKeyUserID)}, "You do not have permission to perform this operation", http.StatusForbidden)
+	}
+	
+	return r, nil
 }

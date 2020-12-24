@@ -316,7 +316,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
         });
 
         request
-            .post(`${this.props.siteURL}/${Constants.URL_STANDUP_CONFIG}`)
+            .post(`${this.props.siteURL}/${Constants.URL_STANDUP_CONFIG}?channel_id=${this.props.channelID}`)
             .withCredentials()
             .send(this.prepareStandupConfigPayload())
             .set('X-CSRF-Token', Cookies.get(Constants.MATTERMOST_CSRF_COOKIE))

@@ -2,18 +2,15 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"net/http"
-	"strings"
-
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/pkg/errors"
-
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup"
 	"github.com/standup-raven/standup-raven/server/util"
+	"net/http"
 )
 
 var getConfig = &Endpoint{
@@ -31,6 +28,9 @@ var setConfig = &Endpoint{
 	Execute: authenticatedControllerWrapper(executeSetConfig),
 	Middlewares: []middleware.Middleware{
 		middleware.Authenticated,
+		middleware.SetUserRoles,
+		middleware.DisallowGuests,
+		middleware.HandlePermissionSchema,
 	},
 }
 
@@ -51,7 +51,6 @@ var getActiveStandupChannels = &Endpoint{
 
 func executeGetConfig(userID string, w http.ResponseWriter, r *http.Request) error {
 	channelID := r.URL.Query().Get("channel_id")
-	_, _ = isEffectiveAdmin(userID, channelID)
 
 	c, err := standup.GetStandupConfig(channelID)
 	if err != nil {
@@ -92,23 +91,29 @@ func executeSetConfig(userID string, w http.ResponseWriter, r *http.Request) err
 	}
 
 	channelID := conf.ChannelID
+	channelIDParam := r.URL.Query().Get("channel_id")
 
-	// if permission schema is enabled,
-	// verify if user is an effective channel admin
-	if config.GetConfig().PermissionSchemaEnabled {
-		isAdmin, appErr := isEffectiveAdmin(userID, channelID)
-
-		if appErr != nil {
-			http.Error(w, "An error occurred while verifying user permissions", appErr.StatusCode)
-			logger.Error("An error occurred while verifying user permissions", errors.New(appErr.Error()), nil)
-			return appErr
-		}
-
-		if !isAdmin {
-			http.Error(w, "You do not have permission to perform this operation", http.StatusUnauthorized)
-			return nil
-		}
+	if channelID != channelIDParam {
+		http.Error(w, "Mismatched channel ID", http.StatusBadRequest)
+		return errors.New("channel ID provided in config body does not match with the value in query params")
 	}
+
+	//// if permission schema is enabled,
+	//// verify if user is an effective channel admin
+	//if config.GetConfig().PermissionSchemaEnabled {
+	//	isAdmin, appErr := isEffectiveAdmin(userID, channelID)
+	//
+	//	if appErr != nil {
+	//		http.Error(w, "An error occurred while verifying user permissions", appErr.StatusCode)
+	//		logger.Error("An error occurred while verifying user permissions", errors.New(appErr.Error()), nil)
+	//		return appErr
+	//	}
+	//
+	//	if !isAdmin {
+	//		http.Error(w, "You do not have permission to perform this operation", http.StatusUnauthorized)
+	//		return nil
+	//	}
+	//}
 
 	if err := conf.PreSave(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
