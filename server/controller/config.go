@@ -99,23 +99,6 @@ func executeSetConfig(userID string, w http.ResponseWriter, r *http.Request) err
 		return errors.New("channel ID provided in config body does not match with the value in query params")
 	}
 
-	//// if permission schema is enabled,
-	//// verify if user is an effective channel admin
-	//if config.GetConfig().PermissionSchemaEnabled {
-	//	isAdmin, appErr := isEffectiveAdmin(userID, channelID)
-	//
-	//	if appErr != nil {
-	//		http.Error(w, "An error occurred while verifying user permissions", appErr.StatusCode)
-	//		logger.Error("An error occurred while verifying user permissions", errors.New(appErr.Error()), nil)
-	//		return appErr
-	//	}
-	//
-	//	if !isAdmin {
-	//		http.Error(w, "You do not have permission to perform this operation", http.StatusUnauthorized)
-	//		return nil
-	//	}
-	//}
-
 	if err := conf.PreSave(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return err

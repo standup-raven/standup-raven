@@ -27,7 +27,6 @@ func Authenticated(w http.ResponseWriter, r *http.Request) (*http.Request, *mode
 	userID := r.Header.Get(config.HeaderMattermostUserID)
 
 	if userID == "" {
-		//http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return nil, model.NewAppError("MiddlewareAuthenticate", "", nil, "Unauthorized", http.StatusUnauthorized)
 	}
 
