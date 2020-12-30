@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/standup-raven/standup-raven/server/logger"
 	"strings"
 
 	"github.com/standup-raven/standup-raven/server/config"
@@ -40,12 +41,13 @@ func GetUserRoles(userID string, channelID string) ([]string, *model.AppError) {
 	
 	rolesString += " " + systemRoles
 
-	return strings.Split(rolesString, ","), nil
+	return strings.Split(rolesString, " "), nil
 }
 
 func getUserChannelRoles(userID string, channelID string) (string, *model.AppError) {
 	channelMember, appErr := config.Mattermost.GetChannelMember(channelID, userID)
 	if appErr != nil {
+		logger.Error(appErr.Error(), appErr, nil)
 		return "", appErr
 	}
 	return channelMember.Roles, nil
@@ -54,6 +56,7 @@ func getUserChannelRoles(userID string, channelID string) (string, *model.AppErr
 func getUserTeamRoles(userID string, teamID string) (string, *model.AppError) {
 	teamMember, appErr := config.Mattermost.GetTeamMember(teamID, userID)
 	if appErr != nil {
+		logger.Error(appErr.Error(), appErr, nil)
 		return "", appErr
 	}
 	return teamMember.Roles, nil
@@ -62,6 +65,7 @@ func getUserTeamRoles(userID string, teamID string) (string, *model.AppError) {
 func getUserSystemRoles(userID string) (string, *model.AppError) {
 	user, appErr := config.Mattermost.GetUser(userID)
 	if appErr != nil {
+		logger.Error(appErr.Error(), appErr, nil)
 		return "", appErr
 	}
 

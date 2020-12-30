@@ -26,7 +26,7 @@ func Authenticated(w http.ResponseWriter, r *http.Request) (*http.Request, *mode
 	userID := r.Header.Get(config.HeaderMattermostUserID)
 
 	if userID == "" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		//http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return nil, model.NewAppError("MiddlewareAuthenticate", "", nil, "Unauthorized", http.StatusUnauthorized)
 	}
 
@@ -36,16 +36,16 @@ func Authenticated(w http.ResponseWriter, r *http.Request) (*http.Request, *mode
 }
 
 func SetUserRoles(w http.ResponseWriter, r *http.Request) (*http.Request, *model.AppError) {
-	userID := r.Context().Value(CtxKeyUserID).(string)
+	rawUserID := r.Context().Value(CtxKeyUserID)
+	if rawUserID == nil {
+		return nil, model.NewAppError("SetUserRoles", "couldn't find user ID in context", nil, "Couldn't authenticate user.", http.StatusInternalServerError)
+	}
 	
-	// LOL
-	// TODO pass channel_id query param in set config API
+	userID := rawUserID.(string)
 	channelID := r.URL.Query().Get("channel_id")
-	
 	userRoles, err := util.GetUserRoles(userID, channelID)
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
-		return nil, model.NewAppError("MiddlewareSetUserRoles", "", map[string]interface{}{"userID": userID, "channelID": channelID}, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("MiddlewareSetUserRoles", err.Error(), map[string]interface{}{"userID": userID, "channelID": channelID}, "Couldn't verify user roles.", http.StatusInternalServerError)
 	}
 
 	userRoleTypes := map[string]bool{}
@@ -64,11 +64,15 @@ func SetUserRoles(w http.ResponseWriter, r *http.Request) (*http.Request, *model
 }
 
 func DisallowGuests(w http.ResponseWriter, r *http.Request) (*http.Request, *model.AppError) {
-	userRoleTypes := r.Context().Value(CtxKeyUserRoles).(map[string]bool)
+	rawUserRoleTypes := r.Context().Value(CtxKeyUserRoles)
+	if rawUserRoleTypes == nil {
+		return nil, model.NewAppError("DisallowGuests", "couldn't find user roles in context", nil, "Couldn't verify user roles.", http.StatusInternalServerError)
+	}
+
+	userRoleTypes := rawUserRoleTypes.(map[string]bool)
 	
 	if userRoleTypes[RoleTypeGuest] {
-		http.Error(w, "Guest users are not allowed to perform this operation", http.StatusForbidden)
-		return nil, model.NewAppError("DisallowGuests", "", nil, "Forbidden", http.StatusForbidden)
+		return nil, model.NewAppError("DisallowGuests", "", nil, "Guest users are not allowed to perform this operation.", http.StatusForbidden)
 	}
 	
 	return r, nil
@@ -79,10 +83,15 @@ func HandlePermissionSchema(w http.ResponseWriter, r *http.Request) (*http.Reque
 		return r, nil
 	}
 
-	userRoleType := r.Context().Value(CtxKeyUserRoles).(map[string]bool)
+	rawUserRoleTypes := r.Context().Value(CtxKeyUserRoles)
+	if rawUserRoleTypes == nil {
+		return nil, model.NewAppError("DisallowGuests", "couldn't find user roles in context", nil, "Couldn't verify user roles.", http.StatusInternalServerError)
+	}
+
+	userRoleType := rawUserRoleTypes.(map[string]bool)
+	
 	if !userRoleType[RoleTypeEffectiveChannelAdmin] {
-		http.Error(w, "You do not have permission to perform this operation", http.StatusUnauthorized)
-		return r, model.NewAppError("HandlePermissionSchema", "", map[string]interface{}{"userID": r.Context().Value(CtxKeyUserID)}, "You do not have permission to perform this operation", http.StatusForbidden)
+		return r, model.NewAppError("HandlePermissionSchema", "", map[string]interface{}{"userID": r.Context().Value(CtxKeyUserID)}, "You do not have permission to perform this operation.", http.StatusForbidden)
 	}
 	
 	return r, nil

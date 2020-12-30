@@ -207,7 +207,7 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 
 		requestToUse, appErr = middleware(w, requestToUse)
 		if appErr != nil {
-			http.Error(w, appErr.Error(), appErr.StatusCode)
+			http.Error(w, appErr.DetailedError, appErr.StatusCode)
 			return
 		}
 	}
