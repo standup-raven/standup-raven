@@ -279,6 +279,8 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                     // if permission schema is not enabled then everyone has the permission
                     prevState.hasPermission =
                         pluginConfig.permissionSchemaEnabled ? utils.isEffectiveChannelAdmin(this.props.userRoles) : true;
+
+                    prevState.hasPermission = prevState.hasPermission && this.props.isGuest;
                     return prevState;
                 });
             })
@@ -361,7 +363,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
 
         if (!this.state.hasPermission) {
             standupErrorMessage = 'Viewing configuration in read-only mode.';
-            standupErrorSubMessage = 'Only a channel admin can update the configuration.';
+            standupErrorSubMessage = this.props.isGuest ? 'Guest users cannot update standup config' : 'Only a channel admin can update the configuration.';
         }
 
         const spinner =
@@ -590,6 +592,7 @@ ConfigModal.propTypes = {
     close: PropTypes.func.isRequired,
     visible: PropTypes.bool,
     siteURL: PropTypes.string.isRequired,
+    isGuest: PropTypes.bool.isRequired,
 };
 
 export default ConfigModal;

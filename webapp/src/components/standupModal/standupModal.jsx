@@ -361,6 +361,7 @@ StandupModal.propTypes = {
     close: PropTypes.func.isRequired,
     visible: PropTypes.bool.isRequired,
     siteURL: PropTypes.string.isRequired,
+    isGuest: PropTypes.bool.isRequired,
 };
 
 export default StandupModal;
