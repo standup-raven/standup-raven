@@ -2,9 +2,10 @@ package util
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/standup-raven/standup-raven/server/logger"
-	"strings"
 
 	"github.com/standup-raven/standup-raven/server/config"
 )
@@ -31,14 +32,14 @@ func GetUserRoles(userID string, channelID string) ([]string, *model.AppError) {
 	if appErr != nil {
 		return nil, appErr
 	}
-	
+
 	rolesString += " " + teamRoles
 
 	systemRoles, appErr := getUserSystemRoles(userID)
 	if appErr != nil {
 		return nil, appErr
 	}
-	
+
 	rolesString += " " + systemRoles
 
 	return strings.Split(rolesString, " "), nil

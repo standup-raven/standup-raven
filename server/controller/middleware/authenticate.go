@@ -2,8 +2,9 @@ package middleware
 
 import (
 	"context"
-	"github.com/standup-raven/standup-raven/server/util"
 	"net/http"
+
+	"github.com/standup-raven/standup-raven/server/util"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 
@@ -13,11 +14,11 @@ import (
 type ContextKey string
 
 const (
-	CtxKeyUserID = ContextKey("user_id")
+	CtxKeyUserID    = ContextKey("user_id")
 	CtxKeyUserRoles = ContextKey("user_roles")
-	
+
 	RoleTypeEffectiveChannelAdmin = "isEffectiveChannelAdmin"
-	RoleTypeGuest = "isGuest"
+	RoleTypeGuest                 = "isGuest"
 )
 
 // Authenticated middleware verifies the request was made by a logged in Mattermost user.
@@ -40,7 +41,7 @@ func SetUserRoles(w http.ResponseWriter, r *http.Request) (*http.Request, *model
 	if rawUserID == nil {
 		return nil, model.NewAppError("SetUserRoles", "couldn't find user ID in context", nil, "Couldn't authenticate user.", http.StatusInternalServerError)
 	}
-	
+
 	userID := rawUserID.(string)
 	channelID := r.URL.Query().Get("channel_id")
 	userRoles, err := util.GetUserRoles(userID, channelID)
@@ -54,7 +55,7 @@ func SetUserRoles(w http.ResponseWriter, r *http.Request) (*http.Request, *model
 	for _, role := range userRoles {
 		userRolesMap[role] = true
 	}
-	
+
 	userRoleTypes[RoleTypeEffectiveChannelAdmin] = userRolesMap[model.SYSTEM_ADMIN_ROLE_ID] || userRolesMap[model.TEAM_ADMIN_ROLE_ID] || userRolesMap[model.CHANNEL_ADMIN_ROLE_ID]
 	userRoleTypes[RoleTypeGuest] = userRolesMap[model.SYSTEM_GUEST_ROLE_ID]
 
@@ -70,11 +71,11 @@ func DisallowGuests(w http.ResponseWriter, r *http.Request) (*http.Request, *mod
 	}
 
 	userRoleTypes := rawUserRoleTypes.(map[string]bool)
-	
+
 	if userRoleTypes[RoleTypeGuest] {
 		return nil, model.NewAppError("DisallowGuests", "", nil, "Guest users are not allowed to perform this operation.", http.StatusForbidden)
 	}
-	
+
 	return r, nil
 }
 
@@ -89,10 +90,10 @@ func HandlePermissionSchema(w http.ResponseWriter, r *http.Request) (*http.Reque
 	}
 
 	userRoleType := rawUserRoleTypes.(map[string]bool)
-	
+
 	if !userRoleType[RoleTypeEffectiveChannelAdmin] {
 		return r, model.NewAppError("HandlePermissionSchema", "", map[string]interface{}{"userID": r.Context().Value(CtxKeyUserID)}, "You do not have permission to perform this operation.", http.StatusForbidden)
 	}
-	
+
 	return r, nil
 }
