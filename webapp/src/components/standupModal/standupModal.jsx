@@ -217,7 +217,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
 
         if (!this.state.standupConfig) {
             showStandupError = true;
-            standupErrorMessage = 'Standup not configured for this channel.';
+            standupErrorMessage = 'Standup is not configured for this channel.';
             standupErrorSubMessage = 'Make sure you are filling the standup in the right channel or that standup has been configured in this channel.';
         } else if (!this.state.standupConfig.enabled) {
             showStandupError = true;
@@ -231,6 +231,10 @@ class StandupModal extends (SentryBoundary, React.Component) {
             showStandupError = true;
             standupErrorMessage = 'You are not a part of this channel\'s standup.';
             standupErrorSubMessage = 'Make sure you are filling standup in the right channel or that you were correctly added to the channel\'s standup.';
+        } else if (this.props.isGuest) {
+            showStandupError = true;
+            standupErrorMessage = 'You are not allowed to submit standup.';
+            standupErrorSubMessage = 'Guest users are not allowed to submit standup.';
         }
 
         const showSpinner = this.state.showSpinner;
