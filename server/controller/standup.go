@@ -26,6 +26,8 @@ var saveStandup = &Endpoint{
 	Execute: authenticatedControllerWrapper(executeSaveStandup),
 	Middlewares: []middleware.Middleware{
 		middleware.Authenticated,
+		middleware.SetUserRoles,
+		middleware.DisallowGuests,
 	},
 }
 

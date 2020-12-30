@@ -75,7 +75,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
         const payload = this.prepareUserStandup();
 
         request
-            .post(`${this.props.siteURL}/${Constants.URL_SUBMIT_USER_STANDUP}`)
+            .post(`${this.props.siteURL}/${Constants.URL_SUBMIT_USER_STANDUP}?channel_id=${this.props.channelID}`)
             .withCredentials()
             .send(payload)
             .set('X-CSRF-Token', Cookies.get(Constants.MATTERMOST_CSRF_COOKIE))
@@ -85,7 +85,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                     this.setState({
                         message: {
                             show: true,
-                            text: 'An error occurred while submitting standup. Please try again.\n\n' + err.response.text,
+                            text: 'An error occurred while submitting standup.\n' + err.response.text,
                             type: 'danger',
                         },
                     });
