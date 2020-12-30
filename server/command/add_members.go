@@ -41,6 +41,15 @@ func commandAddMembers() *Config {
 }
 
 func validateAddMembers(args []string, context Context) (*model.CommandResponse, *model.AppError) {
+	userRoles, appErr := util.GetUserRoles(context.CommandArgs.UserId, context.CommandArgs.ChannelId)
+	if appErr != nil {
+		return nil, appErr
+	}
+	
+	if funk.Contains(userRoles, model.SYSTEM_GUEST_ROLE_ID) {
+		return util.SendEphemeralText("Guest users are not allowed to perform this operation.")
+	}
+	
 	// we need at least one  member
 	if len(args) < 1 {
 		return util.SendEphemeralText("Please specify at least one user to add")
