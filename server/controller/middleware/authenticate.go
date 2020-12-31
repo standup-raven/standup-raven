@@ -17,7 +17,8 @@ type ContextKey string
 
 const (
 	// CtxKeyUserID is the key corresponding to user ID, stored as a string.
-	CtxKeyUserID    = ContextKey("user_id")
+	CtxKeyUserID = ContextKey("user_id")
+
 	// CtxKeyUserRoles stores the high-level user role types - guest and admin. 
 	CtxKeyUserRoles = ContextKey("user_roles")
 
