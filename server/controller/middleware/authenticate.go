@@ -18,12 +18,13 @@ type ContextKey string
 const (
 	// CtxKeyUserID is the key corresponding to user ID, stored as a string.
 	CtxKeyUserID = ContextKey("user_id")
-
-	// CtxKeyUserRoles stores the high-level user role types - guest and admin. 
+	// CtxKeyUserRoles stores the high-level user role types - guest and admin.
 	CtxKeyUserRoles = ContextKey("user_roles")
 
+	// RoleTypeEffectiveChannelAdmin tells whether the user is effectively a channel admin or not.
 	RoleTypeEffectiveChannelAdmin = "isEffectiveChannelAdmin"
-	RoleTypeGuest                 = "isGuest"
+	// RoleTypeGuest tells whether the user is a guest user or not
+	RoleTypeGuest = "isGuest"
 )
 
 // Authenticated middleware verifies the request was made by a logged in Mattermost user.
