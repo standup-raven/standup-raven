@@ -11,10 +11,14 @@ import (
 	"github.com/standup-raven/standup-raven/server/config"
 )
 
+// ContextKey is the custom type for storing
+// data in http request context
 type ContextKey string
 
 const (
+	// CtxKeyUserID is the key corresponding to user ID, stored as a string.
 	CtxKeyUserID    = ContextKey("user_id")
+	// CtxKeyUserRoles stores the high-level user role types - guest and admin. 
 	CtxKeyUserRoles = ContextKey("user_roles")
 
 	RoleTypeEffectiveChannelAdmin = "isEffectiveChannelAdmin"
@@ -35,6 +39,7 @@ func Authenticated(w http.ResponseWriter, r *http.Request) (*http.Request, *mode
 	return rWithUser, nil
 }
 
+// SetUserRoles middleware fetches the user roles and sets them in the request context.
 func SetUserRoles(w http.ResponseWriter, r *http.Request) (*http.Request, *model.AppError) {
 	rawUserID := r.Context().Value(CtxKeyUserID)
 	if rawUserID == nil {
@@ -63,6 +68,7 @@ func SetUserRoles(w http.ResponseWriter, r *http.Request) (*http.Request, *model
 	return rWithUserRoles, nil
 }
 
+// DisallowGuests middleware prevents guest users from accessing the endpoint.
 func DisallowGuests(w http.ResponseWriter, r *http.Request) (*http.Request, *model.AppError) {
 	rawUserRoleTypes := r.Context().Value(CtxKeyUserRoles)
 	if rawUserRoleTypes == nil {
@@ -78,6 +84,8 @@ func DisallowGuests(w http.ResponseWriter, r *http.Request) (*http.Request, *mod
 	return r, nil
 }
 
+// HandlePermissionSchema middleware checks for effective-channel-admin permission
+// when permission schema is enabled.
 func HandlePermissionSchema(w http.ResponseWriter, r *http.Request) (*http.Request, *model.AppError) {
 	if !config.GetConfig().PermissionSchemaEnabled {
 		return r, nil

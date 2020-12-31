@@ -10,10 +10,12 @@ import (
 	"github.com/standup-raven/standup-raven/server/logger"
 )
 
+// UserIcon generates the URL to user's profile picture
 func UserIcon(userID string) string {
 	return fmt.Sprintf("![User Avatar]("+config.UserIconURL+" "+config.UserIconSize+")", userID)
 }
 
+// GetUserRoles fetches all roles of a user - system level, team level and channel level
 func GetUserRoles(userID string, channelID string) ([]string, *model.AppError) {
 	var rolesString string
 
