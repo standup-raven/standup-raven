@@ -16,7 +16,7 @@ func UserIcon(userID string) string {
 }
 
 // GetUserRoles fetches all roles of a user - system level, team level and channel level
-func GetUserRoles(userID string, channelID string) ([]string, *model.AppError) {
+func GetUserRoles(userID, channelID string) ([]string, *model.AppError) {
 	var rolesString string
 
 	channelRoles, appErr := getUserChannelRoles(userID, channelID)
@@ -47,7 +47,7 @@ func GetUserRoles(userID string, channelID string) ([]string, *model.AppError) {
 	return strings.Split(rolesString, " "), nil
 }
 
-func getUserChannelRoles(userID string, channelID string) (string, *model.AppError) {
+func getUserChannelRoles(userID, channelID string) (string, *model.AppError) {
 	channelMember, appErr := config.Mattermost.GetChannelMember(channelID, userID)
 	if appErr != nil {
 		logger.Error(appErr.Error(), appErr, nil)
@@ -56,7 +56,7 @@ func getUserChannelRoles(userID string, channelID string) (string, *model.AppErr
 	return channelMember.Roles, nil
 }
 
-func getUserTeamRoles(userID string, teamID string) (string, *model.AppError) {
+func getUserTeamRoles(userID, teamID string) (string, *model.AppError) {
 	teamMember, appErr := config.Mattermost.GetTeamMember(teamID, userID)
 	if appErr != nil {
 		logger.Error(appErr.Error(), appErr, nil)
