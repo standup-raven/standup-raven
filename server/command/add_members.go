@@ -92,7 +92,7 @@ func executeAddMembers(args []string, context Context) (*model.CommandResponse, 
 	if appErr != nil {
 		return util.SendEphemeralText("Error occurred while adding standup members.")
 	}
-	
+
 	return &model.CommandResponse{
 		Type: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		Text: text,
@@ -145,7 +145,7 @@ func buildSuccessMessage(addedUsers, notAddedUsers []string) (string, *model.App
 
 		notAddedUsersnames[i] = user.Username
 	}
-	
+
 	text := fmt.Sprintf("%d users added successfully.", len(addedUsers))
 	if len(notAddedUsers) > 0 {
 		text += fmt.Sprintf(" Following users couldn't be added: %s", strings.Join(notAddedUsersnames, ", "))
