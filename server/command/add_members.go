@@ -85,12 +85,17 @@ func executeAddMembers(args []string, context Context) (*model.CommandResponse, 
 
 	// adding successfully invited members to channel's standup config
 	if err := addStandupMembers(addedUsers, context.CommandArgs.ChannelId); err != nil {
-		return util.SendEphemeralText("Error occurred while adding standup members: " + err.Error())
+		return util.SendEphemeralText("Error occurred while adding standup members.")
+	}
+
+	text, appErr := buildSuccessMessage(addedUsers, notAddedUsers)
+	if appErr != nil {
+		return util.SendEphemeralText("Error occurred while adding standup members.")
 	}
 
 	return &model.CommandResponse{
 		Type: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-		Text: buildSuccessMessage(addedUsers, notAddedUsers),
+		Text: text,
 	}, nil
 }
 
@@ -129,12 +134,23 @@ func addStandupMembers(usernames []string, channelID string) error {
 	return nil
 }
 
-func buildSuccessMessage(addedUsers, notAddedUsers []string) string {
+func buildSuccessMessage(addedUsers, notAddedUsers []string) (string, *model.AppError) {
+	notAddedUsersnames := make([]string, len(notAddedUsers))
+	for i, userID := range notAddedUsers {
+		user, appErr := config.Mattermost.GetUser(userID)
+		if appErr != nil {
+			logger.Error("Failed to get user from user ID", appErr, map[string]interface{}{"userID": userID})
+			return "", appErr
+		}
+
+		notAddedUsersnames[i] = user.Username
+	}
+
 	text := fmt.Sprintf("%d users added successfully.", len(addedUsers))
 	if len(notAddedUsers) > 0 {
-		text += fmt.Sprintf(" Following users couldn't be added: %s", strings.Join(notAddedUsers, ", "))
+		text += fmt.Sprintf(" Following users couldn't be added: %s", strings.Join(notAddedUsersnames, ", "))
 		text += "\nMake sure these users users exist on the system."
 	}
 
-	return text
+	return text, nil
 }
