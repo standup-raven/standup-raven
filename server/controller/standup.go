@@ -40,6 +40,14 @@ func executeSaveStandup(userID string, w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
+	channelID := userStandup.ChannelID
+	channelIDParam := r.URL.Query().Get("channel_id")
+
+	if channelID != channelIDParam {
+		http.Error(w, "Mismatched channel ID", http.StatusBadRequest)
+		return errors.New("channel ID provided in standup body does not match with the value in query params")
+	}
+
 	userStandup.UserID = userID
 
 	if err := userStandup.IsValid(); err != nil {
