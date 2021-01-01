@@ -56,7 +56,7 @@ func executeGetConfig(userID string, w http.ResponseWriter, r *http.Request) err
 
 	c, err := standup.GetStandupConfig(channelID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Couldn't fetch channel standup configuration", http.StatusInternalServerError)
 		return err
 	}
 
@@ -68,8 +68,8 @@ func executeGetConfig(userID string, w http.ResponseWriter, r *http.Request) err
 	// TODO: make use of ToJSON function for sending conf in response
 	data, err := json.Marshal(c)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logger.Error("Couldn't serialize config data", err, map[string]interface{}{"config": c.ToJSON()})
+		http.Error(w, "Couldn't parse channel standup configuration", http.StatusInternalServerError)
+		logger.Error("Couldn't serialize config data", err, nil)
 		return err
 	}
 
@@ -101,7 +101,7 @@ func executeSetConfig(userID string, w http.ResponseWriter, r *http.Request) err
 	}
 
 	if err := conf.PreSave(); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Couldn't save standup configuration", http.StatusBadRequest)
 		return err
 	}
 
@@ -163,7 +163,7 @@ func executeGetDefaultTimezone(w http.ResponseWriter, r *http.Request) error {
 
 	data, err := json.Marshal(timezone)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Couldn't parse standup configuration", http.StatusInternalServerError)
 		logger.Error("Couldn't serialize config data", err, map[string]interface{}{"timezone": timezone})
 		return err
 	}

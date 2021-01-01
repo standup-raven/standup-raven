@@ -36,7 +36,7 @@ func executeSaveStandup(userID string, w http.ResponseWriter, r *http.Request) e
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(userStandup); err != nil {
 		logger.Error("Couldn't decode request body into user standup object", err, nil)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return err
 	}
 
@@ -57,7 +57,7 @@ func executeSaveStandup(userID string, w http.ResponseWriter, r *http.Request) e
 	}
 
 	if err := standup.SaveUserStandup(userStandup); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Failed to save standup", http.StatusBadRequest)
 		return err
 	}
 
