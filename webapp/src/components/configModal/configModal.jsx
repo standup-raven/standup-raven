@@ -280,7 +280,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                     prevState.hasPermission =
                         pluginConfig.permissionSchemaEnabled ? utils.isEffectiveChannelAdmin(this.props.userRoles) : true;
 
-                    prevState.hasPermission = prevState.hasPermission && this.props.isGuest;
+                    prevState.hasPermission = prevState.hasPermission && !this.props.isGuest;
                     return prevState;
                 });
             })
