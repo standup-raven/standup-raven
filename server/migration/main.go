@@ -63,6 +63,7 @@ var migrations = []Migration{
 	upgradeDatabaseToVersion3_1_1,
 	upgradeDatabaseToVersion3_2_0,
 	upgradeDatabaseToVersion3_2_1,
+	upgradeDatabaseToVersion3_2_2,
 }
 
 // DatabaseMigration gets the current database schema version and performs
