@@ -11,3 +11,4 @@ webapp.sha
 webapp.old.sha
 server.sha
 server.old.sha
+**/.DS_Store
