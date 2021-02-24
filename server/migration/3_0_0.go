@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -11,40 +12,43 @@ import (
 )
 
 func upgradeDatabaseToVersion3_0_0(fromVersion string) error {
-	if fromVersion == version2_0_0 {
-		standupChannels, err := standup.GetStandupChannels()
-		if err != nil {
+	if fromVersion != version2_0_0 {
+		return nil
+	}
+
+	standupChannels, err := standup.GetStandupChannels()
+	if err != nil {
+		return err
+	}
+
+	rruleString, err := generateRRuleStringByWorkWeek()
+	if err != nil {
+		return err
+	}
+
+	config.Mattermost.LogInfo("Upgrading Standup Raven to v3.0.0. Standup Raven will automatically be disabled for channels which fail to be upgraded")
+
+	failedChannelIDs := []string{}
+
+	for channelID := range standupChannels {
+		err := upgradeChannel(channelID, rruleString)
+
+		if err == nil {
+			config.Mattermost.LogInfo(fmt.Sprintf("Successfully upgraded channel '%s'.", channelID))
+		} else {
+			config.Mattermost.LogError(fmt.Sprintf("Failed to upgrade channel '%s'. Error: %s.", channelID, err))
+			failedChannelIDs = append(failedChannelIDs, channelID)
+		}
+	}
+
+	if len(failedChannelIDs) > 0 {
+		if err := standup.RemoveStandupChannels(failedChannelIDs); err != nil {
 			return err
 		}
+	}
 
-		rruleString, err := generateRRuleStringByWorkWeek()
-		if err != nil {
-			return err
-		}
-
-		for channelID := range standupChannels {
-			channelConfig, err := standup.GetStandupConfig(channelID)
-			if err != nil {
-				return err
-			}
-
-			channelConfig.RRuleString = rruleString
-			if err := channelConfig.PreSave(); err != nil {
-				return err
-			}
-
-			if err := channelConfig.IsValid(); err != nil {
-				return err
-			}
-
-			if _, err := standup.SaveStandupConfig(channelConfig); err != nil {
-				return err
-			}
-		}
-
-		if UpdateErr := updateSchemaVersion(version3_0_0); UpdateErr != nil {
-			return UpdateErr
-		}
+	if UpdateErr := updateSchemaVersion(version3_0_0); UpdateErr != nil {
+		return UpdateErr
 	}
 
 	return nil
@@ -102,4 +106,26 @@ func getStandupWeekDays(workWeekStart, workWeekEnd int) []string {
 	}
 
 	return weekdays
+}
+
+func upgradeChannel(channelID, rruleString string) error {
+	channelConfig, err := standup.GetStandupConfig(channelID)
+	if err != nil {
+		return err
+	}
+
+	channelConfig.RRuleString = rruleString
+	if err := channelConfig.PreSave(); err != nil {
+		return err
+	}
+
+	if err := channelConfig.IsValid(); err != nil {
+		return err
+	}
+
+	if _, err := standup.SaveStandupConfig(channelConfig); err != nil {
+		return err
+	}
+
+	return nil
 }

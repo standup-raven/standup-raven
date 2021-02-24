@@ -298,6 +298,23 @@ func AddStandupChannel(channelID string) error {
 	return setStandupChannels(channels)
 }
 
+// RemoveStandupChannels removes all specified channels from list of standup channels.
+// This is later user for iterating over all standup channels.
+func RemoveStandupChannels(channelIDs []string) error {
+	logger.Debug(fmt.Sprintf("Removing standup channels: %v", channelIDs), nil)
+
+	channels, err := GetStandupChannels()
+	if err != nil {
+		return err
+	}
+
+	for _, channelID := range channelIDs {
+		delete(channels, channelID)
+	}
+
+	return setStandupChannels(channels)
+}
+
 // GetStandupChannels fetches all channels where standup is configured.
 // Returns a map of channel ID to channel ID for maintaining uniqueness.
 func GetStandupChannels() (map[string]string, error) {

@@ -80,8 +80,20 @@ check-style-server:
 	echo Running golangci-lint
 	golangci-lint run ./server/...
 	
-fix-style: check-style-server
-	echo Checking for style guide compliance
+fix-style: fix-style-server fix-style-webapp
+
+fix-style-server:
+	echo "Fixing server styles..."
+	if ! [ -x "$$(command -v golangci-lint)" ]; then \
+			echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
+			exit 1; \
+		fi; \
+	
+	echo Running golangci-lint
+	golangci-lint run --fix ./server/...
+
+fix-style-webapp:
+	echo "Fixing webapp styles..."
 	cd webapp && yarn run fixjs
 	cd webapp && yarn run fixstyle
 	
