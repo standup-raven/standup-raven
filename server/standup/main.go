@@ -489,7 +489,7 @@ func removeChannelHeaderSchedule(channelHeader string) string {
 	return userDefinedHeader
 }
 
-func addChannelHeaderSchedule(channelHeader string, schedule string) string {
+func addChannelHeaderSchedule(channelHeader, schedule string) string {
 	if channelHeader == "" {
 		return schedule + standupScheduleEndMarker
 	}

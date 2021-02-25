@@ -51,11 +51,7 @@ func upgradeDatabaseToVersion3_0_0(fromVersion string) error {
 		}
 	}
 
-	if UpdateErr := updateSchemaVersion(version3_0_0); UpdateErr != nil {
-		return UpdateErr
-	}
-
-	return nil
+	return updateSchemaVersion(version3_0_0)
 }
 
 func generateRRuleStringByWorkWeek() (string, error) {
