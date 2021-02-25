@@ -12,6 +12,7 @@ const mapStateToProps = (state) => ({
     channelID: state.entities.channels.currentChannelId,
     visible: Selectors.isStandupModalVisible(state),
     siteURL: util.trimTrailingSlash(util.getValueSafely(state, 'entities.general.config.SiteURL', '')),
+    isGuest: util.isGuestUser(state, state.entities.users.currentUserId),
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
