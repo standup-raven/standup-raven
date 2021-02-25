@@ -1238,3 +1238,38 @@ func TestUpdateChannelHeader_ArchivedChannel(t *testing.T) {
 	assert.Nil(t, err)
 	mockAPI.AssertNumberOfCalls(t, "UpdateChannel", 0)
 }
+
+func TestRemoveStandupChannels(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+	config.Mattermost = mockAPI
+
+	mockAPI.On("LogDebug", mock.AnythingOfType("string"))
+
+	monkey.Patch(GetStandupChannels, func() (map[string]string, error) {
+		return map[string]string{
+			"channel_1": "channel_1",
+		}, nil
+	})
+	defer monkey.Unpatch(GetStandupChannels)
+
+	monkey.Patch(setStandupChannels, func(channels map[string]string) error {
+		return nil
+	})
+	defer monkey.Unpatch(setStandupChannels)
+
+	assert.Nil(t, RemoveStandupChannels([]string{"channel_1", "channel_2"}))
+}
+
+func TestArchiveStandupChannels(t *testing.T) {
+	defer TearDown()
+	mockAPI := baseMock()
+	config.Mattermost = mockAPI
+
+	mockAPI.On("LogDebug", mock.AnythingOfType("string"))
+	mockAPI.On("KVGet", util.GetKeyHash("standup_config_channel_1")).Return([]byte("{}"), nil)
+	mockAPI.On("KVSet", util.GetKeyHash("standup_config_channel_1")+"_DEL", mock.Anything).Return(nil)
+	mockAPI.On("KVDelete", util.GetKeyHash("standup_config_channel_1")).Return(nil)
+
+	assert.Nil(t, ArchiveStandupChannels("channel_1"))
+}

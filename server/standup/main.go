@@ -324,7 +324,7 @@ func ArchiveStandupChannels(channelID string) error {
 		return errors.New(appErr.Error())
 	}
 
-	if err := config.Mattermost.KVSet(key + "_DEL", data); err != nil {
+	if err := config.Mattermost.KVSet(key+"_DEL", data); err != nil {
 		logger.Error("Failed to save archived copy of channel configuration.", err, map[string]interface{}{"channel_id": channelID})
 		return err
 	}
