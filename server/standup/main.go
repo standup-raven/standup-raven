@@ -315,6 +315,28 @@ func RemoveStandupChannels(channelIDs []string) error {
 	return setStandupChannels(channels)
 }
 
+// ArchiveStandupChannels archives the channel standup config.
+func ArchiveStandupChannels(channelID string) error {
+	key := util.GetKeyHash(config.CacheKeyPrefixTeamStandupConfig + channelID)
+	data, appErr := config.Mattermost.KVGet(key)
+	if appErr != nil {
+		logger.Error("Couldn't fetch standup config for channel from KV store", appErr, map[string]interface{}{"channelID": channelID})
+		return errors.New(appErr.Error())
+	}
+
+	if err := config.Mattermost.KVSet(key + "_DEL", data); err != nil {
+		logger.Error("Failed to save archived copy of channel configuration.", err, map[string]interface{}{"channel_id": channelID})
+		return err
+	}
+
+	if err := config.Mattermost.KVDelete(key); err != nil {
+		logger.Error("Failed to delete standup config after saving archived copy.", err, map[string]interface{}{"channel_id": channelID})
+		return err
+	}
+
+	return nil
+}
+
 // GetStandupChannels fetches all channels where standup is configured.
 // Returns a map of channel ID to channel ID for maintaining uniqueness.
 func GetStandupChannels() (map[string]string, error) {

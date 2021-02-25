@@ -26,7 +26,7 @@ func upgradeDatabaseToVersion3_0_0(fromVersion string) error {
 		return err
 	}
 
-	config.Mattermost.LogInfo("Upgrading Standup Raven to v3.0.0. Standup Raven will automatically be disabled for channels which fail to be upgraded")
+	config.Mattermost.LogInfo("Upgrading Standup Raven to v3.0.0. Standup Raven will automatically be disabled for channels which fail to be upgraded.")
 
 	failedChannelIDs := []string{}
 
@@ -44,6 +44,10 @@ func upgradeDatabaseToVersion3_0_0(fromVersion string) error {
 	if len(failedChannelIDs) > 0 {
 		if err := standup.RemoveStandupChannels(failedChannelIDs); err != nil {
 			return err
+		}
+
+		for _, channelID := range failedChannelIDs {
+			_ = standup.ArchiveStandupChannels(channelID)
 		}
 	}
 
