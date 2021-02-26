@@ -52,7 +52,7 @@
     "react-bootstrap-typeahead": "^3.3.0",
     "react-datepicker": "^2.14.1",
     "react-dom": "^16.7.0",
-    "react-redux": "5.0.7",
+    "react-redux": "5.1.2",
     "react-rrule-generator": "https://github.com/standup-raven/react-bootstrap-rrule-generator.git#v2.0.0",
     "react-switch": "^5.0.0",
     "redux": "4.0.0",
