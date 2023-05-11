@@ -56,6 +56,7 @@ module.exports = {
     externals: {
         react: 'React',
         redux: 'Redux',
+        'react-dom': 'ReactDom',
         'react-redux': 'ReactRedux',
         'prop-types': 'PropTypes',
         'react-bootstrap': 'ReactBootstrap',
