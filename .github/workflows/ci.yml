@@ -52,7 +52,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install webapp dependencies
-        run: make webapp/node_modules
+        run: make vendor
         env:
           TERM: dumb
 
