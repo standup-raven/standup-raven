@@ -1,6 +1,8 @@
 package standup
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,13 +12,11 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/teambition/rrule-go"
-
 	"github.com/thoas/go-funk"
 
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
-	util "github.com/standup-raven/standup-raven/server/util"
 )
 
 const (
@@ -57,7 +57,7 @@ func (us *UserStandup) IsValid() error {
 
 	maxLen := 0
 	for _, sectionTasks := range us.Standup {
-		maxLen = util.Max(maxLen, len(*sectionTasks))
+		maxLen = Max(maxLen, len(*sectionTasks))
 	}
 
 	if maxLen == 0 {
@@ -117,14 +117,14 @@ func (sc *Config) IsValid() error {
 	}
 
 	if len(sc.Sections) < standupSectionsMinLength {
-		return fmt.Errorf("too few sections in standup. Required at least %d section%s", standupSectionsMinLength, util.SingularPlural(standupSectionsMinLength))
+		return fmt.Errorf("too few sections in standup. Required at least %d section%s", standupSectionsMinLength, SingularPlural(standupSectionsMinLength))
 	}
 
-	if duplicateSection, hasDuplicate := util.ContainsDuplicates(&sc.Sections); hasDuplicate {
+	if duplicateSection, hasDuplicate := ContainsDuplicates(&sc.Sections); hasDuplicate {
 		return errors.New("Duplicate sections are not allowed. Contains duplicate section '" + duplicateSection + "'")
 	}
 
-	if duplicateMember, hasDuplicate := util.ContainsDuplicates(&sc.Members); hasDuplicate {
+	if duplicateMember, hasDuplicate := ContainsDuplicates(&sc.Members); hasDuplicate {
 		return errors.New("Duplicate members are not allowed. Contains duplicate member '" + duplicateMember + "'")
 	}
 
@@ -179,7 +179,7 @@ func (sc *Config) setStartDateLocation() error {
 
 // initializeRRule initialized RRULE by parsing the RRULE string.
 func (sc *Config) initializeRRule() error {
-	rule, err := util.ParseRRuleFromString(sc.RRuleString, sc.StartDate)
+	rule, err := ParseRRuleFromString(sc.RRuleString, sc.StartDate)
 	if err != nil {
 		logger.Error("unable to parse rrule string in standup config pre-save", err, map[string]interface{}{
 			"rrule":     sc.RRuleString,
@@ -317,7 +317,7 @@ func RemoveStandupChannels(channelIDs []string) error {
 
 // ArchiveStandupChannels archives the channel standup config.
 func ArchiveStandupChannels(channelID string) error {
-	key := util.GetKeyHash(config.CacheKeyPrefixTeamStandupConfig + channelID)
+	key := GetKeyHash(config.CacheKeyPrefixTeamStandupConfig + channelID)
 	data, appErr := config.Mattermost.KVGet(key)
 	if appErr != nil {
 		logger.Error("Couldn't fetch standup config for channel from KV store", appErr, map[string]interface{}{"channelID": channelID})
@@ -342,7 +342,7 @@ func ArchiveStandupChannels(channelID string) error {
 func GetStandupChannels() (map[string]string, error) {
 	logger.Debug("Fetching all standup channels", nil)
 
-	data, appErr := config.Mattermost.KVGet(util.GetKeyHash(config.CacheKeyAllStandupChannels))
+	data, appErr := config.Mattermost.KVGet(GetKeyHash(config.CacheKeyAllStandupChannels))
 	if appErr != nil {
 		logger.Error("Couldn't fetch standup channel list from KV store", appErr, nil)
 		return nil, errors.New(appErr.Error())
@@ -379,7 +379,7 @@ func SaveUserStandup(userStandup *UserStandup) error {
 		return err
 	}
 
-	if appErr := config.Mattermost.KVSet(util.GetKeyHash(key), bytes); appErr != nil {
+	if appErr := config.Mattermost.KVSet(GetKeyHash(key), bytes); appErr != nil {
 		logger.Error("Error occurred in saving user standup in KV store", errors.New(appErr.Error()), nil)
 		return appErr
 	}
@@ -390,7 +390,7 @@ func SaveUserStandup(userStandup *UserStandup) error {
 // GetUserStandup fetches a user's standup for the specified channel and date.
 func GetUserStandup(userID, channelID string, date otime.OTime) (*UserStandup, error) {
 	key := date.GetDateString() + "_" + channelID + userID
-	data, appErr := config.Mattermost.KVGet(util.GetKeyHash(key))
+	data, appErr := config.Mattermost.KVGet(GetKeyHash(key))
 	if appErr != nil {
 		logger.Error("Couldn't fetch user standup from KV store", appErr, map[string]interface{}{"userID": userID, "channelID": channelID})
 		return nil, errors.New(appErr.Error())
@@ -426,7 +426,7 @@ func SaveStandupConfig(standupConfig *Config) (*Config, error) {
 	}
 
 	key := config.CacheKeyPrefixTeamStandupConfig + standupConfig.ChannelID
-	if err := config.Mattermost.KVSet(util.GetKeyHash(key), serializedStandupConfig); err != nil {
+	if err := config.Mattermost.KVSet(GetKeyHash(key), serializedStandupConfig); err != nil {
 		logger.Error("Couldn't save channel standup config in KV store", err, map[string]interface{}{"channelID": standupConfig.ChannelID})
 		return nil, err
 	}
@@ -502,7 +502,7 @@ func GetStandupConfig(channelID string) (*Config, error) {
 	logger.Debug(fmt.Sprintf("Fetching standup config for channel: %s", channelID), nil)
 
 	key := config.CacheKeyPrefixTeamStandupConfig + channelID
-	data, appErr := config.Mattermost.KVGet(util.GetKeyHash(key))
+	data, appErr := config.Mattermost.KVGet(GetKeyHash(key))
 	if appErr != nil {
 		logger.Error("Couldn't fetch standup config for channel from KV store", appErr, map[string]interface{}{"channelID": channelID})
 		return nil, errors.New(appErr.Error())
@@ -534,10 +534,61 @@ func setStandupChannels(channels map[string]string) error {
 		return err
 	}
 
-	appErr := config.Mattermost.KVSet(util.GetKeyHash(config.CacheKeyAllStandupChannels), data)
+	appErr := config.Mattermost.KVSet(GetKeyHash(config.CacheKeyAllStandupChannels), data)
 	if appErr != nil {
 		return errors.New(appErr.Error())
 	}
 
 	return nil
+}
+
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func GetKeyHash(key string) string {
+	hash := sha256.New()
+	_, _ = hash.Write([]byte(key))
+	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
+}
+
+func ContainsDuplicates(data *[]string) (string, bool) {
+	seen := make(map[string]bool, len(*data))
+
+	for _, item := range *data {
+		if _, ok := seen[item]; ok {
+			return item, true
+		}
+
+		seen[item] = true
+	}
+
+	return "", false
+}
+
+func ParseRRuleFromString(rruleString string, startDate time.Time) (*rrule.RRule, error) {
+	// parse rrule
+	rruleOptions, err := rrule.StrToROption(rruleString)
+	if err != nil {
+		return nil, err
+	}
+
+	rule, err := rrule.NewRRule(*rruleOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	rule.DTStart(startDate)
+	return rule, nil
+}
+
+func SingularPlural(count int) string {
+	if count >= -1 && count <= 1 {
+		return ""
+	}
+
+	return "s"
 }
