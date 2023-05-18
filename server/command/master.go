@@ -6,7 +6,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/standup-raven/standup-raven/server/config"
-	"github.com/standup-raven/standup-raven/server/util"
+	util "github.com/standup-raven/standup-raven/server/utils"
+
 )
 
 // Master is the driver command for all other commands

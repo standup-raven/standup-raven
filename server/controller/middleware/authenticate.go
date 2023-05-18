@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/standup-raven/standup-raven/server/util"
+	util "github.com/standup-raven/standup-raven/server/utils"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 

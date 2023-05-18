@@ -11,7 +11,8 @@ import (
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/standup"
-	"github.com/standup-raven/standup-raven/server/util"
+	util "github.com/standup-raven/standup-raven/server/utils"
+
 )
 
 func commandAddMembers() *Config {

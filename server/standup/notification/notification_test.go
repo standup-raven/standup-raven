@@ -20,7 +20,8 @@ import (
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
 	"github.com/standup-raven/standup-raven/server/standup"
-	"github.com/standup-raven/standup-raven/server/util"
+	util "github.com/standup-raven/standup-raven/server/utils"
+
 )
 
 var rule *rrule.RRule

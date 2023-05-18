@@ -21,7 +21,8 @@ import (
 	"github.com/standup-raven/standup-raven/server/command"
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller"
-	"github.com/standup-raven/standup-raven/server/util"
+	util "github.com/standup-raven/standup-raven/server/utils"
+
 )
 
 // ldflag variables

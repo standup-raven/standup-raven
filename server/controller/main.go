@@ -4,7 +4,8 @@ import (
 	"net/http"
 
 	"github.com/standup-raven/standup-raven/server/controller/middleware"
-	"github.com/standup-raven/standup-raven/server/util"
+	util "github.com/standup-raven/standup-raven/server/utils"
+
 )
 
 type endpointHandler func(w http.ResponseWriter, r *http.Request) error
