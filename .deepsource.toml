@@ -1,9 +1,7 @@
+
 version = 1
 
 test_patterns = ["*_test.go"]
-
-[analyzers.meta]
-import_paths = ["github.com/standup-raven/standup-raven/server"]
 
 [[analyzers]]
 name = "javascript"
