@@ -51,8 +51,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Install webapp dependencies
+      - name: Install server dependencies
         run: make vendor
+        env:
+          TERM: dumb
+      
+       - name: Install web dependencies
+        run: make .webinstall
         env:
           TERM: dumb
 
