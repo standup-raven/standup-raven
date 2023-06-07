@@ -1,4 +1,3 @@
-
 version = 1
 
 test_patterns = ["*_test.go"]
