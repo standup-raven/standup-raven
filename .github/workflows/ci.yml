@@ -2,13 +2,19 @@
 # - code style guidelines are followed (make check-style)
 # - tests pass (make test)
 # - code builds (make dist)
-name: CI
-
+name: ci
 on:
-  pull_request:
+  schedule:
+    - cron: "0 0 * * *"
   push:
     branches:
       - master
+    tags:
+      - "v*"
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   ci:
