@@ -62,7 +62,7 @@ jobs:
         env:
           TERM: dumb
       
-       - name: Install web dependencies
+      - name: Install web dependencies
         run: make .webinstall
         env:
           TERM: dumb
