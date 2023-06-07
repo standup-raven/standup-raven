@@ -20,7 +20,7 @@ var nilTime = (time.Time{}).UnixNano()
 
 // DefaultLocation is the default timezone to be used when creating a new standup config.
 // TODO will need to remove this and use channel-specific location
-// 	when adding per-channel timezone setting
+// when adding per-channel timezone setting
 var DefaultLocation *time.Location
 
 func Parse(value string) (OTime, error) {

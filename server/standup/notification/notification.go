@@ -283,9 +283,9 @@ func SetNotificationStatus(channelID string, status *ChannelNotificationStatus) 
 }
 
 // filterChannelNotification filters all provided standup channels into three categories -
-// 		1. channels requiring window open notification
-// 		2. channels requiring window close notification
-//		3. channels requiring standup report
+// 1. channels requiring window open notification
+// 2. channels requiring window close notification
+// 3. channels requiring standup report
 func filterChannelNotification(channelIDs map[string]string) ([]string, []string, []string, error) {
 	logger.Debug("Filtering channels for sending notifications", nil)
 	logger.Debug(fmt.Sprintf("Channels to process: %d", len(channelIDs)), nil, nil)

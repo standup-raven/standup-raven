@@ -54,16 +54,16 @@ var (
 )
 
 type Configuration struct {
-	TimeZone                string `json:"timeZone"`
-	PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`
-	EnableErrorReporting    bool   `json:"enableErrorReporting"`
-	PluginVersion           string `json:"plugin_version"`
-
 	// derived attributes
-	BotUserID       string         `json:"botUserId"`
 	Location        *time.Location `json:"location"`
+	BotUserID       string         `json:"botUserId"`
 	SentryServerDSN string         `json:"sentryServerDSN"`
 	SentryWebappDSN string         `json:"sentryWebappDSN"`
+
+	TimeZone                string `json:"timeZone"`
+	PluginVersion           string `json:"plugin_version"`
+	PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`
+	EnableErrorReporting    bool   `json:"enableErrorReporting"`
 }
 
 func GetConfig() *Configuration {
