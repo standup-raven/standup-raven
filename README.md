@@ -3,7 +3,7 @@
 <img src="docs/assets/images/banner.png?raw=true" width="70%" max-width="1500px"></img>
 
 #
-A Mattermost plugin for communicating daily standups across team
+A Mattermost plugin for communicating daily standups across teams
 
 
 [![CircleCI](https://circleci.com/gh/standup-raven/standup-raven/tree/master.svg?style=svg)](https://circleci.com/gh/standup-raven/standup-raven/tree/master)
@@ -50,15 +50,15 @@ A Mattermost plugin for communicating daily standups across team
 
 * Multiple standup report formats -
 
-  * User Aggregated - tasks aggregated by individual users
+  * User Aggregated - Tasks aggregated by individual users
 
     <img src="docs/assets/images/report-user-aggregated.png?raw=true" width="500px"></img>
      
-  * Type Aggregated - tasks aggregated by type
+  * Type Aggregated - Tasks aggregated by type
 
     <img src="docs/assets/images/report-type-aggregated.png?raw=true" width="500px"></img>
 
-* Ability to preview standup report without publishing it in channel
+* Ability to preview a standup report without publishing it in the channel
 * Ability to manually generate standup reports for any arbitrary date
 
 ## 🧰 Functionality
@@ -67,13 +67,13 @@ A Mattermost plugin for communicating daily standups across team
 
 * Multiple report formats to choose from.
 
-* Receive a window open notification at the configured window open time to remind filling your standup.
+* Receive a window open notification at the configured window open time to remind you to fill out your standup.
 
-* Receive a reminder at completion of 80% of configured window duration to remind filling your standup. 
-This message tags members who haven't yet filled their standup.
+* Receive a reminder at the completion of 80% of the configured window duration to remind you to fill out your standup. 
+This message tags members who haven't yet filled out their standup.
 
-* Receive auto-generated standup report at the end of configured window close time. 
-The generated standup contains names of members who have yet not filled their standup.
+* Receive an auto-generated standup report at the end of the configured window close time. 
+The generated standup contains the names of members who have yet to fill out their standup.
 
 * Allow or restrict standup configuration modification to channel admins (Requires Mattermost EE).
 
@@ -151,4 +151,4 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are welcome!

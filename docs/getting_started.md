@@ -6,7 +6,7 @@
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. 
 
-See [deployment notes](#%EF%B8%8F%EF%B8%8Fdeployment) on how to deploy the project on a live system.
+See [deployment notes](deployment.md) on how to deploy the project on a live system.
 
 ### 🔑 Prerequisites
 
@@ -18,15 +18,15 @@ Set up your development environment for building, running, and testing the Stand
 
 #### Go
 
-Requires go version 1.15
+Requires go version 1.18
 
     https://golang.org/doc/install
     
 #### NodeJS
 
-Recommended NodeJS version 10.17
+Recommended NodeJS version 14.8.0
 
-    https://nodejs.org/download/release/v10.11.0/
+    https://nodejs.org/download/release/v14.8.0/
 
 #### Make
 
@@ -38,7 +38,7 @@ On MacOS, install XCode command line tools.
 
 #### HTTPie
 
-You need this only if you want to use `$ make deploy` for deployments to Mattermost instance.
+You need this only if you want to use `$ make deploy` for deployments to Mattermost instances.
 
 On MacOS
 
@@ -48,7 +48,7 @@ On Ubuntu
 
     $ apt-get install httpie
     
-For other platform refer the [official installation guide](https://github.com/jakubroztocil/httpie#id3).
+For other platform, refer to the [official installation guide](https://github.com/jakubroztocil/httpie#id3).
 
 ### 👨‍💻 Building
 
@@ -76,7 +76,7 @@ This will run server and webapp style checks -
 
     $ make check-style
     
-You can also run style check for server and webapp individually
+You can also run style checks for the server and webapp individually.
 
     $ make check-style-server # server style check
     $ make check-style-webapp # webapp style check

@@ -20,23 +20,23 @@ environment variable for it to work -
 
         /standup config
         
-    this opens a modal where you can enter your channel's configurations.
+    This opens a modal where you can enter your channel's configurations.
 
-1. Add members to standup -
+1. Add members to the standup -
 
         /standup addmembers <usernames...>
         
-    Usernames can be specified as @ mentions.
+    Usernames can be specified as @mentions.
     
-1. You may verify saved config if you want by executing -
+1. You may verify the saved config if you want by executing -
 
         /standup viewconfig
         
-1. Fill your standup by clicking on the Standup Raven icon in the channel header bar. The icon may be hidden in ellipsis icon.
+1. Fill your standup by clicking on the Standup Raven icon in the channel header bar. The icon may be hidden in an ellipsis icon.
 
     ![](assets/images/channel_header_button.png)
     
-1. Execute help command anytime to access plugin commands help -
+1. Execute the help command anytime to access plugin commands help -
 
         /standup help 
 

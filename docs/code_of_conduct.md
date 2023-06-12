@@ -3,9 +3,9 @@
 # Contributing
 
 When contributing to this repository, please first discuss the change you wish to make via issue,
-email, or any other method with the owners of this repository before making a change. 
+email, or any other method, with the owners of this repository before making a change. 
 
-Please note we have a code of conduct, please follow it in all your interactions with the project.
+Please note that we have a code of conduct, please follow it in all your interactions with the project.
 
 ## Pull Request Process
 
@@ -23,7 +23,7 @@ Please note we have a code of conduct, please follow it in all your interactions
 ### Our Pledge
 
 In the interest of fostering an open and welcoming environment, we as
-contributors and maintainers pledge to making participation in our project and
+contributors and maintainers pledge to participate in our project and
 our community a harassment-free experience for everyone, regardless of age, body
 size, disability, ethnicity, gender identity and expression, level of experience,
 nationality, personal appearance, race, religion, or sexual identity and
@@ -48,7 +48,7 @@ advances
 * Public or private harassment
 * Publishing others' private information, such as a physical or electronic
   address, without explicit permission
-* Other conduct which could reasonably be considered inappropriate in a
+* Other conduct that could reasonably be considered inappropriate in a
   professional setting
 
 ### Our Responsibilities
@@ -67,7 +67,7 @@ threatening, offensive, or harmful.
 
 This Code of Conduct applies both within project spaces and in public spaces
 when an individual is representing the project or its community. Examples of
-representing a project or community include using an official project e-mail
+representing a project or community includes using an official project e-mail
 address, posting via an official social media account, or acting as an appointed
 representative at an online or offline event. Representation of a project may be
 further defined and clarified by project maintainers.
@@ -77,7 +77,7 @@ further defined and clarified by project maintainers.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported by contacting the project team at [INSERT EMAIL ADDRESS]. All
 complaints will be reviewed and investigated and will result in a response that
-is deemed necessary and appropriate to the circumstances. The project team is
+is deemed necessary and appropriate for the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
 Further details of specific enforcement policies may be posted separately.
 
@@ -87,9 +87,9 @@ members of the project's leadership.
 
 ### Workflow
 
-This is a general workflow for anyone who would like to contribute to Standup Raven Mattermost plugin.
+This is a general workflow for anyone who would like to contribute to the Standup Raven Mattermost plugin.
 
-1. Review the respository structure
+1. Review the repository structure
 
         .
         ├── docs - contains all documentations, including this file
@@ -117,11 +117,11 @@ This is a general workflow for anyone who would like to contribute to Standup Ra
 1. Run style check by running `make check-style` from the project root. Make sure your modifications comply with the set up style guidelines.
 1. Create a pull request from `your_fork/GH-###` to `standup-raven/master`. Make sure to update the checklist
 in the pull request template.
-1. Once a developer has reviewed your pull request, it will either be accepted straight away, of you may receive some review comments.
+1. Once a developer has reviewed your pull request, it will either be accepted straight away, or you may receive some review comments.
 Review comments help up communicate with you over the code changes you've proposed to make sure we understand each other.
-1. Once the review comments are implemented, reply and resolve on the comments and a developer will take a second look. Rinse and repeat.
-1. On acceptance of your changes, your pull request will be merged and made part of new release. Your changes will impact 
-the thousands (,some day) of users in their daily endavour to fill standups.
+1. Once the review comments are implemented, reply and resolve the comments and a developer will take a second look. Rinse and repeat.
+1. On acceptance of your changes, your pull request will be merged and made part of the new release. Your changes will impact 
+the thousands (some days) of users in their daily endeavour to fill standups.
 
 ### 3rd Party Service URL
 
