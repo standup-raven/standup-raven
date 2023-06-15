@@ -13,7 +13,6 @@ require (
 	github.com/teambition/rrule-go v1.6.0
 	github.com/thoas/go-funk v0.7.0
 	go.uber.org/atomic v1.6.0
-	golang.org/x/sys v0.8.0 // indirect
 )
 
 require (
