@@ -3,6 +3,8 @@ package command
 import (
 	"strings"
 
+	"github.com/thoas/go-funk"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 
@@ -18,6 +20,7 @@ func commandRemoveMembers() *Config {
 			Hint:    "[username 1] [username 2] [username 3]...",
 			HelpText: "Removes specified members from the channel's standup. " +
 				"Members are NOT removed from the channel automatically.",
+			RoleID: model.SYSTEM_USER_ROLE_ID,
 			Arguments: []*model.AutocompleteArg{
 				{
 					Type:     model.AutocompleteArgTypeText,
@@ -38,6 +41,15 @@ func commandRemoveMembers() *Config {
 }
 
 func validateRemoveMembers(args []string, context Context) (*model.CommandResponse, *model.AppError) {
+	userRoles, appErr := util.GetUserRoles(context.CommandArgs.UserId, context.CommandArgs.ChannelId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if funk.Contains(userRoles, model.SYSTEM_GUEST_ROLE_ID) {
+		return util.SendEphemeralText("Guest users are not allowed to perform this operation.")
+	}
+
 	// we need at least one member
 	if len(args) < 1 {
 		return util.SendEphemeralText("Please specify at least one user to remove")

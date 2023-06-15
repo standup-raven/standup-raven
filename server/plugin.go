@@ -141,8 +141,6 @@ func (p *Plugin) setInjectedVars(configuration *config.Configuration) {
 func (p *Plugin) RegisterCommands() error {
 	if err := config.Mattermost.RegisterCommand(&model.Command{
 		Trigger:              config.CommandPrefix,
-		Description:          "descriptoon",
-		DisplayName:          "display name",
 		AutoComplete:         true,
 		Username:             config.BotUsername,
 		AutocompleteData:     command.Master().AutocompleteData,
@@ -202,16 +200,20 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	requestToUse := r
 	// running endpoint middlewares
 	for _, middleware := range endpoint.Middlewares {
-		if appErr := middleware(w, r); appErr != nil {
-			http.Error(w, appErr.Error(), appErr.StatusCode)
+		var appErr *model.AppError
+
+		requestToUse, appErr = middleware(w, requestToUse)
+		if appErr != nil {
+			http.Error(w, appErr.DetailedError, appErr.StatusCode)
 			return
 		}
 	}
 
-	if err := endpoint.Execute(w, r); err != nil {
-		logger.Error("Error occurred processing "+r.URL.String(), err, map[string]interface{}{"request": d})
+	if err := endpoint.Execute(w, requestToUse); err != nil {
+		logger.Error("Error occurred processing "+requestToUse.URL.String(), err, map[string]interface{}{"request": d})
 		sentry.WithScope(func(scope *sentry.Scope) {
 			sentry.CaptureException(err)
 		})
