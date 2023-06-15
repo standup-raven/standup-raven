@@ -37,9 +37,9 @@ var (
 )
 
 type UserStandup struct {
+	Standup   map[string]*[]string `json:"standup"`
 	UserID    string               `json:"userId"`
 	ChannelID string               `json:"channelId"`
-	Standup   map[string]*[]string `json:"standup"`
 }
 
 func (us *UserStandup) IsValid() error {
@@ -68,20 +68,20 @@ func (us *UserStandup) IsValid() error {
 }
 
 type Config struct {
-	ChannelID                  string       `json:"channelId"`
-	WindowOpenTime             otime.OTime  `json:"windowOpenTime"`
+	RRule                      *rrule.RRule `json:"rrule"`
 	WindowCloseTime            otime.OTime  `json:"windowCloseTime"`
-	ReportFormat               string       `json:"reportFormat"`
-	Members                    []string     `json:"members"`
+	WindowOpenTime             otime.OTime  `json:"windowOpenTime"`
+	StartDate                  time.Time    `json:"startDate"`
 	Sections                   []string     `json:"sections"`
-	Enabled                    bool         `json:"enabled"`
+	Members                    []string     `json:"members"`
+	ChannelID                  string       `json:"channelId"`
+	ReportFormat               string       `json:"reportFormat"`
 	Timezone                   string       `json:"timezone"`
+	RRuleString                string       `json:"rruleString"`
+	Enabled                    bool         `json:"enabled"`
 	WindowOpenReminderEnabled  bool         `json:"windowOpenReminderEnabled"`
 	WindowCloseReminderEnabled bool         `json:"windowCloseReminderEnabled"`
 	ScheduleEnabled            bool         `json:"scheduleEnabled"`
-	RRule                      *rrule.RRule `json:"rrule"`
-	RRuleString                string       `json:"rruleString"`
-	StartDate                  time.Time    `json:"startDate"`
 }
 
 func (sc *Config) IsValid() error {
