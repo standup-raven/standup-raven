@@ -192,7 +192,7 @@ Label | Apply When | Notes
 
 [Needs Collaborator](#join-the-project-team): Issue Tracker
 
-Issues and PRs can go stale after a while. Maybe they're abandoned. Maybe the team will just does not have time to address them any time soon.
+Issues and PRs can go stale after a while. Maybe they're abandoned. Maybe the team just does not have time to address them any time soon.
 
 In these cases, they should be closed until they're brought up again or the interaction starts over.
 
