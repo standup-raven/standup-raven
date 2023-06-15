@@ -2,12 +2,11 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/pkg/errors"
 
 	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller/middleware"
@@ -19,18 +18,21 @@ import (
 var getConfig = &Endpoint{
 	Path:    "/config",
 	Method:  http.MethodGet,
-	Execute: executeGetConfig,
+	Execute: authenticatedControllerWrapper(executeGetConfig),
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
 	},
 }
 
 var setConfig = &Endpoint{
 	Path:    "/config",
 	Method:  http.MethodPost,
-	Execute: executeSetConfig,
+	Execute: authenticatedControllerWrapper(executeSetConfig),
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
+		middleware.SetUserRoles,
+		middleware.DisallowGuests,
+		middleware.HandlePermissionSchema,
 	},
 }
 
@@ -45,16 +47,16 @@ var getActiveStandupChannels = &Endpoint{
 	Method:  http.MethodGet,
 	Execute: executeGetActiveStandupChannels,
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
 	},
 }
 
-func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
+func executeGetConfig(userID string, w http.ResponseWriter, r *http.Request) error {
 	channelID := r.URL.Query().Get("channel_id")
 
 	c, err := standup.GetStandupConfig(channelID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Couldn't fetch channel standup configuration", http.StatusInternalServerError)
 		return err
 	}
 
@@ -66,8 +68,8 @@ func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 	// TODO: make use of ToJSON function for sending conf in response
 	data, err := json.Marshal(c)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		logger.Error("Couldn't serialize config data", err, map[string]interface{}{"config": c.ToJSON()})
+		http.Error(w, "Couldn't parse channel standup configuration", http.StatusInternalServerError)
+		logger.Error("Couldn't serialize config data", err, nil)
 		return err
 	}
 
@@ -80,7 +82,7 @@ func executeGetConfig(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
+func executeSetConfig(userID string, w http.ResponseWriter, r *http.Request) error {
 	// get config data from body
 	decoder := json.NewDecoder(r.Body)
 	conf := &standup.Config{}
@@ -90,28 +92,16 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	userID := r.Header.Get(config.HeaderMattermostUserID)
 	channelID := conf.ChannelID
+	channelIDParam := r.URL.Query().Get("channel_id")
 
-	// if permission schema is enabled,
-	// verify if user is an effective channel admin
-	if config.GetConfig().PermissionSchemaEnabled {
-		isAdmin, appErr := isEffectiveAdmin(userID, channelID)
-
-		if appErr != nil {
-			http.Error(w, "An error occurred while verifying user permissions", appErr.StatusCode)
-			logger.Error("An error occurred while verifying user permissions", errors.New(appErr.Error()), nil)
-			return appErr
-		}
-
-		if !isAdmin {
-			http.Error(w, "You do not have permission to perform this operation", http.StatusUnauthorized)
-			return nil
-		}
+	if channelID != channelIDParam {
+		http.Error(w, "Mismatched channel ID", http.StatusBadRequest)
+		return errors.New("channel ID provided in config body does not match with the value in query params")
 	}
 
 	if err := conf.PreSave(); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Couldn't save standup configuration", http.StatusBadRequest)
 		return err
 	}
 
@@ -161,7 +151,7 @@ func executeSetConfig(w http.ResponseWriter, r *http.Request) error {
 			"channel_id": conf.ChannelID,
 		},
 		&model.WebsocketBroadcast{
-			UserId: r.Header.Get(config.HeaderMattermostUserID),
+			UserId: userID,
 		},
 	)
 
@@ -173,7 +163,7 @@ func executeGetDefaultTimezone(w http.ResponseWriter, r *http.Request) error {
 
 	data, err := json.Marshal(timezone)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Couldn't parse standup configuration", http.StatusInternalServerError)
 		logger.Error("Couldn't serialize config data", err, map[string]interface{}{"timezone": timezone})
 		return err
 	}
@@ -185,63 +175,6 @@ func executeGetDefaultTimezone(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return nil
-}
-
-func isEffectiveAdmin(userID string, channelID string) (bool, *model.AppError) {
-	if isChannelAdmin, appErr := isChannelAdmin(userID, channelID); appErr != nil {
-		return false, appErr
-	} else if isChannelAdmin {
-		config.Mattermost.LogDebug("User is channel admin", "userID", userID)
-		return true, nil
-	}
-
-	channel, appErr := config.Mattermost.GetChannel(channelID)
-	if appErr != nil {
-		return false, appErr
-	}
-
-	if isTeamAdmin, appErr := isTeamAdmin(userID, channel.TeamId); appErr != nil {
-		return false, appErr
-	} else if isTeamAdmin {
-		config.Mattermost.LogDebug("User is team admin", "userID", userID)
-		return true, nil
-	}
-
-	if isSystemAdmin, appErr := isSystemAdmin(userID); appErr != nil {
-		return false, appErr
-	} else if isSystemAdmin {
-		config.Mattermost.LogDebug("User is system admin", "userID", userID)
-		return true, nil
-	}
-
-	return false, nil
-}
-
-func isChannelAdmin(userID string, channelID string) (bool, *model.AppError) {
-	channelMember, appErr := config.Mattermost.GetChannelMember(channelID, userID)
-	if appErr != nil {
-		return false, appErr
-	}
-
-	return strings.Contains(channelMember.Roles, model.CHANNEL_ADMIN_ROLE_ID), nil
-}
-
-func isTeamAdmin(userID string, teamID string) (bool, *model.AppError) {
-	teamMember, appErr := config.Mattermost.GetTeamMember(teamID, userID)
-	if appErr != nil {
-		return false, appErr
-	}
-
-	return strings.Contains(teamMember.Roles, model.TEAM_ADMIN_ROLE_ID), nil
-}
-
-func isSystemAdmin(userID string) (bool, *model.AppError) {
-	user, appErr := config.Mattermost.GetUser(userID)
-	if appErr != nil {
-		return false, appErr
-	}
-
-	return strings.Contains(user.Roles, model.SYSTEM_ADMIN_ROLE_ID), nil
 }
 
 func executeGetActiveStandupChannels(w http.ResponseWriter, r *http.Request) error {

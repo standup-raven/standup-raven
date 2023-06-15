@@ -16,7 +16,7 @@ var hook = &Endpoint{
 	Method:  http.MethodGet,
 	Execute: executeHook,
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
 	},
 }
 

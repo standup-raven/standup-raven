@@ -75,7 +75,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
         const payload = this.prepareUserStandup();
 
         request
-            .post(`${this.props.siteURL}/${Constants.URL_SUBMIT_USER_STANDUP}`)
+            .post(`${this.props.siteURL}/${Constants.URL_SUBMIT_USER_STANDUP}?channel_id=${this.props.channelID}`)
             .withCredentials()
             .send(payload)
             .set('X-CSRF-Token', Cookies.get(Constants.MATTERMOST_CSRF_COOKIE))
@@ -85,7 +85,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                     this.setState({
                         message: {
                             show: true,
-                            text: 'An error occurred while submitting standup. Please try again.\n\n' + err.response.text,
+                            text: 'An error occurred while submitting standup.\n' + err.response.text,
                             type: 'danger',
                         },
                     });
@@ -217,7 +217,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
 
         if (!this.state.standupConfig) {
             showStandupError = true;
-            standupErrorMessage = 'Standup not configured for this channel.';
+            standupErrorMessage = 'Standup is not configured for this channel.';
             standupErrorSubMessage = 'Make sure you are filling the standup in the right channel or that standup has been configured in this channel.';
         } else if (!this.state.standupConfig.enabled) {
             showStandupError = true;
@@ -231,6 +231,10 @@ class StandupModal extends (SentryBoundary, React.Component) {
             showStandupError = true;
             standupErrorMessage = 'You are not a part of this channel\'s standup.';
             standupErrorSubMessage = 'Make sure you are filling standup in the right channel or that you were correctly added to the channel\'s standup.';
+        } else if (this.props.isGuest) {
+            showStandupError = true;
+            standupErrorMessage = 'You are not allowed to submit standup.';
+            standupErrorSubMessage = 'Guest users are not allowed to submit standup.';
         }
 
         const showSpinner = this.state.showSpinner;
@@ -361,6 +365,7 @@ StandupModal.propTypes = {
     close: PropTypes.func.isRequired,
     visible: PropTypes.bool.isRequired,
     siteURL: PropTypes.string.isRequired,
+    isGuest: PropTypes.bool.isRequired,
 };
 
 export default StandupModal;

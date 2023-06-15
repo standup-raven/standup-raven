@@ -13,7 +13,7 @@ A Mattermost plugin for communicating daily standups across team
 
 <div align="center">
 <a href="https://ko-fi.com/W7W11SK6R" target="_blank">
-    <img src="docs/assets/images/open-collective.svg?raw=true" width="270px"></img>
+    <img src="docs/assets/images/ko-fi.png?raw=true" width="270px"></img>
 </a>
 </div>
 <br>

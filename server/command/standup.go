@@ -22,6 +22,7 @@ func commandStandup() *Config {
 		AutocompleteData: &model.AutocompleteData{
 			Trigger:  "report",
 			HelpText: "Generate standup reports for provided dates",
+			RoleID:   model.SYSTEM_USER_ROLE_ID,
 			Arguments: []*model.AutocompleteArg{
 				{
 					HelpText: "Report visibility",
