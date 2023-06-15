@@ -48,7 +48,7 @@ On Ubuntu
 
     $ apt-get install httpie
     
-For other platform, refer to the [official installation guide](https://github.com/jakubroztocil/httpie#id3).
+For other platforms, refer to the [official installation guide](https://github.com/jakubroztocil/httpie#id3).
 
 ### 👨‍💻 Building
 

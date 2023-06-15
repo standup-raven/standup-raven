@@ -67,13 +67,13 @@ A Mattermost plugin for communicating daily standups across teams
 
 * Multiple report formats to choose from.
 
-* Receive a window open notification at the configured window open time to remind you to fill out your standup.
+* Receive a window open notification at the configured window open time to remind you to fill your standup.
 
-* Receive a reminder at the completion of 80% of the configured window duration to remind you to fill out your standup. 
-This message tags members who haven't yet filled out their standup.
+* Receive a reminder at the completion of 80% of the configured window duration to remind you to fill your standup. 
+This message tags those members who haven't yet filled their standup.
 
 * Receive an auto-generated standup report at the end of the configured window close time. 
-The generated standup contains the names of members who have yet to fill out their standup.
+The generated standup contains the names of members who have yet to fill their standup.
 
 * Allow or restrict standup configuration modification to channel admins (Requires Mattermost EE).
 

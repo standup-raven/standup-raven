@@ -103,7 +103,7 @@ To contribute documentation:
 
 * [Set up the project](#project-setup).
 * Edit or add any relevant documentation.
-* Make sure your changes are formatted correctly and consistent with the rest of the documentation.
+* Make sure your changes are formatted correctly and are consistent with the rest of the documentation.
 * Re-read what you wrote, and run a spellchecker on it to make sure you didn't miss anything.
 * Write clear, concise commit message(s) using [conventional-changelog format](https://github.com/conventional-changelog/conventional-changelog-angular/blob/master/convention.md). Documentation commits should use `docs(<component>): <message>`.
 * Go to https://github.com/standup-raven/standup-raven/pulls and open a new pull request with your changes.
@@ -192,7 +192,7 @@ Label | Apply When | Notes
 
 [Needs Collaborator](#join-the-project-team): Issue Tracker
 
-Issues and PRs can go stale after a while. Maybe they're abandoned. Maybe the team will just not have time to address them any time soon.
+Issues and PRs can go stale after a while. Maybe they're abandoned. Maybe the team will just does not have time to address them any time soon.
 
 In these cases, they should be closed until they're brought up again or the interaction starts over.
 

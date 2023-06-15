@@ -77,7 +77,7 @@ further defined and clarified by project maintainers.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported by contacting the project team at [INSERT EMAIL ADDRESS]. All
 complaints will be reviewed and investigated and will result in a response that
-is deemed necessary and appropriate for the circumstances. The project team is
+is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
 Further details of specific enforcement policies may be posted separately.
 
@@ -121,7 +121,7 @@ in the pull request template.
 Review comments help up communicate with you over the code changes you've proposed to make sure we understand each other.
 1. Once the review comments are implemented, reply and resolve the comments and a developer will take a second look. Rinse and repeat.
 1. On acceptance of your changes, your pull request will be merged and made part of the new release. Your changes will impact 
-the thousands (some days) of users in their daily endeavour to fill standups.
+the thousands (someday) of users in their daily endeavor to fill standups.
 
 ### 3rd Party Service URL
 

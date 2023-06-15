@@ -10,7 +10,7 @@
 
 * ##### I filled out my standup report but had to make some changes to it. However, I'm seeing a blank standup form on opening it.
 
-    Make sure you are in the same channel as when you originally filled out your standup.
+    Make sure you are in the same channel as when you originally filled your standup.
     
 * ##### I'm seeing the "Standup not configured for this channel" message on opening the standup modal.
 

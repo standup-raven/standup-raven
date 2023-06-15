@@ -4,7 +4,7 @@
 
 ## ⬇ Installation
 
-Upload the plugin binary for your platform in Mattermost's `System Console` > `Plugins (BETA)` > `Plugin Management`.
+Upload the plugin binary for your platform in Mattermost's `System Console` > `Plugins` > `Plugin Management`.
 
 ## Upgrade Instructions
 

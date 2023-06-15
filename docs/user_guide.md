@@ -24,7 +24,7 @@ Just follow these steps and you'll be ready in no time.
     * **Window close time** - The time at which an automated standup report will be sent in the channel. The report
     will include standups for all members who have filled their standups until this time.
     An additional reminder notification is sent in the channel at 80% completion of the window duration.
-    This message tags members who have not yet filled out their standups.
+    This message tags those members who have not yet filled their standups.
     
     * **Timezone** - Channel specific timezone to follow for standup notifications.
     
@@ -32,13 +32,13 @@ Just follow these steps and you'll be ready in no time.
     
     * **Window Close Reminder** - Enable or disable the window close reminder.
      
-    * **Sections** - Sections define the types of tasks users will fill out in their standup.
-    For example, if your team fills out their standup at the beginning of their work day, suggested sections would be
+    * **Sections** - Sections define the types of tasks that the users will fill in their standup.
+    For example, if your team fills their standup at the beginning of their work day, suggested sections would be
     `Yesterday`, `Today` and maybe `Blockers`.
         
         At least one section is required to be specified.
         
-1. **Saving standup config** - Save the standup config that you filled out.
+1. **Saving standup config** - Save the standup config that you filled.
 
 1. **Adding standup members** - The following slash command allows you to add members to the channel standup -
 
