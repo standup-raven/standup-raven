@@ -555,7 +555,7 @@ class ConfigModal extends (SentryBoundary, React.Component) {
                         <Button
                             type='button'
                             onClick={this.handleClose}
-                            variant={'primary'}
+                            bsStyle='link'
                         >
                             {'Cancel'}
                         </Button>
