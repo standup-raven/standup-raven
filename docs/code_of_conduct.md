@@ -125,9 +125,7 @@ the thousands (someday) of users in their daily endeavor to fill standups.
 
 ### 3rd Party Service URL
 
-* CircleCI - https://circleci.com/gh/standup-raven/standup-raven
 * Codecov - https://codecov.io/gh/standup-raven/standup-raven
-* Codacy - https://app.codacy.com/project/harshilsharma/standup-raven/dashboard
 
 ### Attribution
 
