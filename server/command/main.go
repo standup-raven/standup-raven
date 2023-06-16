@@ -14,9 +14,9 @@ type Context struct {
 
 type Config struct {
 	AutocompleteData *model.AutocompleteData
-	ExtraHelpText    string
-	Execute          func([]string, Context) (*model.CommandResponse, *model.AppError)
 	Validate         func([]string, Context) (*model.CommandResponse, *model.AppError)
+	Execute          func([]string, Context) (*model.CommandResponse, *model.AppError)
+	ExtraHelpText    string
 }
 
 func (c *Config) Syntax() string {
