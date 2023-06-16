@@ -1,7 +1,6 @@
 import React from 'react';
 
 import logo from '../../assets/images/logo.svg';
-import './style.css';
 import PropTypes from 'prop-types';
 import RavenClient from '../../raven-client';
 
@@ -86,7 +85,10 @@ class ChannelHeaderButtonIcon extends React.Component {
         return (
             <span
                 ref={this.handleRef}
-                className={'raven-icon'}
+                style={{
+                    width: '1.8em',
+                    height: '1.8em',
+                }}
                 dangerouslySetInnerHTML={{
                     __html: logo,
                 }}
