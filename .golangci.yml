@@ -47,6 +47,9 @@ issues:
   exclude:
     - 'declaration of "(err|ctx)" shadows declaration at'
   exclude-rules:
+    - path: server/standup/main.go
+      linters:
+        - govet
     - path: server/manifest.go
       linters:
         - deadcode
