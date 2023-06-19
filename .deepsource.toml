@@ -4,7 +4,16 @@ test_patterns = ["*_test.go"]
 
 [[analyzers]]
 name = "go"
-enabled = false
+enabled = true
 
 [analyzers.meta]
 import_paths = ["github.com/standup-raven/standup-raven/server"]
+
+[[analyzers]]
+name = "javascript"
+enabled = false
+
+[analyzers.meta]
+environment = ["browser"]
+plugins = ["react"]
+style_guide = "airbnb"
