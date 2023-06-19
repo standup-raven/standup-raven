@@ -121,6 +121,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                     }
                     resolve();
                 });
+            console.log('hello');
         });
     };
 
