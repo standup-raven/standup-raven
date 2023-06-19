@@ -99,7 +99,7 @@ fix-style-webapp:
 	
 test-server: vendor
 	echo Running server tests
-	go test -v -coverprofile=coverage.txt ./...
+	go test -gcflags=-l -v -coverprofile=coverage.txt ./...
 
 test: test-server
 
