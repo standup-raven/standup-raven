@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/standup-raven/standup-raven/server/config"
 	"github.com/standup-raven/standup-raven/server/controller/middleware"
 	"github.com/standup-raven/standup-raven/server/logger"
 	"github.com/standup-raven/standup-raven/server/otime"
@@ -15,31 +14,41 @@ import (
 var getStandup = &Endpoint{
 	Path:    "/standup",
 	Method:  http.MethodGet,
-	Execute: executeGetStandup,
+	Execute: authenticatedControllerWrapper(executeGetStandup),
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
 	},
 }
 
 var saveStandup = &Endpoint{
 	Path:    "/standup",
 	Method:  http.MethodPost,
-	Execute: executeSaveStandup,
+	Execute: authenticatedControllerWrapper(executeSaveStandup),
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
+		middleware.SetUserRoles,
+		middleware.DisallowGuests,
 	},
 }
 
-func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
+func executeSaveStandup(userID string, w http.ResponseWriter, r *http.Request) error {
 	userStandup := &standup.UserStandup{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(userStandup); err != nil {
 		logger.Error("Couldn't decode request body into user standup object", err, nil)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return err
 	}
 
-	userStandup.UserID = r.Header.Get(config.HeaderMattermostUserID)
+	channelID := userStandup.ChannelID
+	channelIDParam := r.URL.Query().Get("channel_id")
+
+	if channelID != channelIDParam {
+		http.Error(w, "Mismatched channel ID", http.StatusBadRequest)
+		return errors.New("channel ID provided in standup body does not match with the value in query params")
+	}
+
+	userStandup.UserID = userID
 
 	if err := userStandup.IsValid(); err != nil {
 		logger.Info("user standup validation failed", err)
@@ -48,7 +57,7 @@ func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if err := standup.SaveUserStandup(userStandup); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Failed to save standup", http.StatusBadRequest)
 		return err
 	}
 
@@ -60,8 +69,7 @@ func executeSaveStandup(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func executeGetStandup(w http.ResponseWriter, r *http.Request) error {
-	userID := r.Header.Get(config.HeaderMattermostUserID)
+func executeGetStandup(userID string, w http.ResponseWriter, r *http.Request) error {
 	channelID := r.URL.Query().Get("channel_id")
 	standupConfig, err := standup.GetStandupConfig(channelID)
 	if err != nil {
