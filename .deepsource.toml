@@ -4,7 +4,7 @@ test_patterns = ["*_test.go"]
 
 [[analyzers]]
 name = "go"
-enabled = false
+enabled = true
 
 [analyzers.meta]
 import_paths = ["github.com/standup-raven/standup-raven/server"]
