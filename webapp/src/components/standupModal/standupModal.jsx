@@ -109,19 +109,13 @@ class StandupModal extends (SentryBoundary, React.Component) {
                 .withCredentials()
                 .end((err, result) => {
                     if (result.ok) {
-                        const standup = {};
-
-                        // eslint-disable-next-line no-unused-vars
                         for (const sectionTitle of Object.keys(result.body.standup)) {
-                            standup[sectionTitle] = {};
-                            for (let i = 0; i < result.body.standup[sectionTitle].length; ++i) {
-                                standup[sectionTitle][`line${i + 1}`] = result.body.standup[sectionTitle][i];
+                            if (this.state.standup[sectionTitle] !== undefined) {
+                                for (let i = 0; i < result.body.standup[sectionTitle].length; ++i) {
+                                    this.state.standup[sectionTitle][`line${i + 1}`] = result.body.standup[sectionTitle][i];
+                                }
                             }
                         }
-
-                        this.setState({
-                            standup,
-                        });
                     } else if (result.status !== HttpStatus.NOT_FOUND) {
                         console.error(err);
                     }
