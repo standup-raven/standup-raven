@@ -13,7 +13,7 @@ var getPluginConfig = &Endpoint{
 	Method:  http.MethodGet,
 	Execute: executeGetPluginConfig,
 	Middlewares: []middleware.Middleware{
-		middleware.Authenticate,
+		middleware.Authenticated,
 	},
 }
 

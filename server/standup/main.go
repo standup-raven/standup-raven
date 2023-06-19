@@ -37,9 +37,9 @@ var (
 )
 
 type UserStandup struct {
+	Standup   map[string]*[]string `json:"standup"`
 	UserID    string               `json:"userId"`
 	ChannelID string               `json:"channelId"`
-	Standup   map[string]*[]string `json:"standup"`
 }
 
 func (us *UserStandup) IsValid() error {
@@ -68,20 +68,20 @@ func (us *UserStandup) IsValid() error {
 }
 
 type Config struct {
-	ChannelID                  string       `json:"channelId"`
-	WindowOpenTime             otime.OTime  `json:"windowOpenTime"`
+	RRule                      *rrule.RRule `json:"rrule"`
 	WindowCloseTime            otime.OTime  `json:"windowCloseTime"`
-	ReportFormat               string       `json:"reportFormat"`
-	Members                    []string     `json:"members"`
+	WindowOpenTime             otime.OTime  `json:"windowOpenTime"`
+	StartDate                  time.Time    `json:"startDate"`
 	Sections                   []string     `json:"sections"`
-	Enabled                    bool         `json:"enabled"`
+	Members                    []string     `json:"members"`
+	ChannelID                  string       `json:"channelId"`
+	ReportFormat               string       `json:"reportFormat"`
 	Timezone                   string       `json:"timezone"`
+	RRuleString                string       `json:"rruleString"`
+	Enabled                    bool         `json:"enabled"`
 	WindowOpenReminderEnabled  bool         `json:"windowOpenReminderEnabled"`
 	WindowCloseReminderEnabled bool         `json:"windowCloseReminderEnabled"`
 	ScheduleEnabled            bool         `json:"scheduleEnabled"`
-	RRule                      *rrule.RRule `json:"rrule"`
-	RRuleString                string       `json:"rruleString"`
-	StartDate                  time.Time    `json:"startDate"`
 }
 
 func (sc *Config) IsValid() error {
@@ -298,6 +298,45 @@ func AddStandupChannel(channelID string) error {
 	return setStandupChannels(channels)
 }
 
+// RemoveStandupChannels removes all specified channels from list of standup channels.
+// This is later user for iterating over all standup channels.
+func RemoveStandupChannels(channelIDs []string) error {
+	logger.Debug(fmt.Sprintf("Removing standup channels: %v", channelIDs), nil)
+
+	channels, err := GetStandupChannels()
+	if err != nil {
+		return err
+	}
+
+	for _, channelID := range channelIDs {
+		delete(channels, channelID)
+	}
+
+	return setStandupChannels(channels)
+}
+
+// ArchiveStandupChannels archives the channel standup config.
+func ArchiveStandupChannels(channelID string) error {
+	key := util.GetKeyHash(config.CacheKeyPrefixTeamStandupConfig + channelID)
+	data, appErr := config.Mattermost.KVGet(key)
+	if appErr != nil {
+		logger.Error("Couldn't fetch standup config for channel from KV store", appErr, map[string]interface{}{"channelID": channelID})
+		return errors.New(appErr.Error())
+	}
+
+	if err := config.Mattermost.KVSet(key+"_DEL", data); err != nil {
+		logger.Error("Failed to save archived copy of channel configuration.", err, map[string]interface{}{"channel_id": channelID})
+		return err
+	}
+
+	if err := config.Mattermost.KVDelete(key); err != nil {
+		logger.Error("Failed to delete standup config after saving archived copy.", err, map[string]interface{}{"channel_id": channelID})
+		return err
+	}
+
+	return nil
+}
+
 // GetStandupChannels fetches all channels where standup is configured.
 // Returns a map of channel ID to channel ID for maintaining uniqueness.
 func GetStandupChannels() (map[string]string, error) {
@@ -450,7 +489,7 @@ func removeChannelHeaderSchedule(channelHeader string) string {
 	return userDefinedHeader
 }
 
-func addChannelHeaderSchedule(channelHeader string, schedule string) string {
+func addChannelHeaderSchedule(channelHeader, schedule string) string {
 	if channelHeader == "" {
 		return schedule + standupScheduleEndMarker
 	}

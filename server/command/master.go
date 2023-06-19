@@ -17,6 +17,7 @@ func Master() *Config {
 			Trigger:     config.CommandPrefix,
 			SubCommands: getSumCommands(),
 			HelpText:    "Available commands: " + strings.Join(getAvailableCommands(), ", "),
+			RoleID:      model.SYSTEM_USER_ROLE_ID,
 		},
 		ExtraHelpText: "",
 		Validate:      validateCommandMaster,

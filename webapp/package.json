@@ -37,7 +37,7 @@
     "what-the-changelog": "^1.5.0"
   },
   "dependencies": {
-    "@sentry/browser": "^5.15.4",
+    "@sentry/browser": "^5.27.3",
     "babel-preset-stage-2": "^6.24.1",
     "color": "^3.1.2",
     "copy-webpack-plugin": "^6.3.2",
@@ -45,13 +45,18 @@
     "csslint": "^1.0.5",
     "http-status-codes": "^1.3.2",
     "js-cookie": "^2.2.0",
+<<<<<<< HEAD
     "mattermost-redux": "^5.28.1",
     "react": "^16.7.0",
+=======
+    "mattermost-redux": "^5.31.2",
+    "react": "^17.0.2",
+>>>>>>> 2ca7a5fbe6618389652972d0233de0f9b372efa1
     "react-16-bootstrap-date-picker": "^5.1.2",
     "react-bootstrap": "^0.32.4",
     "react-bootstrap-typeahead": "^3.3.0",
     "react-datepicker": "^2.14.1",
-    "react-dom": "^16.7.0",
+    "react-dom": "^17.0.2",
     "react-redux": "5.0.7",
     "react-rrule-generator": "https://github.com/standup-raven/react-bootstrap-rrule-generator.git#v2.0.0",
     "react-switch": "^5.0.0",
