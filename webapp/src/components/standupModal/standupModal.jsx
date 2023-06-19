@@ -319,6 +319,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                     <Button
                         type='button'
                         onClick={this.handleClose}
+                        bsStyle='link'
                     >
                         {'Cancel'}
                     </Button>
