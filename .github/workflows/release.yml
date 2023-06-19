@@ -1,26 +1,14 @@
-# Continuous Integration Workflow to check pushes to master and pull requests:
-# - code style guidelines are followed (make check-style)
-# - tests pass (make test)
-# - code builds (make dist)
-name: ci
-on:
-  schedule:
-    - cron: "0 0 * * *"
-  push:
-    branches:
-      - master
-    tags:
-      - "v*"
-  pull_request:
+name: Release
 
-permissions:
-  contents: read
+on:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  ci:
-    name: Check style; build; test
+  build_and_release:
+    name: Build and release
     runs-on: ubuntu-latest
-
     steps:
       - name: Set up Go v1.18.x
         uses: actions/setup-go@v2
@@ -31,15 +19,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 14.x
+          registry-url: https://npm.pkg.github.com/
 
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Install Yarn
-        run: npm install -g yarn
-
-      - name: Install golangci
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.52.2
+      - uses: actions/checkout@v2
 
       - name: Cache go modules
         uses: actions/cache@v2
@@ -57,26 +39,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Install server dependencies
-        run: make vendor
-        env:
-          TERM: dumb
-      
-      - name: Install web dependencies
-        run: make .webinstall
-        env:
-          TERM: dumb
-
-      - name: check style
-        run: make check-style
-        env:
-          TERM: dumb
-
-      - name: run tests
-        run: make test
-        env:
-          TERM: dumb
-
       - name: Build and bundle the plugin
         id: build
         run: |
@@ -84,12 +46,6 @@ jobs:
           echo ::set-output name=BUNDLE_NAME::$(cd dist; ls *.tar.gz)
         env:
           TERM: dumb
-
-      - name: Upload the built plugin as an artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ steps.build.outputs.BUNDLE_NAME }}
-          path: dist/${{ steps.build.outputs.BUNDLE_NAME }}
 
       - name: Create Release
         id: create_release
