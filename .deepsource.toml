@@ -1,7 +1,5 @@
 version = 1
 
-exclude_patterns = ["*.go"]
-
 test_patterns = ["*_test.go"]
 
 [[analyzers]]
