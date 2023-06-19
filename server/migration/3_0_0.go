@@ -59,10 +59,10 @@ func generateRRuleStringByWorkWeek() (string, error) {
 		TimeZone                string `json:"timeZone"`
 		WorkWeekStart           string `json:"workWeekStart"`
 		WorkWeekEnd             string `json:"workWeekEnd"`
-		PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`
-		EnableErrorReporting    bool   `json:"enableErrorReporting"`
 		SentryServerDSN         string `json:"sentryServerDSN"`
 		SentryWebappDSN         string `json:"sentryWebappDSN"`
+		PermissionSchemaEnabled bool   `json:"permissionSchemaEnabled"`
+		EnableErrorReporting    bool   `json:"enableErrorReporting"`
 	}
 
 	var oldConf *oldConfigType
