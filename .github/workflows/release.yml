@@ -64,6 +64,6 @@ jobs:
           for asset in ./*.tar.gz; do
             assets+=("-a" "$asset")
           done
-          hub release create "${assets[@]}" -m ""
+          hub release create "${assets[@]}"
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
