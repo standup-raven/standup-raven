@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build_and_release:
     name: Build and release
@@ -20,7 +23,7 @@ jobs:
         with:
           node-version: 14.x
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Cache go modules
         uses: actions/cache@v2
@@ -48,7 +51,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -56,13 +59,7 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/${{ steps.build.outputs.BUNDLE_NAME }}
-          asset_name: ${{ steps.build.outputs.BUNDLE_NAME }}
-          asset_content_type: application/gzip
+          files: |
+            dist/mattermost-plugin-standup-raven-${{ github.ref }}-darwin-amd64.tar.gz
+            dist/mattermost-plugin-standup-raven-${{ github.ref }}-linux-amd64.tar.gz
+            dist/mattermost-plugin-standup-raven-${{ github.ref }}-windows-amd64.tar.gz
