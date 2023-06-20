@@ -2,68 +2,21 @@ name: Release
 
 on:
   push:
-    tags:
+    tags: 
       - 'v*'
 
 jobs:
-  build_and_release:
-    name: Build and release
+  run:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go v1.18.x
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.18.x
-
-      - name: Set up Node.js v14.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 14.x
-
-      - uses: actions/checkout@v2
-
-      - name: Cache go modules
-        uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Cache node modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Build and bundle the plugin
-        id: build
-        run: |
-          make dist
-          echo ::set-output name=BUNDLE_NAME::$(cd dist; ls *.tar.gz)
-        env:
-          TERM: dumb
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Assets
-        run: |
-          set -x
-          assets=()
-          for asset in ./*.tar.gz; do
-            assets+=("-a" "$asset")
-          done
-          hub release create "${assets[@]}"
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - uses: actions/checkout@v2
+    - run: |
+        set -x
+        assets=()
+        for asset in ./*.tar.gz; do
+          assets+=("-a" "$asset")
+        done
+        tag_name="${GITHUB_REF##*/}"
+        hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
