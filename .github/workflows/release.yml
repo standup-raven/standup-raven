@@ -60,6 +60,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            dist/mattermost-plugin-standup-raven-v3.3.0-darwin-amd64.tar.gz
-            dist/mattermost-plugin-standup-raven-v3.3.0-linux-amd64.tar.gz
-            dist/mattermost-plugin-standup-raven-v3.3.0-windows-amd64.tar.gz
+            dist/mattermost-plugin-standup-raven-${{ github.ref }}-darwin-amd64.tar.gz
+            dist/mattermost-plugin-standup-raven-${{ github.ref }}-linux-amd64.tar.gz
+            dist/mattermost-plugin-standup-raven-${{ github.ref }}-windows-amd64.tar.gz
