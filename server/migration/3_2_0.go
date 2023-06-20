@@ -11,3 +11,7 @@ func upgradeDatabaseToVersion3_2_1(fromVersion string) error {
 func upgradeDatabaseToVersion3_2_2(fromVersion string) error {
 	return updateSchemaVersion(version3_2_2)
 }
+
+func upgradeDatabaseToVersion3_3_0(fromVersion string) error {
+	return updateSchemaVersion(version3_3_0)
+}
