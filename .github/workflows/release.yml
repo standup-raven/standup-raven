@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 14.x
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Cache go modules
         uses: actions/cache@v2
@@ -46,7 +46,6 @@ jobs:
         run: |
           make dist
           echo ::set-output name=BUNDLE_NAME::$(cd dist; ls *.tar.gz)
-          echo $BUNDLE_NAME
         env:
           TERM: dumb
 
@@ -61,6 +60,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            mattermost-plugin-standup-raven-v3.3.0-darwin-amd64.tar.gz
-            mattermost-plugin-standup-raven-v3.3.0-linux-amd64.tar.gz
-            mattermost-plugin-standup-raven-v3.3.0-windows-amd64.tar.gz
+            dist/mattermost-plugin-standup-raven-v3.3.0-darwin-amd64.tar.gz
+            dist/mattermost-plugin-standup-raven-v3.3.0-linux-amd64.tar.gz
+            dist/mattermost-plugin-standup-raven-v3.3.0-windows-amd64.tar.gz
