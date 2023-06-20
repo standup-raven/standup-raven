@@ -58,11 +58,12 @@ jobs:
           prerelease: false
 
       - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/${{ steps.build.outputs.BUNDLE_NAME }}
-          asset_name: ${{ steps.build.outputs.BUNDLE_NAME }}
-          asset_content_type: application/gzip
+        run: |
+          set -x
+          assets=()
+          for asset in ./*.tar.gz; do
+            assets+=("-a" "$asset")
+          done
+          hub release create "${assets[@]}" -m ""
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
