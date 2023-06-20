@@ -6,7 +6,7 @@
   "homepage_url": "https://standupraven.com/",
   "support_url": "https://github.com/standup-raven/standup-raven/issues",
   "icon_path": "webapp/logo.svg",
-  "min_server_version": "5.25.0",
+  "min_server_version": "6.3.10",
   "webapp": {
     "bundle_path": "webapp/main.js"
   },
