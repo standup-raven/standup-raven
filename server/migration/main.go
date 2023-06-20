@@ -50,7 +50,7 @@ var upgradeCompatibility = map[string][]string{
 	version3_2_0: {version3_1_1, version3_1_0, version3_0_2, version3_0_1, version3_0_0, version2_0_0, version1_5_0},
 	version3_2_1: {version3_2_0, version3_1_1, version3_1_0, version3_0_2, version3_0_1, version3_0_0, version2_0_0, version1_5_0},
 	version3_2_2: {version3_2_1, version3_2_0, version3_1_1, version3_1_0, version3_0_2, version3_0_1, version3_0_0, version2_0_0, version1_5_0},
-	version3_3_0: {version3_2_2},
+	version3_3_0: {version3_2_2, version3_2_1, version3_2_0, version3_1_1, version3_1_0, version3_0_2, version3_0_1, version3_0_0, version2_0_0, version1_5_0},
 }
 
 type Migration func(fromVersion string) error
