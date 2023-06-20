@@ -60,6 +60,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            dist/mattermost-plugin-standup-raven-${{ github.ref }}-darwin-amd64.tar.gz
-            dist/mattermost-plugin-standup-raven-${{ github.ref }}-linux-amd64.tar.gz
-            dist/mattermost-plugin-standup-raven-${{ github.ref }}-windows-amd64.tar.gz
+            dist/mattermost-plugin-standup-raven-${{ github.ref_name }}-darwin-amd64.tar.gz
+            dist/mattermost-plugin-standup-raven-${{ github.ref_name }}-linux-amd64.tar.gz
+            dist/mattermost-plugin-standup-raven-${{ github.ref_name }}-windows-amd64.tar.gz
