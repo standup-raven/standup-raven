@@ -4,6 +4,7 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@1.1.0
   node: circleci/node@5.1.0
+  go: circleci/go@1.7.3
 
 executors:
   ubuntu:
@@ -59,17 +60,18 @@ jobs:
             make test
 
   build:
-    docker:
-      - image: cimg/go:1.18.10
     executor: ubuntu
     steps:
       - node/install:
           node-version: '14.21.3'
+      - go/install:
+          version: '1.18'
       - checkout
       - run:
           name: "Build and bundle the plugin"
           command: |
             npm install --global yarn
+            go mod tidy
             make dist
       - save:
           filename: "*.tar.gz"
