@@ -34,6 +34,9 @@ jobs:
   test:
     executor: ubuntu
     steps:
+      - node/install:
+          node-version: '14.21.3'
+      - go/install
       - checkout
       - run:
           name: "Run tests"
@@ -43,6 +46,9 @@ jobs:
   build:
     executor: ubuntu
     steps:
+      - node/install:
+          node-version: '14.21.3'
+      - go/install
       - checkout
       - run:
           name: "Build and bundle the plugin"
@@ -57,6 +63,10 @@ jobs:
       - image: cibuilds/github:latest
     resource_class: large
     steps:
+      - node/install:
+          node-version: '14.21.3'
+      - go/install
+      - checkout
       - attach_workspace:
           at: ~/standup-raven/dist
       - run:
