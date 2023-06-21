@@ -108,25 +108,25 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: update-makefile
+              only: update_makefile
       - test:
           filters:
             tags:
               only: /^v.*/
             branches:
-              only: update-makefile
+              only: update_makefile
       - build:
           filters:
             tags:
               only: /^v.*/
             branches:
-              only: update-makefile
+              only: update_makefile
       - deploy-release-github:
           filters:
             tags:
               only: /^v.*/
             branches:
-              only: update-makefile
+              only: update_makefile
           context: "standup-raven"
           requires:
             - test
