@@ -8,7 +8,7 @@ orbs:
 jobs:
   deploy-release-github:
     docker:
-      - image: cibuilds/github:0.13
+      - image: cibuilds/github:latest
     steps:
       - attach_workspace:
           at: dist
