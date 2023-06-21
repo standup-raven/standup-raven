@@ -78,9 +78,6 @@ jobs:
           filename: "*.tar.gz"
       - persist_to_workspace:
           root: ~/standup-raven
-          paths: ~/standup-raven/dist
-      - persist_to_workspace:
-          root: ~/standup-raven
           paths: dist
 
   deploy-release-github:
