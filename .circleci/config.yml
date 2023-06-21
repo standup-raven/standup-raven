@@ -94,7 +94,13 @@ jobs:
       - run:
           name: "Publish Release on Github"
           command: |
-            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -n "${CIRCLE_TAG}" -delete "${CIRCLE_TAG}"  /tmp/artifacts
+            echo ${GITHUB_TOKEN}
+            echo ${CIRCLE_PROJECT_USERNAME}
+            echo ${CIRCLE_PROJECT_REPONAME}
+            echo ${CIRCLE_SHA1}
+            echo ${CIRCLE_TAG}
+            echo ${CIRCLE_TAG}
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n ${CIRCLE_TAG} -delete ${CIRCLE_TAG}  /tmp/artifacts
 workflows:
   version: 2
   ci:
