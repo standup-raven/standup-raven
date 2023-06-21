@@ -29,11 +29,40 @@ commands:
           name: Copying artifacts
           command: |
             mkdir -p /tmp/artifacts
-            cp ~/standup-raven/dist/<<parameters.filename>> /tmp/artifacts
+            cp ./mattermost-server/dist/<<parameters.filename>> /tmp/artifacts
       - store_artifacts:
-          path: /tmp/artifacts
+          path: ~/standup-raven/dist
 
 jobs:
+  lint:
+    executor: ubuntu
+    steps:
+      - node/install:
+          node-version: '14.21.3'
+      - go/install:
+          version: '1.18'
+      - golangci-lint/lint
+      - checkout
+      - run:
+          name: "Check style"
+          command: |
+            go mod tidy
+            make check-style
+
+  test:
+    executor: ubuntu
+    steps:
+      - node/install:
+          node-version: '14.21.3'
+      - go/install:
+          version: '1.18'
+      - checkout
+      - run:
+          name: "Run tests"
+          command: |
+            go mod tidy
+            make test
+
   build:
     executor: ubuntu
     steps:
@@ -51,8 +80,8 @@ jobs:
       - save:
           filename: "*.tar.gz"
       - persist_to_workspace:
-          root: /tmp/artifacts
-          paths: .
+          root: ~/standup-raven
+          paths: dist
 
   deploy-release-github:
     docker:
@@ -61,15 +90,27 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: /tmp/artifacts
+          at: ~/standup-raven/dist
       - run:
           name: "Publish Release on Github"
           command: |
-            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -n "${CIRCLE_TAG}" -delete "${CIRCLE_TAG}" /tmp/artifacts
+            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -n "${CIRCLE_TAG}" -delete "${CIRCLE_TAG}"  ~/standup-raven/dist
 workflows:
   version: 2
   ci:
     jobs:
+      - lint:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: update_makefile
+      - test:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: update_makefile
       - build:
           filters:
             tags:
@@ -82,6 +123,6 @@ workflows:
               only: /^v.*/
             branches:
               only: update_makefile
-          context: "standup-raven"
+          context: standup-raven
           requires:
             - build
