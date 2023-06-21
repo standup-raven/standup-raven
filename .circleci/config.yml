@@ -25,8 +25,13 @@ commands:
       filename:
         type: string
     steps:
+      - run:
+          name: Copying artifacts
+          command: |
+            mkdir -p /tmp/artifacts
+            cp ~/standup-raven/dist/<<parameters.filename>> /tmp/artifacts
       - store_artifacts:
-          path: ~/standup-raven/dist
+          path: /tmp/artifacts
 
 jobs:
   build:
@@ -46,8 +51,8 @@ jobs:
       - save:
           filename: "*.tar.gz"
       - persist_to_workspace:
-          root: ~/standup-raven
-          paths: dist
+          root: /tmp/artifacts
+          paths: .
 
   deploy-release-github:
     docker:
@@ -56,11 +61,11 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: ~/standup-raven/dist
+          at: /tmp/artifacts
       - run:
           name: "Publish Release on Github"
           command: |
-            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -n "${CIRCLE_TAG}" -delete "${CIRCLE_TAG}" dist
+            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -n "${CIRCLE_TAG}" -delete "${CIRCLE_TAG}" /tmp/artifacts
 workflows:
   version: 2
   ci:
