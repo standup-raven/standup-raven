@@ -33,27 +33,6 @@ commands:
           path: /tmp/artifacts
 
 jobs:
-  lint:
-    executor: ubuntu
-    steps:
-      - node/install:
-          node-version: '14.21.3'
-      - go/install:
-          version: '1.18'
-      - checkout
-      - run:
-          name: "Check style"
-          command: |
-            go mod tidy
-            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
-            echo line 49
-            pwd
-            which golangci-lint
-            echo line 51
-            golangci-lint version
-            echo line 53
-            make check-style
-
   test:
     executor: ubuntu
     steps:
@@ -63,10 +42,12 @@ jobs:
           version: '1.18'
       - checkout
       - run:
-          name: "Run tests"
+          name: "Run tests and run check-style"
           command: |
             go mod tidy
             make test
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
+            make check-style
 
   build:
     executor: ubuntu
@@ -104,18 +85,12 @@ workflows:
   version: 2
   ci:
     jobs:
-      - lint:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: update_makefile
       - test:
           filters:
             tags:
               only: /^v.*/
             branches:
-              ignore: update_makefile
+              only: update_makefile
       - build:
           filters:
             tags:
