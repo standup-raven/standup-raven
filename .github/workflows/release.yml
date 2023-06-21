@@ -46,8 +46,6 @@ jobs:
         run: |
           make dist
           echo ::set-output name=BUNDLE_NAME::$(cd dist; ls *.tar.gz)
-        env:
-          TERM: dumb
 
       - name: Create Release
         id: create_release
