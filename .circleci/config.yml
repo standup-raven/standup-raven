@@ -81,7 +81,7 @@ jobs:
           paths: ~/standup-raven/dist
       - persist_to_workspace:
           root: ~/standup-raven
-          paths: dist
+          paths: .
 
   deploy-release-github:
     docker:
