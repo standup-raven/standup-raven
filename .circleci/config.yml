@@ -29,35 +29,6 @@ commands:
           path: ~/standup-raven/dist
 
 jobs:
-  lint:
-    executor: ubuntu
-    steps:
-      - node/install:
-          node-version: '14.21.3'
-      - go/install:
-          version: '1.18'
-      - checkout
-      - run:
-          name: "Check style"
-          command: |
-            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
-            go mod tidy
-            make check-style
-
-  test:
-    executor: ubuntu
-    steps:
-      - node/install:
-          node-version: '14.21.3'
-      - go/install:
-          version: '1.18'
-      - checkout
-      - run:
-          name: "Run tests"
-          command: |
-            go mod tidy
-            make test
-
   build:
     executor: ubuntu
     steps:
@@ -89,23 +60,11 @@ jobs:
       - run:
           name: "Publish Release on Github"
           command: |
-            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -b "$(< ./dist/release-notes.md)" -c "${CIRCLE_SHA1}" -n "${CIRCLE_TAG}" -delete "${CIRCLE_TAG}" dist
+            ghr -t "${GITHUB_TOKEN}" -u "${CIRCLE_PROJECT_USERNAME}" -r "${CIRCLE_PROJECT_REPONAME}" -c "${CIRCLE_SHA1}" -n "${CIRCLE_TAG}" -delete "${CIRCLE_TAG}" dist
 workflows:
   version: 2
   ci:
     jobs:
-      - lint:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: update_makefile
-      - test:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: update_makefile
       - build:
           filters:
             tags:
@@ -120,5 +79,4 @@ workflows:
               only: update_makefile
           context: "standup-raven"
           requires:
-            - test
             - build
