@@ -47,6 +47,11 @@ jobs:
             go mod tidy
             make test
             curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
+            echo "50 line"
+            which golangci-lint
+            echo "52 line"
+            golangci-lint version
+            echo "54 line"
             make check-style
 
   build:
