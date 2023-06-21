@@ -4,7 +4,6 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@1.1.0
   node: circleci/node@5.1.0
-  go: circleci/go@1.7.3
 
 executors:
   ubuntu:
@@ -33,34 +32,44 @@ commands:
           path: /tmp/artifacts
 
 jobs:
-  test:
+  lint:
+    docker:
+      - image: cimg/go:1.18.10
     executor: ubuntu
     steps:
       - node/install:
           node-version: '14.21.3'
-      - go/install:
-          version: '1.18'
       - checkout
       - run:
-          name: "Run tests and run check-style"
+          name: "Run check-style"
           command: |
-            go mod tidy
             curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
+            make check-style
+  test:
+    docker:
+      - image: cimg/go:1.18.10
+    executor: ubuntu
+    steps:
+      - node/install:
+          node-version: '14.21.3'
+      - checkout
+      - run:
+          name: "Run tests"
+          command: |
             make test
 
   build:
+    docker:
+      - image: cimg/go:1.18.10
     executor: ubuntu
     steps:
       - node/install:
           node-version: '14.21.3'
-      - go/install:
-          version: '1.18'
       - checkout
       - run:
           name: "Build and bundle the plugin"
           command: |
             npm install --global yarn
-            go mod tidy
             make dist
       - save:
           filename: "*.tar.gz"
@@ -84,12 +93,18 @@ workflows:
   version: 2
   ci:
     jobs:
-      - test:
+      - lint:
           filters:
             tags:
               only: /^v.*/
             branches:
               only: update_makefile
+      - test:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: update_makefile
       - build:
           filters:
             tags:
