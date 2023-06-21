@@ -40,11 +40,11 @@ jobs:
           node-version: '14.21.3'
       - go/install:
           version: '1.18'
-      - golangci-lint/lint
       - checkout
       - run:
           name: "Check style"
           command: |
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
             go mod tidy
             make check-style
 
