@@ -129,4 +129,5 @@ workflows:
               only: update-makefile
           context: "standup-raven"
           requires:
+            - test
             - build
