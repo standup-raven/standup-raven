@@ -2,13 +2,13 @@
 version: 2.1
 
 orbs:
-  codecov: codecov/codecov@3.2.5
-  plugin-ci: mattermost/plugin-ci@0.1.6
+  codecov: codecov/codecov@1.1.0
+  plugin-ci: mattermost/plugin-ci@0.1.4
 
 jobs:
   deploy-release-github:
     docker:
-      - image: cibuilds/github:latest
+      - image: cibuilds/github:0.13
     steps:
       - attach_workspace:
           at: dist
