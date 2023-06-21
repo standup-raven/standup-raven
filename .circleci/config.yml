@@ -4,6 +4,17 @@ version: 2.1
 orbs:
   codecov: codecov/codecov@1.1.0
 
+executors:
+  ubuntu:
+    docker:
+      - image: cimg/base:stable
+    parameters:
+      resource_class:
+        default: large
+        type: string
+    working_directory: ~/standup-raven
+    resource_class: <<parameters.resource_class>>
+
 jobs:
   plugin-ci/lint:
     steps:
@@ -27,7 +38,7 @@ jobs:
           command: |
             make dist
       - persist_to_workspace:
-          paths: dist
+          paths: ~/standup-raven/dist
 
   deploy-release-github:
     docker:
@@ -35,7 +46,7 @@ jobs:
     resource_class: large
     steps:
       - attach_workspace:
-          at: dist
+          at: ~/standup-raven/dist
       - run:
           name: "Publish Release on Github"
           command: |
