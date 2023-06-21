@@ -17,13 +17,24 @@ executors:
     working_directory: ~/standup-raven
     resource_class: <<parameters.resource_class>>
 
+commands:
+  save:
+    description: "Save binaries artifacts"
+    parameters:
+      filename:
+        type: string
+    steps:
+      - store_artifacts:
+          path: ~/standup-raven/dist
+
 jobs:
   lint:
     executor: ubuntu
     steps:
       - node/install:
           node-version: '14.21.3'
-      - go/install
+      - go/install:
+          version: '1.18'
       - checkout
       - run:
           name: "Check style"
@@ -37,7 +48,8 @@ jobs:
     steps:
       - node/install:
           node-version: '14.21.3'
-      - go/install
+      - go/install:
+          version: '1.18'
       - checkout
       - run:
           name: "Run tests"
@@ -50,14 +62,23 @@ jobs:
     steps:
       - node/install:
           node-version: '14.21.3'
-      - go/install
+      - go/install:
+          version: '1.18'
       - checkout
       - run:
           name: "Build and bundle the plugin"
           command: |
+            echo "line 61"
             npm install --global yarn
+            echo "line 63"
             go mod tidy
+            echo "line 65"
             make dist
+      - save:
+          filename: "*.tar.gz"
+      - persist_to_workspace:
+          root: ~/standup-raven
+          paths: ~/standup-raven/dist
       - persist_to_workspace:
           root: ~/standup-raven
           paths: dist
@@ -69,7 +90,8 @@ jobs:
     steps:
       - node/install:
           node-version: '14.21.3'
-      - go/install
+      - go/install:
+          version: '1.18'
       - checkout
       - attach_workspace:
           at: ~/standup-raven/dist
@@ -85,22 +107,26 @@ workflows:
           filters:
             tags:
               only: /^v.*/
+            branches:
+              only: update-makefile
       - test:
           filters:
             tags:
               only: /^v.*/
+            branches:
+              only: update-makefile
       - build:
           filters:
             tags:
               only: /^v.*/
+            branches:
+              only: update-makefile
       - deploy-release-github:
           filters:
             tags:
               only: /^v.*/
             branches:
-              ignore: /.*/
+              only: update-makefile
           context: "standup-raven"
           requires:
-            - lint
-            - test
             - build
