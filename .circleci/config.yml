@@ -1,0 +1,120 @@
+# Use the latest 2.1 version of CircleCI pipeline processing engine, see https://circleci.com/docs/2.0/configuration-reference/
+version: 2.1
+
+orbs:
+  codecov: codecov/codecov@1.1.0
+  node: circleci/node@5.1.0
+
+executors:
+  ubuntu:
+    docker:
+      - image: cimg/base:stable
+    parameters:
+      resource_class:
+        default: large
+        type: string
+    working_directory: ~/standup-raven
+    resource_class: <<parameters.resource_class>>
+
+commands:
+  save:
+    description: "Save binaries artifacts"
+    parameters:
+      filename:
+        type: string
+    steps:
+      - run:
+          name: Copying artifacts
+          command: |
+            mkdir -p /tmp/artifacts
+            cp ~/standup-raven/dist/<<parameters.filename>> /tmp/artifacts
+      - store_artifacts:
+          path: /tmp/artifacts
+
+jobs:
+  lint:
+    docker:
+      - image: cimg/go:1.18.10
+    executor: ubuntu
+    steps:
+      - node/install:
+          node-version: '14.21.3'
+      - checkout
+      - run:
+          name: "Run check-style"
+          command: |
+            npm install --global yarn
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
+            make check-style
+
+  test:
+    docker:
+      - image: cimg/go:1.18.10
+    executor: ubuntu
+    steps:
+      - node/install:
+          node-version: '14.21.3'
+      - checkout
+      - run:
+          name: "Run tests"
+          command: |
+            make test
+
+  build:
+    docker:
+      - image: cimg/go:1.18.10
+    executor: ubuntu
+    steps:
+      - node/install:
+          node-version: '14.21.3'
+      - checkout
+      - run:
+          name: "Build and bundle the plugin"
+          command: |
+            npm install --global yarn
+            make dist
+      - save:
+          filename: "*.tar.gz"
+      - persist_to_workspace:
+          root: /tmp/artifacts
+          paths: .
+
+  deploy-release-github:
+    docker:
+      - image: cibuilds/github:latest
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/artifacts
+      - run:
+          name: "Publish Release on Github"
+          command: |
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n ${CIRCLE_TAG} -delete ${CIRCLE_TAG}  /tmp/artifacts
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - lint:
+          filters:
+            tags:
+              only: /^v.*/
+      - test:
+          filters:
+            tags:
+              only: /^v.*/
+      - build:
+          filters:
+            tags:
+              only: /^v.*/
+      - deploy-release-github:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          context: standup-raven
+          requires:
+            - lint
+            - test
+            - build
