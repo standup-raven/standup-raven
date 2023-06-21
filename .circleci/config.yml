@@ -109,7 +109,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only: update_makefile
+              ignore: update_makefile
       - test:
           filters:
             tags:
