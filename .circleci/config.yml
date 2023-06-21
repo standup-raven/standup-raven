@@ -16,7 +16,8 @@ executors:
     resource_class: <<parameters.resource_class>>
 
 jobs:
-  plugin-ci/lint:
+  lint:
+    executor: ubuntu
     steps:
       - run:
           name: "Check style"
@@ -24,21 +25,24 @@ jobs:
             curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
             make check-style
 
-  plugin-ci/test:
+  test:
+    executor: ubuntu
     steps:
       - run:
           name: "Run tests"
           command: |
             make test
 
-  plugin-ci/build:
+  build:
+    executor: ubuntu
     steps:
       - run:
           name: "Build and bundle the plugin"
           command: |
             make dist
       - persist_to_workspace:
-          paths: ~/standup-raven/dist
+          root: ~/standup-raven
+          paths: dist
 
   deploy-release-github:
     docker:
@@ -55,15 +59,15 @@ workflows:
   version: 2
   ci:
     jobs:
-      - plugin-ci/lint:
+      - lint:
           filters:
             tags:
               only: /^v.*/
-      - plugin-ci/test:
+      - test:
           filters:
             tags:
               only: /^v.*/
-      - plugin-ci/build:
+      - build:
           filters:
             tags:
               only: /^v.*/
@@ -75,6 +79,6 @@ workflows:
               ignore: /.*/
           context: "standup-raven"
           requires:
-            - plugin-ci/lint
-            - plugin-ci/test
-            - plugin-ci/build
+            - lint
+            - test
+            - build
