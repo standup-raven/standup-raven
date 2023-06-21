@@ -5,6 +5,7 @@ orbs:
   codecov: codecov/codecov@1.1.0
   node: circleci/node@5.1.0
   go: circleci/go@1.7.3
+  golangci-lint: timakin/golangci-lint@0.1.1
 
 executors:
   ubuntu:
@@ -68,11 +69,8 @@ jobs:
       - run:
           name: "Build and bundle the plugin"
           command: |
-            echo "line 61"
             npm install --global yarn
-            echo "line 63"
             go mod tidy
-            echo "line 65"
             make dist
       - save:
           filename: "*.tar.gz"
@@ -85,10 +83,6 @@ jobs:
       - image: cibuilds/github:latest
     resource_class: large
     steps:
-      - node/install:
-          node-version: '14.21.3'
-      - go/install:
-          version: '1.18'
       - checkout
       - attach_workspace:
           at: ~/standup-raven/dist
@@ -126,4 +120,5 @@ workflows:
               only: update_makefile
           context: "standup-raven"
           requires:
+            - test
             - build
