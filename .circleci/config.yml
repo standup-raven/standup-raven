@@ -43,6 +43,7 @@ jobs:
       - run:
           name: "Run check-style"
           command: |
+            npm install --global yarn
             curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
             make check-style
   test:
