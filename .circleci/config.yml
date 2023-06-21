@@ -45,9 +45,8 @@ jobs:
           name: "Run tests and run check-style"
           command: |
             go mod tidy
-            make test
             curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
-            golangci-lint run ./server/...
+            make test
 
   build:
     executor: ubuntu

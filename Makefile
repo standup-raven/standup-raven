@@ -101,7 +101,7 @@ test-server: vendor
 	echo Running server tests
 	go test -gcflags=-l -v -coverprofile=coverage.txt ./...
 
-test: test-server
+test: test-server check-style
 
 coverage: test-server
 	go tool cover -html=coverage.txt -o coverage.html
