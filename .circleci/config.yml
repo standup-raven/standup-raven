@@ -9,6 +9,7 @@ jobs:
   deploy-release-github:
     docker:
       - image: cibuilds/github:latest
+    resource_class: large
     steps:
       - attach_workspace:
           at: dist
