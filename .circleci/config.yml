@@ -3,9 +3,32 @@ version: 2.1
 
 orbs:
   codecov: codecov/codecov@1.1.0
-  plugin-ci: mattermost/plugin-ci@volatile
 
 jobs:
+  plugin-ci/lint:
+    steps:
+      - run:
+          name: "Check style"
+          command: |
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
+            make check-style
+
+  plugin-ci/test:
+    steps:
+      - run:
+          name: "Run tests"
+          command: |
+            make test
+
+  plugin-ci/build:
+    steps:
+      - run:
+          name: "Build and bundle the plugin"
+          command: |
+            make dist
+      - persist_to_workspace:
+          paths: dist
+
   deploy-release-github:
     docker:
       - image: cibuilds/github:latest
@@ -33,10 +56,6 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-      - plugin-ci/coverage:
-          filters:
-            tags:
-              only: /^v.*/
       - deploy-release-github:
           filters:
             tags:
@@ -46,5 +65,5 @@ workflows:
           context: "standup-raven"
           requires:
             - plugin-ci/lint
-            - plugin-ci/coverage
+            - plugin-ci/test
             - plugin-ci/build
