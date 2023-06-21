@@ -5,17 +5,6 @@ orbs:
   codecov: codecov/codecov@1.1.0
   node: circleci/node@5.1.0
 
-executors:
-  ubuntu:
-    docker:
-      - image: cimg/base:stable
-    parameters:
-      resource_class:
-        default: large
-        type: string
-    working_directory: ~/standup-raven
-    resource_class: <<parameters.resource_class>>
-
 commands:
   save:
     description: "Save binaries artifacts"
@@ -35,7 +24,6 @@ jobs:
   lint:
     docker:
       - image: cimg/go:1.18.10
-    executor: ubuntu
     steps:
       - node/install:
           node-version: '14.21.3'
@@ -50,7 +38,6 @@ jobs:
   test:
     docker:
       - image: cimg/go:1.18.10
-    executor: ubuntu
     steps:
       - node/install:
           node-version: '14.21.3'
@@ -63,7 +50,6 @@ jobs:
   build:
     docker:
       - image: cimg/go:1.18.10
-    executor: ubuntu
     steps:
       - node/install:
           node-version: '14.21.3'
@@ -91,6 +77,7 @@ jobs:
           name: "Publish Release on Github"
           command: |
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n ${CIRCLE_TAG} -delete ${CIRCLE_TAG}  /tmp/artifacts
+
 workflows:
   version: 2
   ci:

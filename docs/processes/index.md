@@ -70,9 +70,9 @@ Add here any corner or edge cases to keep in mind while testing or during develo
     These are to be done on Standup Raven release day.
     
     * [ ] Generate release notes locally using [what-the-changelog](https://github.com/standup-raven/what-the-changelog). Keep this handy as it will be needed later.
-    * [ ] Create tag on release branch as `vx.y.z`. This will trigger the GitHub actions release job.
-    * [ ] Monitor the GitHub actions for success or faliure.
-    * [ ] Once the GitHub actions are complete, verify that a new GitHub release has been created. 
+    * [ ] Create tag on release branch as `vx.y.z`. This will trigger the CircleCI release workflow.
+    * [ ] Monitor the CircleCI workflow for success or faliure.
+    * [ ] Once the CircleCI workflow is complete, verify that a new GitHub release has been created. 
     * [ ] Verify that the GitHub release contains plugin distributions in attachments.
     * [ ] Use the changelog generated in earlier step along with [changelog template](#changelog-template), add the changelog to the GitHub release.
     * [ ] Update plugin version number on `master` for next release.
