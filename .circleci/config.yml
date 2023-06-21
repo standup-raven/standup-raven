@@ -46,6 +46,8 @@ jobs:
           command: |
             go mod tidy
             curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.2
+            which golangci-lint
+            golangci-lint version
             make check-style
 
   test:
@@ -93,12 +95,6 @@ jobs:
       - run:
           name: "Publish Release on Github"
           command: |
-            echo ${GITHUB_TOKEN}
-            echo ${CIRCLE_PROJECT_USERNAME}
-            echo ${CIRCLE_PROJECT_REPONAME}
-            echo ${CIRCLE_SHA1}
-            echo ${CIRCLE_TAG}
-            echo ${CIRCLE_TAG}
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n ${CIRCLE_TAG} -delete ${CIRCLE_TAG}  /tmp/artifacts
 workflows:
   version: 2
@@ -109,7 +105,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              ignore: update_makefile
+              only: update_makefile
       - test:
           filters:
             tags:
