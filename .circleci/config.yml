@@ -81,7 +81,7 @@ jobs:
           paths: ~/standup-raven/dist
       - persist_to_workspace:
           root: ~/standup-raven
-          paths: .
+          paths: dist
 
   deploy-release-github:
     docker:
@@ -129,5 +129,4 @@ workflows:
               only: update_makefile
           context: "standup-raven"
           requires:
-            - test
             - build
