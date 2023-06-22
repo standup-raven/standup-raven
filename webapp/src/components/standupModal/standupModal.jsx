@@ -110,7 +110,7 @@ class StandupModal extends (SentryBoundary, React.Component) {
                 .end((err, result) => {
                     if (result.ok) {
                         for (const sectionTitle of Object.keys(result.body.standup)) {
-                            if (this.state.standup[sectionTitle] !== undefined) {
+                            if (this.state.standup[sectionTitle]) {
                                 for (let i = 0; i < result.body.standup[sectionTitle].length; ++i) {
                                     this.state.standup[sectionTitle][`line${i + 1}`] = result.body.standup[sectionTitle][i];
                                 }
