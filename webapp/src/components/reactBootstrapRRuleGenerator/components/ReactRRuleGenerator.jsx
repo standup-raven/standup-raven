@@ -20,8 +20,8 @@ class ReactRRuleGenerator extends React.Component {
         this.props.id,
     );
 
-    UNSAFE_componentWillMount() {
-        console.log('unmounting');
+    // eslint-disable-next-line
+    componentWillMount() {
         if (this.props.onChange === ReactRRuleGenerator.defaultProps.onChange) {
             // no onChange() was provided
             throw new Error('No onChange() function has been passed to RRuleGenerator. \n' +
@@ -35,7 +35,8 @@ class ReactRRuleGenerator extends React.Component {
         }
     }
 
-    UNSAFE_componentWillReceiveProps(nextProps) {
+    // eslint-disable-next-line
+    componentWillReceiveProps(nextProps) {
         if (nextProps.value) {
             const data = computeRRuleFromString(this.state.data, nextProps.value);
             this.setState({data});
@@ -63,10 +64,6 @@ class ReactRRuleGenerator extends React.Component {
             },
         } = this.state;
 
-        console.log('root root root root root root root ');
-        console.log(this.props.repeatDropdownStyle);
-        console.log('root root root root root root root ');
-
         return (
             <div>
                 {
@@ -76,9 +73,7 @@ class ReactRRuleGenerator extends React.Component {
                         </div>
                     )
                 }
-
                 <div className='px-0 pt-3 border rounded'>
-
                     {
                         !options.hideStart && (
                             <div>
@@ -92,7 +87,6 @@ class ReactRRuleGenerator extends React.Component {
                             </div>
                         )
                     }
-
                     <div>
                         <Repeat
                             id={`${id}-repeat`}
@@ -106,7 +100,6 @@ class ReactRRuleGenerator extends React.Component {
                             monthlyOnTheDayDropdownStyle={this.props.monthlyOnTheDayDropdownStyle}
                         />
                     </div>
-
                     {
                         !options.hideEnd && (
                             <div>
@@ -120,7 +113,6 @@ class ReactRRuleGenerator extends React.Component {
                             </div>
                         )
                     }
-
                 </div>
             </div>
         );

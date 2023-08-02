@@ -1,3 +1,5 @@
+// This file is unused. We are saving this for future use. Reference: https://github.com/standup-raven/react-bootstrap-rrule-generator
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import numericalFieldHandler from '../../../utils/numericalFieldHandler';
@@ -28,9 +30,9 @@ const RepeatDaily = ({
         <div className='col-sm-1'>
             {translateLabel(translations, 'repeat.daily.days')}
         </div>
-
     </div>
 );
+
 RepeatDaily.propTypes = {
     id: PropTypes.string.isRequired,
     daily: PropTypes.shape({

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import RRuleGenerator from '../reactBootstrapRRuleGenerator/index';
+import RRuleGenerator from '../reactBootstrapRRuleGenerator';
 import rruleStyles from 'react-rrule-generator/build/styles.css';
 import {ControlLabel, FormGroup} from 'react-bootstrap';
 import configModalStyles from '../configModal/style';

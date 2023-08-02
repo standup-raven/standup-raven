@@ -38,18 +38,6 @@ const RepeatMonthlyOn = ({
             </div>
 
             <div className='col-sm-2 day-of-month-selector'>
-                {/*<select*/}
-                {/*  id={`${id}-day`}*/}
-                {/*  name="repeat.monthly.on.day"*/}
-                {/*  aria-label="Repeat monthly on a day"*/}
-                {/*  className="form-control"*/}
-                {/*  value={on.day}*/}
-                {/*  disabled={!isActive}*/}
-                {/*  onChange={numericalFieldHandler(handleChange)}*/}
-                {/*>*/}
-                {/*  {[...new Array(31)].map((day, i) => <option key={i} value={i + 1}>{i + 1}</option>)}*/}
-                {/*</select>*/}
-
                 <SplitButton
                     bsStyle={'link'}
                     id={`${id}-day`}
@@ -65,7 +53,6 @@ const RepeatMonthlyOn = ({
                     style={monthlyOnDayDropdownStyle}
                     dropup={true}
                 >
-                    {/*{[...new Array(31)].map((day, i) => <option key={i} value={i + 1}>{i + 1}</option>)}*/}
                     {[...new Array(31)].map((day, i) => (
                         <MenuItem
                             eventKey={i + 1}
@@ -79,6 +66,7 @@ const RepeatMonthlyOn = ({
         </div>
     );
 };
+
 RepeatMonthlyOn.propTypes = {
     id: PropTypes.string.isRequired,
     mode: PropTypes.oneOf(['on', 'on the']).isRequired,

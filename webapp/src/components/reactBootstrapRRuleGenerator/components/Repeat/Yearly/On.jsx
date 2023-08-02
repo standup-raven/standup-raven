@@ -1,3 +1,5 @@
+// This file is unused. We are saving this for future use. Reference: https://github.com/standup-raven/react-bootstrap-rrule-generator
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
@@ -20,7 +22,7 @@ const RepeatYearlyOn = ({
 
     return (
         <div className={`form-group row d-flex align-items-sm-center ${!isActive && 'opacity-50'}`}>
-            <div className='col-sm-1  '>
+            <div className='col-sm-1'>
 
                 {hasMoreModes && (
                     <input
@@ -79,6 +81,7 @@ const RepeatYearlyOn = ({
         </div>
     );
 };
+
 RepeatYearlyOn.propTypes = {
     id: PropTypes.string.isRequired,
     mode: PropTypes.oneOf(['on', 'on the']).isRequired,

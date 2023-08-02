@@ -86,6 +86,7 @@ const RepeatMonthlyOnThe = ({
         </div>
     );
 };
+
 RepeatMonthlyOnThe.propTypes = {
     id: PropTypes.string.isRequired,
     mode: PropTypes.oneOf(['on', 'on the']).isRequired,
