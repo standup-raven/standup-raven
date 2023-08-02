@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {
     Alert,
     Button,
@@ -13,18 +12,22 @@ import {
     Tab,
     Tabs,
 } from 'react-bootstrap';
-import Constants from '../../constants';
-import TimePicker from '../timePicker';
-import request from 'superagent';
-import style from './style.css';
-import reactStyles from './style';
-import SentryBoundary from '../../SentryBoundary';
-import * as HttpStatus from 'http-status-codes';
-import ToggleSwitch from '../toggleSwitch';
+import PropTypes from 'prop-types';
 import Cookies from 'js-cookie';
-import RRule from '../rRule';
+import * as HttpStatus from 'http-status-codes';
+import request from 'superagent';
+
 import utils from '../../utils';
 import * as RavenClient from '../../raven-client';
+import Constants from '../../constants';
+import SentryBoundary from '../../SentryBoundary';
+
+import ToggleSwitch from '../toggleSwitch';
+import RRule from '../rRule';
+import TimePicker from '../timePicker';
+
+import style from './style.css';
+import reactStyles from './style';
 
 const configModalCloseTimeout = 1000;
 const timezones = require('../../../../timezones.json');
