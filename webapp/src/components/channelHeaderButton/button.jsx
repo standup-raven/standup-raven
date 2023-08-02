@@ -1,7 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import logo from '../../assets/images/logo.svg';
-import PropTypes from 'prop-types';
 import RavenClient from '../../raven-client';
 
 class ChannelHeaderButtonIcon extends React.Component {

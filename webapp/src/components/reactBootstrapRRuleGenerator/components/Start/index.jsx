@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import StartOnDate from './OnDate';
 
 import translateLabel from '../../utils/translateLabel';
+
+import StartOnDate from './OnDate';
 
 const Start = ({
     id,

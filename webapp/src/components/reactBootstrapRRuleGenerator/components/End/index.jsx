@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import EndAfter from './After';
-import EndOnDate from './OnDate';
 
 import translateLabel from '../../utils/translateLabel';
+
+import EndAfter from './After';
+import EndOnDate from './OnDate';
 
 const End = ({
     id,

@@ -1,13 +1,14 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import RRuleGenerator from '../reactBootstrapRRuleGenerator';
-import rruleStyles from 'react-rrule-generator/build/styles.css';
 import {ControlLabel, FormGroup} from 'react-bootstrap';
+import DatePicker from 'react-16-bootstrap-date-picker';
+
+import RRuleGenerator from '../reactBootstrapRRuleGenerator';
+import rruleStyles from '../reactBootstrapRRuleGenerator/styles/index.css';
 import configModalStyles from '../configModal/style';
+
 import style from './style.css';
 import reactStyles from './style';
-
-import DatePicker from 'react-16-bootstrap-date-picker';
 
 class RRule extends React.PureComponent {
     constructor(props) {

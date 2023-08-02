@@ -2,6 +2,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+
 import numericalFieldHandler from '../../../utils/numericalFieldHandler';
 import translateLabel from '../../../utils/translateLabel';
 

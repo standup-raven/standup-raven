@@ -1,8 +1,9 @@
 import {connect} from 'react-redux';
 
-import ChannelHeaderButtonIcon from './button';
 import util from '../../utils';
 import Selectors from '../../selectors';
+
+import ChannelHeaderButtonIcon from './button';
 
 const mapStateToProps = (state) => ({
     channelID: state.entities.channels.currentChannelId,

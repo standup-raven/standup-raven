@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {MenuItem, SplitButton} from 'react-bootstrap';
+
 import numericalFieldHandler from '../../../utils/numericalFieldHandler';
 import translateLabel from '../../../utils/translateLabel';
-import {MenuItem, SplitButton} from 'react-bootstrap';
 
 const RepeatMonthlyOn = ({
     id,

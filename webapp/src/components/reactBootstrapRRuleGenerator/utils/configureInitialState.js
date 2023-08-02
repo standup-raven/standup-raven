@@ -1,8 +1,9 @@
 import moment from 'moment';
 import {isEmpty, uniqueId} from 'lodash';
 
-import computeRRuleToString from './computeRRule/toString/computeRRule';
 import {DATE_TIME_FORMAT} from '../constants/index';
+
+import computeRRuleToString from './computeRRule/toString/computeRRule';
 
 const configureState = (config = {}, calendarComponent, id) => {
     const configureFrequency = () => (config.repeat ? config.repeat[0] : 'Yearly');

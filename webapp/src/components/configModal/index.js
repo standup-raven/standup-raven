@@ -3,9 +3,9 @@ import {bindActionCreators} from 'redux';
 
 import Actions from '../../actions';
 import Selectors from '../../selectors';
+import util from '../../utils';
 
 import ConfigModal from './configModal';
-import util from '../../utils';
 
 const mapStateToProps = (state) => {
     return {

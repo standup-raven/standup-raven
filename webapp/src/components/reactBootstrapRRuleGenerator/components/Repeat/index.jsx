@@ -1,12 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {ControlLabel, MenuItem, SplitButton} from 'react-bootstrap';
+
+import translateLabel from '../../utils/translateLabel';
+
 import RepeatYearly from './Yearly/index';
 import RepeatMonthly from './Monthly/index';
 import RepeatWeekly from './Weekly/index';
 import RepeatDaily from './Daily/index';
 import RepeatHourly from './Hourly/index';
-import translateLabel from '../../utils/translateLabel';
-import {ControlLabel, MenuItem, SplitButton} from 'react-bootstrap';
 
 const Repeat = ({
     id,
