@@ -10,6 +10,8 @@ A Mattermost plugin for communicating daily standups across teams
 [![codecov](https://codecov.io/gh/standup-raven/standup-raven/branch/master/graph/badge.svg)](https://codecov.io/gh/standup-raven/standup-raven)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2940/badge)](https://bestpractices.coreinfrastructure.org/projects/2940)
 
+</div>
+
 <div align="center">
     <img src="docs/assets/images/standup.gif?raw=true"></img>
 </div>
