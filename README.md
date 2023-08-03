@@ -11,15 +11,6 @@ A Mattermost plugin for communicating daily standups across teams
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2940/badge)](https://bestpractices.coreinfrastructure.org/projects/2940)
 
 <div align="center">
-<a href="https://ko-fi.com/W7W11SK6R" target="_blank">
-    <img src="docs/assets/images/ko-fi.png?raw=true" width="270px"></img>
-</a>
-</div>
-<br>
-<br>
-</div>
-
-<div align="center">
     <img src="docs/assets/images/standup.gif?raw=true"></img>
 </div>
 
